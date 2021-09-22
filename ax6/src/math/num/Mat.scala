@@ -1,5 +1,5 @@
 package ax6.math.num
-
+import  Jama._
 import scala.Array
 
 class Mat( _mat:Array[Double] ) {
@@ -8,7 +8,7 @@ class Mat( _mat:Array[Double] ) {
   def n:Int = 3
   def m:Int = 3
   def update( i:Int, j:Int, b:Double ): Unit = {  }
-  def apply( i:Int, j:Int ) : Double = 3.0
+  def apply(  i:Int, j:Int ) : Double = 3.0
 
 }
 
