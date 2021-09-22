@@ -1,6 +1,5 @@
-package ax6.math.num
-import  Jama._
-import scala.Array
+package math.num
+import  Jama.Matrix
 
 class Mat( _mat:Array[Double] ) {
   var mat : Array[Double] = _mat
@@ -15,4 +14,3 @@ class Mat( _mat:Array[Double] ) {
 object Mat  {
 
 }
-

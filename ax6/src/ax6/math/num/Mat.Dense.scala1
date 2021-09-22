@@ -2,13 +2,14 @@
 package ax6.math.num
 
 import  ax6.util.Text
-//import  Jama._
+import org.apache.spark.mllib.linalg.{ DenseMatrix => Matrix }
 
+  /*
 class Matrix( array:Array[Double] ) {
   def this( a:Array[Double] ) = this( a )
   def this( n:Int, m:Int )    = this( new Array(n*m) )
 }
-
+*/
 class Mat private ( _mat:Matrix )
 {
   var mat:Matrix = _mat

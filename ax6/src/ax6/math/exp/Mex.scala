@@ -140,11 +140,11 @@ case class Mex( mat:Array[Vex] ) extends Exp
   
   def calcMex( aa:Assign ) : Mat =
   {
-    val ma = new Mat(n,m)
-    for( i <- 0 until n )
+    val values:Array[Double] = new Array[Double](n*m)
+    for(   i <- 0 until n )
       for( j <- 0 until m )
-        ma(i,j) = a(i,j).calc(aa)
-    ma
+        values(i*n+j) = a(i,j).calc(aa)
+    new Mat(n,m,values)
   }  
 
 // ... for comprehensions ...

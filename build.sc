@@ -1,23 +1,29 @@
 // build.sc
 import mill._, scalalib._
 
-object foo extends ScalaModule{
+object foo extends ScalaModule {
   def scalaVersion = "2.13.2" }
 
-object ax6 extends ScalaModule{
-  def scalaVersion = "2.13.2"
-  def mainClass = Some("ax6.Ax6")
-  def ivyDeps = Agg(
+object ax6 extends ScalaModule {
+  def scalaVersion = "2.12.1"
+  override def mainClass = Some("ax6.Ax6")
+  override def ivyDeps = Agg(
     ivy"org.scala-lang.modules::scala-parser-combinators:2.0.0",
     ivy"io.d11::zhttp:1.0.0.0-RC17",
-    ivy"org.apache.spark.mllib.linalg::DenseMatrix" )
+    ivy"org.apache.spark::spark-mllib:2.4.4" )
+  override def unmanagedClasspath = T {
+    if (!os.exists(millSourcePath / "lib")) Agg()
+    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_))) }
+}
+
+/*
+def scalaVersion = "2.13.2"
+$ivy.`org.apache.spark::spark-mllib:2.4.4
+org.apache.spark » spark-mllib » 2.10
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / "lib")) Agg()
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
   }
-}
-
-/*
 mill mill.scalalib.GenIdea/idea
 
 def scalacOptions = Seq(
