@@ -77,6 +77,12 @@ class Text( _cap:Int ) extends
   def indexOf( c:Char )       : Int  = { sb.indexOf(c) }
   def indexOf( s:String )     : Int  = { sb.indexOf(s) }
   def toCS                    : CS   = { sb.asInstanceOf[CS] }
+  def toText( a:Array[Text] ) : Text = {
+    val tx:Text = new Text()
+    for( e <- a ) {
+      tx.app( e ) }
+    tx
+  }
 
   def cap( _cap:Int )    : Unit    = { sb.ensureCapacity(_cap) }
   def grow( inc:Int )    : Unit    = { sb.ensureCapacity( cap + inc ) }
@@ -87,8 +93,8 @@ class Text( _cap:Int ) extends
   def has(     c:Char )  : Boolean = sb.contains( c )
   def hasTail( c:Char )  : Boolean = sb.charAt(sb.size-1)==c
 
-  def delTail()       : Unit = { sb.setLength(sb.size-1) }
-  def delTail(c:Char) : Unit = { if( hasTail(c)) delTail() }
+  def delTail()          : Unit = { sb.setLength(sb.size-1) }
+  def delTail(c:Char)    : Unit = { if( hasTail(c)) delTail() }
 
   // ... appends ....
   def app( str:String    ) : Unit = { sb.append( str ) }
@@ -102,6 +108,7 @@ class Text( _cap:Int ) extends
   def app( d:Double      ) : Unit = { sb.append( d   ) } // app( s, dec(s) ) }
   def app( b:Boolean     ) : Unit = { if(b) sb.append("true") else sb.append("false") }
   def app( a:Array[Char] ) : Unit = { sb.appendAll( a ) }
+  def app( a:Array[Text] ) : Unit = { app( toText(a) ) }
   def app( t:Text        ) : Unit = { if( t!=this ) sb.append( t ) }
   def app( a:Any         ) : Unit = { sb.append( a   ) }
 //def app( _             ) : Unit = {}
@@ -121,7 +128,7 @@ class Text( _cap:Int ) extends
       case f:Float        => app(f)
       case d:Double       => app(d)
       case a:Array[Char]  => app(a)
-    //case a:Array[Any]   => delim( ",", IndexedSeq(a) )
+      case a:Array[Text]  => delim( ",", IndexedSeq(a) )
       case a:List[_]      => delim( ",", a )
     //case e:Enum         => app(e.name)
       case u:Unit         => app(u)
@@ -147,7 +154,7 @@ class Text( _cap:Int ) extends
     for( i <- sb.indices ) if( a == sb.charAt(i) ) sb.setCharAt(i,b)
   }
 
-//def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( mid, args.seq() ) }
+  def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( "", mid, "", args ) }
   def delim( mid:CS, args:Seq[Any] )        : Unit = { delim( "", mid, "", args ) }
 
   def delim( beg:CS, mid:CS, end:CS, args:Seq[Any] ): Unit = {
@@ -155,22 +162,22 @@ class Text( _cap:Int ) extends
     for( i <- args.indices )
     {
       if(  i < args.length-1 )
-        app( args(i), mid )
+        app((args(i), mid))
       else
-       any( args(i) )
+        app( args(i) )
     }
     app( end )
   }
 
   def text( args:Any* ) : Text = { seq(args); this }
 
-  def att( name:CS, value:Any ) : Unit =  { app( " ", name, "=\"", value, "\"" ); replace('_','-') }
+  def att( name:CS, value:Any ) : Unit =  { app((" ", name, "=\"", value, "\"")); replace('_','-') }
 //def css( name:CS, value:Any ) : Unit =   {app( " ", name, ": ",  value, "; " ); replace('_','-') }
   def css( name:CS, value:Any ) : Unit =
-   { app( " ", name, ": \"", value, "\"; " ); replace('_','-') }
+   { app((" ", name, ": \"", value, "\"; ")); replace('_','-') }
 
   def css( name:CS, value:Any, uom:String ) : Unit =
-    {app( " ", name, ": ", value, uom, "; " ); replace('_','-') }
+    {app((" ", name, ": ", value, uom, "; ")); replace('_','-') }
 
   def space( n:Int ) : Unit =  { for(_ <-0 until n) app(' '     ); }
   def tab(   n:Int ) : Unit =  { for(_ <-0 until n) app(Text.tab); }

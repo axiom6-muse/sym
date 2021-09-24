@@ -1,14 +1,16 @@
 
 package ax6.test
 
-import  ax6.util.{ Text, Log }
+import ax6.util.{Log, Text}
+
+import scala.collection.mutable.ArrayBuffer
 
 object Test
 {
-   val  text:Text       = new Text(1000)
-   val  array            = new Array[Text](0)
-   val  sep             = "::"
-   type CS              = Text.CS
+   val  text:Text = new Text(1000)
+   val  array     = new ArrayBuffer[Text](0)
+   val  sep       = "::"
+   type CS        = Text.CS
 
   def app( args:Any* ): Unit = {
      for( arg<-args )
@@ -33,8 +35,17 @@ object Test
   def keep( name:CS, args:Any* ): Unit = {
     text.clear()
     text.app((name, sep))
-    val index = array.indexOf( text )
+    text.seq( args )
+    array :+ text
+    Console.out.print(("Test.keep", text, array ))
+    text.clear()
+  }
 
+  def keep2( name:CS, args:Any* ): Unit = {
+    text.clear()
+    text.app((name, sep))
+    Console.out.print(("Test.keep", array))
+    val index = array.indexOf( text )
     if( index >= 0 )
     {
       text.clear()
@@ -45,8 +56,8 @@ object Test
     else
     {
       text.seq( args )
-      val text2 = new Text(text)
-      array :+ text2
+      //val text2 = new Text(text)
+      array :+ text
     }
     text.clear()
   }
@@ -64,6 +75,7 @@ object Test
     if( Text.equ( text.toCS, 0, n, name, 0, name.length ) )
     {
       val index = array.indexOf( text )
+      Console.out.print(( "Test.end", index, text, array ))
       if( index >= 0 )
       {
         val keep = array(index)
