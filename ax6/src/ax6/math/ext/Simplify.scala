@@ -83,6 +83,7 @@ trait Simplify
     case _                      => sim(u)*sim(v)
   }
 
+  // Stack recursion needs to be reexamined
   def div( u:Exp, v:Exp ) : Exp = (u,v) match
   {
     case( q, Num(1)|Dbl(1.0) ) => sim(q)
@@ -92,8 +93,8 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a/b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a/b) 
     case( Mul(a,b), denom    ) => div(mul(a,b),sim(denom))
-    case( numer, Mul(a,b)    ) => div(sim(numer),mul(a,b))
-    case _                     => sim(u)*sim(v)
+  //case( numer, Mul(a,b)    ) => div(sim(numer),mul(a,b))
+    case _                     => u / v
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match

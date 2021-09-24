@@ -6,7 +6,7 @@ trait Differentiate
 
   def d( e:Exp ) : Exp = e match
   {
-    case Num(n)   => 0           // diff of constant zero
+    case Num(n)   => n*0           // diff of constant zero
     case Var(s)   => Dif(Var(s)) // x becomes dx
     case Par(u)   => Par(d(u))
     case Neg(u)   => -d(u)

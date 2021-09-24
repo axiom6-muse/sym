@@ -19,7 +19,7 @@ class Mat private ( _mat:Matrix )
 
   def row( i:Int ) : Vec =
   {
-    val d = new Array[Double](m)
+    val d = new Array[Double](m())
     (0 until m)
       .foreach(j => d(j) = a(i, j))
     new Vec(d)
@@ -27,17 +27,37 @@ class Mat private ( _mat:Matrix )
 
   def col( j:Int ) : Vec =
   {
-    val d = new Array[Double](n)
-    (0 until n)
-      .foreach(i => d(i) = a(i, j))
-    new Vec(d)
+    val c = new Array[Double](n())
+    for( i <- 0 until n )
+      c(i) = a(i,j)
+    new Vec(c)
   }
   def diag : Vec =
   {
-    val d = new Array[Double](n)
+    val d = new Array[Double](n())
     for( i <- 0 until n )
       d(i) = a(i,i)
     new Vec(d)
+  }
+
+  def text() : Text = {
+    new Text( n() * ( m()*6+4 ) )
+  }
+
+  def text( t:Text ) : Text = text( t:Text, "", "" )
+  def text( t:Text, sp:String, eol:String ) : Text =
+  {
+    //val t:Text = new Text( n*(m*6+4) )
+    t.app((eol, '[', sp))
+    for( i <- 0 until n )
+    {
+      t.app((eol, '[', sp, a(i, 0)))
+      for( j <- 1 until m )
+        t.app((',', sp, a(i, j)))
+      t.app((sp, ']'))
+    }
+    t.app((eol, sp, ']'))
+    t
   }
 
 //def * ( b:Mat  )   : Mat = new Mat( Matrix.multiply(b.mat) )  // multiple is a Java Static
