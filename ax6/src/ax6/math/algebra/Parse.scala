@@ -33,6 +33,6 @@ object Parse extends StdTokenParsers
     case Success( exp, _    ) => exp
     case Failure( msg, trc  ) => Var("Failure"+msg+trc)
     case Error(   msg, trc  ) => Var("Error"+msg+trc)
-    case _                    => Var("Unknown")
+  //case _                    => Var("Unknown")
   }
 }

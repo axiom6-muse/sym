@@ -58,7 +58,7 @@ object Text
 
 }
 
-class Text( _cap:Int ) extends
+class Text( _cap:Int )
 {
   val sb = new StringBuilderText( _cap )
 
@@ -128,7 +128,7 @@ class Text( _cap:Int ) extends
       case f:Float        => app(f)
       case d:Double       => app(d)
       case a:Array[Char]  => app(a)
-      case a:Array[Text]  => delim( ",", IndexedSeq(a) )
+      case a:Array[Text]  => delim( ",", Seq(a) )
       case a:List[_]      => delim( ",", a )
     //case e:Enum         => app(e.name)
       case u:Unit         => app(u)
@@ -154,7 +154,7 @@ class Text( _cap:Int ) extends
     for( i <- sb.indices ) if( a == sb.charAt(i) ) sb.setCharAt(i,b)
   }
 
-  def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( "", mid, "", args ) }
+//def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( "", mid, "", args ) }
   def delim( mid:CS, args:Seq[Any] )        : Unit = { delim( "", mid, "", args ) }
 
   def delim( beg:CS, mid:CS, end:CS, args:Seq[Any] ): Unit = {

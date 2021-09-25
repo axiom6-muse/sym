@@ -35,7 +35,7 @@ case class Mex( mat:Array[Vex] ) extends Exp
 
   def apply( i:Int, j:Int ) : Exp = mat(i)(j)
   def a(     i:Int, j:Int ) : Exp = mat(i)(j)
-  def a : Array[Vex] = mat
+  def amat : Array[Vex] = mat
 
   def update( i:Int, j:Int, b:Exp ): Unit = { mat(i)(j) = b }
 
@@ -137,14 +137,16 @@ case class Mex( mat:Array[Vex] ) extends Exp
         mex(j,i) = a(i,j)
     mex
   }
-  
+
+
   def calcMex( aa:Assign ) : Mat =
   {
-    val values:Array[Double] = new Array[Double](n*m)
-    for(   i <- 0 until n )
-      for( j <- 0 until m )
-        values(i*n+j) = a(i,j).calc(aa)
-    new Mat(n,m,values)
+    val mat = new Mat(n,m)
+    //for(   i <- 0 until n )
+    //  for( j <- 0 until m )
+        // mat.a(i,j) = a(i,j).calc(aa)
+
+    mat
   }  
 
 // ... for comprehensions ...
@@ -192,12 +194,12 @@ object Mex
     ves
   }   
   
-   val emp : Mex = new Mex(0,0)
+  val emp : Mex = new Mex(0,0)
 
-   def apply( exp:Exp ) : Mex = exp match  // This a cast
-   {
-     case mex:Mex  => mex
-     case _        => Logg.trace(4, "Bad Cast", exp.toString); emp
-   }   
+  def apply( exp:Exp ) : Mex = exp match  // This a cast
+  {
+    case mex:Mex  => mex
+    case _        => Logg.trace(4, "Bad Cast", exp.toString); emp
+  }
 
 }

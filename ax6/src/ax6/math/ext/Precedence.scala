@@ -55,8 +55,7 @@ trait Precedence
   val par:Int = precedence("(")
   val abs:Int   = precedence("|")
   
-  def precedence( exp:Exp ) : Int = exp match
-  {
+  def precedence( exp:Exp ) : Int = exp match {
     case Num(_)    => num
     case Dbl(_)    => num
     case Rat(_,_)  => num
@@ -104,8 +103,7 @@ trait Precedence
   }
  
 // ADT operators with spacing for the lower precendence
-   def operator( exp:Exp ) : String = exp match
-   {
+   def operator( exp:Exp ) : String = exp match {
      case Equ(_,_)  => " = "
      case Add(_,_)  => "+"
      case Sub(_,_)  => "-"

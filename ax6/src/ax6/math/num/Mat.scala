@@ -2,46 +2,43 @@
 package ax6.math.num
 
 import  ax6.util.Text
-import org.apache.spark.mllib.linalg.{ DenseMatrix => Matrix }
 
-class Mat private ( _mat:Matrix )
+class Mat( _n:Int, _m:Int )
 {
-  var mat:Matrix = _mat
-  def n():Int = mat.numCols
-  def m():Int = mat.numRows
+  val n:Int = _n
+  val m:Int = _m
+  val array = new Array[Double]( n * m )
+  for( k <- 0 until n*m )
+    array(k) = 0.0
 
-  def this( n:Int, m:Int, a:Array[Double] )  = this( new Matrix(n,m,a) )
-  def this( n:Int, m:Int )                   = this( new Matrix(n,m,Mat.zeroValues(n,m) ) )
-
-  def apply( i:Int, j:Int ) : Double = mat.apply(i,j)
-  def a(     i:Int, j:Int ) : Double = mat.apply(i,j)
-//def copy() : Mat = new Mat( mat.copy() )
+  def apply( i:Int, j:Int ) : Double = array.apply(i+n+j)
+  def a(     i:Int, j:Int ) : Double = array.apply(i+n+j)
 
   def row( i:Int ) : Vec =
   {
-    val d = new Array[Double](m())
-    (0 until m)
-      .foreach(j => d(j) = a(i, j))
-    new Vec(d)
+    val r = new Array[Double](m)
+     for( j <- 0 until m )
+      r(j) = a(i,j)
+    new Vec(r)
   }
 
   def col( j:Int ) : Vec =
   {
-    val c = new Array[Double](n())
+    val c = new Array[Double](n)
     for( i <- 0 until n )
       c(i) = a(i,j)
     new Vec(c)
   }
   def diag : Vec =
   {
-    val d = new Array[Double](n())
+    val d = new Array[Double](n)
     for( i <- 0 until n )
       d(i) = a(i,i)
     new Vec(d)
   }
 
   def text() : Text = {
-    new Text( n() * ( m()*6+4 ) )
+    new Text( n * ( m*6+4 ) )
   }
 
   def text( t:Text ) : Text = text( t:Text, "", "" )
@@ -59,8 +56,6 @@ class Mat private ( _mat:Matrix )
     t.app((eol, sp, ']'))
     t
   }
-
-//def * ( b:Mat  )   : Mat = new Mat( Matrix.multiply(b.mat) )  // multiple is a Java Static
 
 }
 

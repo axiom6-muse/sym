@@ -7,7 +7,7 @@ import  scala.language.implicitConversions
 
 case class Cex( r:Exp, i:Exp ) extends Exp
 {  
-   def this( cex:Cex ) = this(cex.r,cex.i) // Copy constructor
+   def this( cex:Cex ) = { this(cex.r,cex.i) } // Copy constructor
 
    def + ( b:Cex ) : Cex = new Cex( Add(r,b.r), Add(i,b.i) )
    def - ( b:Cex ) : Cex = new Cex( Sub(r,b.r), Sub(i,b.i) )
@@ -42,7 +42,7 @@ case class Cex( r:Exp, i:Exp ) extends Exp
       new Cex( Mul(p,Cos(a)), Mul(p,Sin(a)) ) 
    }
 
-  def calcCex( aa:Assign ) : Cpl = new Cpl( calc(aa,r), calc(aa,r) )
+   def calcCex( aa:Assign ) : Cpl = { new Cpl( calc(aa,r), calc(aa,r) ) }
 
 }
 
@@ -53,10 +53,9 @@ object Cex
   
   implicit def dbl2Cex( x:Double ) : Cex = Cex( Dbl(x), Num(0) )
 
-   def apply( exp:Exp ) : Cex = exp match  // This a cast
-   {
+   def apply( exp:Exp ) : Cex = exp match {
      case cex:Cex  => cex
      case _        => Logg.trace(4, "Bad Cast", exp.toString); emp
-   }   
+   }
 
 }

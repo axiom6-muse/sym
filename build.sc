@@ -6,15 +6,15 @@ object ax1 extends ScalaModule {
   def scalaVersion = "3.0.2" }
 
 object ax6 extends ScalaModule {
-  def scalaVersion = "2.12.1"
+  def scalaVersion = "3.0.2"
   override def mainClass = Option("ax6.test.Suite")
   override def ivyDeps = Agg(
     ivy"org.scala-lang.modules::scala-parser-combinators:2.0.0",
-    ivy"io.d11::zhttp:1.0.0.0-RC17",
-    ivy"org.apache.spark::spark-mllib:2.4.4" )
+    ivy"io.d11::zhttp:1.0.0.0-RC17" )
 }
 
 /*
+ivy"org.apache.spark::spark-mllib:2.4.4"
   object test extends ScalaModule {
     def scalaVersion = "2.12.1"
     println( ("millSourcePath", millSourcePath ) )

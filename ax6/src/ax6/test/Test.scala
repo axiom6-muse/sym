@@ -7,10 +7,10 @@ import scala.collection.mutable.ArrayBuffer
 
 object Test
 {
-   val  text:Text = new Text(1000)
-   val  array     = new ArrayBuffer[Text](0)
-   val  sep       = "::"
-   type CS        = Text.CS
+  val  text:Text = new Text(1000)
+  val  array     = new ArrayBuffer[Text](0)
+  val  sep       = "::"
+  type CS        = Text.CS
 
   def app( args:Any* ): Unit = {
      for( arg<-args )

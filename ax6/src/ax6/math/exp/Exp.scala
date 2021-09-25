@@ -5,9 +5,9 @@ import  ax6.math.ext._
 import  ax6.util.Text
 import  scala.language.implicitConversions
 
-abstract class Exp extends
-  Ascii     with Lambda        with MathML    with Latex      with
-  Calculate with Differentiate with Integrate with Precedence with Simplify
+abstract class Exp extends Ascii
+  with Lambda    with MathML        with Latex
+  with Calculate with Differentiate with Integrate with Precedence with Simplify
 {
   type dbl     = Double
 

@@ -81,34 +81,34 @@ class Hold[D]() // extends Seq[D]
 // ........ Heap ........
 
 // def put(   key:K, data:D ) : Hode[D]= add(data)
-   def upd(  node:Hode[D], data:D ) : Hode[D]= { node.data = data; node }
+  def upd(  node:Hode[D], data:D ) : Hode[D]= { node.data = data; node }
 // def key(  node:Hode[D],  key:K ) : Hode[D]= node
 // def del(  node:Hode[D] )         : Hode[D]// Delete data and key from a location
 // def node(  key:K )         : Hode[D]= // node(i) 
 // def find(  key:K )         : D = // find(To.ID)
 
-   def peekHead : D = head.data // findMin
-   def peekTail : D = tail.data // findMax  
+  def peekHead : D = head.data // findMin
+  def peekTail : D = tail.data // findMax
    
-   def popHead : D =  // deleteMin
-   {
-      var node : Hode[D]= term
-      if( !isEmpty )
-          { node = head; del(head) }
-      node.data
+  def popHead : D =  // deleteMin
+  {
+    var node : Hode[D]= term
+    if( !isEmpty )
+      { node = head; del(head) }
+    node.data
    }
 
-   def popTail : D =  // deleteMax
-   {
+  def popTail : D =  // deleteMax
+  {
       var node : Hode[D]= term
       if( !isEmpty )
           { node = tail; del(tail) }
       node.data
-   }   
+  }
   
-   def size     : Int = siz
+  def size     : Int = siz
 
-   def isEmpty  : Boolean = { siz == 0 }
+  def isEmpty: Boolean = { siz == 0 }
 
   def clear(): Unit = {
     lock()
@@ -347,17 +347,17 @@ class Hold[D]() // extends Seq[D]
 
 // Create new List by calling func on each List element
 // and then place the result in a new List
-   def map[B]( func:D => B )  : Hold[B] =
-   {
-     var node : Hode[D]= head
-     val sold : Hold[B] = new Hold[B]()
-     while( in(node) )
-     {
-       sold.add( func(node.data) )
-       node = node.next
-     }
-     sold
-   }
+  def map[B]( func:D => B )  : Hold[B] =
+  {
+    var node : Hode[D]= head
+    val sold : Hold[B] = new Hold[B]()
+    while( in(node) )
+    {
+      sold.add( func(node.data) )
+      node = node.next
+    }
+    sold
+  }
 
 // flatmap flattens List of Lists by creating a new List and then
 // calls func the map the element.
@@ -372,7 +372,7 @@ class Hold[D]() // extends Seq[D]
      sold
   }
 */
- def toList : List[D] =
+  def toList : List[D] =
   {
     val list = List[D]()
     var node = tail

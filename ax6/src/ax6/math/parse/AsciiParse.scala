@@ -85,24 +85,33 @@ object AsciiParse extends StdTokenParsers
     "sqrt"|"ln"|"log"|"sin"|"cos"|"tan"|"cot"|"sec"|"csc"|
     "arcsin"|"arccos"|"arctan"|"arccot"|"arcsec"|"arccsc"|"d" 
 
-// Check case where "log" => Lnn(u)
-   def func( f:String, u:Exp ) : Exp@unchecked = f  match
-   {  
-     case "sqrt"   => Sqt(u)  case "ln"     => Lnn(u)  case "log"    => Lnn(u)
-     case "sin"    => Sin(u)  case "cos"    => Cos(u)  case "tan"    => Tan(u)
-     case "cot"    => Cot(u)  case "sec"    => Sec(u)  case "csc"    => Csc(u)
-     case "arcsin" => ASin(u) case "arccos" => ACos(u) case "arctan" => ATan(u)
-     case "arccot" => ACot(u) case "arcsec" => ASec(u) case "arccsc" => ACsc(u)
-     case "d"      => Dif(u)
-     case  _       => Msg( Text(50).text( "Ascii.func::", f, '(', u.text, ')', " :: is an unknown function" ) )
-   }  
+  // Check case where "log" => Lnn(u)
+  def func( f:String, u:Exp ) : Exp = f match {
+    case "sqrt" => Sqt(u)
+    case "ln"   => Lnn(u)
+    case "log" => Lnn(u)
+    case "sin" => Sin(u)
+    case "cos" => Cos(u)
+    case "tan" => Tan(u)
+    case "cot" => Cot(u)
+    case "sec" => Sec(u)
+    case "csc" => Csc(u)
+    case "arcsin" => ASin(u)
+    case "arccos" => ACos(u)
+    case "arctan" => ATan(u)
+    case "arccot" => ACot(u)
+    case "arcsec" => ASec(u)
+    case "arccsc" => ACsc(u)
+    case "d" => Dif(u)
+    case _ => Msg(Text(50).text("Ascii.func::", f, '(', u.text, ')', " :: is an unknown function"))
+  }
   
 // log Interpreted as base e same as Ln for other bases use log_b(arg) 
 // e^u should not be a problem since "e" is reserved
 // ^ not a problem for Int and sum since lim consumes _ a ^ b 
 // def eee : Parser[Exp] = ("e"|Var("e")) ~> "^" ~ end ^^             
-   def log : Parser[Exp] = "log"  ~> "_" ~> DBL ~ arg  ^^ { case  b  ~  u => Log(u,b); case _ => Var("log") }
-   def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r); case _ => Var("roo") }
+   def log : Parser[Exp] = "log"  ~> "_" ~> DBL ~ arg  ^^ { case  b  ~  u => Log(u,b) }
+   def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r) }
    def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b); case _ => Var("lim") }
                                                       
    def sum  : Parser[Exp] = ("Int"|"sum") ~ lim ~ arg  ^^ 
@@ -151,7 +160,7 @@ object AsciiParse extends StdTokenParsers
     case Success( exp, _  ) => exp
     case Failure( msg, _  ) => Msg( Text(50).text( "Ascii.parse Failure::<", str, ">::", msg  ) )
     case Error(   msg, _  ) => Msg( Text(50).text( "Ascii.parse Error::<",   str, ">::", msg  ) )
-    case _                  => Msg( Text(50).text( "Ascii.parse Unknown::<", str, ">::" ) )
+  //case _                  => Msg( Text(50).text( "Ascii.parse Unknown::<", str, ">::" ) )
   }
 
 }

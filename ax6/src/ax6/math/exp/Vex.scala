@@ -6,20 +6,31 @@ import  ax6.util.{  Log=>Logg }
 
 case class Vex( a:Array[Exp] ) extends Exp  
 {   
-  def n : Int = a.length
+  val n : Int = a.length
   
-  def this( na:Int ) =
-      this( new Array[Exp](na) )
-  
-  def this( args : Exp* ) =
-    { this( args.length )
-      var i=0; for( arg<-args ) { a(i) = arg; i=i+1; } }
-  
-  def this( list : List[Exp] ) =
-   { this(list.length); var i=0; for( arg<-list ) { a(i) = arg; i=i+1; } }
+  def this( na:Int ) = this( new Array[Exp](na) )
 
-  def this( vex:Vex ) = // Copy constructor
-    { this(vex.n); for( i <- this ) a(i) = vex(i) }  
+  def this( args : Exp* ) =
+    this( new Array[Exp]( args.length ) )
+    var i=0
+    for( arg<-args )
+      this.a(i) = arg
+      i=i+1
+
+
+  def this( list : List[Exp] ) =
+    this( new Array[Exp]( list.size ) )
+    var i=0
+    for( arg<-list ) {
+      this.a(i) = arg
+      i=i+1; }
+
+
+  def this( vex:Vex ) =
+    this( new Array[Exp]( vex.n ) )
+    for( i <- 0 until vex.n )
+      this.a(i) = vex(i)
+
 
   def apply(  i:Int ) : Exp = a(i)
   def update( i:Int, b:Exp ) : Unit = { a(i) = b }
@@ -97,28 +108,11 @@ case class Vex( a:Array[Exp] ) extends Exp
 }
 
 object Vex
-{  
-   val emp : Vex = new Vex(0)
+{
+  val emp : Vex = new Vex(0)
 
-   def apply( exp:Exp ) : Vex = exp match  // This a cast
-   {
-     case vex:Vex  => vex
-     case _        => Logg.trace(4, "Bad Cast", exp.toString); emp
-   }   
+  def apply( exp:Exp ) : Vex = exp match {
+    case vex:Vex  => vex
+    case _        => Logg.trace(4, "Bad Cast", exp.toString); emp }
 
 }
-
-/*
-  def cross ( b:Vex ) : Vex = 
-  {
-    val u = new Vex(n);
-    n match
-    {
-      case 3 => u(0) = a(1)*b(2)-a(2)*b(1);
-            u(1) = a(2)*b(0)-a(0)*b(2);
-            u(2) = a(0)*b(1)-a(1)*b(0); 
-      case _ =>  
-    }
-    u
-   }
-*/

@@ -3,10 +3,9 @@ package ax6.math.ext
 
 import  ax6.math.exp._
 
-trait Calculate
-{
-   self:Exp =>
-   type Assign  = String => Double  
+trait Calculate {
+  self:Exp =>
+  type Assign  = String => Double
      
   val NaN : Double = Double.NaN
   val Ee  : Double = Math.E

@@ -9,7 +9,7 @@ import ax6.util.Text
 
 object Suite
 {
-   def main( args: Array[String] ): Unit = {
+  def main( args: Array[String] ): Unit = {
      val tst = new Suite()
      test(tst) }
 
@@ -35,8 +35,8 @@ object Suite
   
 class Suite //extends Suite
 {
-   type CS     = Text.CS
-   type Assign = String => Double
+  type CS     = Text.CS
+  type Assign = String => Double
 
   def pars( name:CS, txt:Text, seq:String* ) : Unit =
   {
@@ -171,7 +171,7 @@ class Suite //extends Suite
     
    }
 
- def testRun(): Unit = {
+  def testRun(): Unit = {
     val t = new Text(200)
     // -------------- x ------------------" )
     pars( "x.y.a...", t, "5", "dx", "x^y", "x*y", "x/y", "x+y", "x-y", "(x+y)", "-x" )
@@ -204,8 +204,8 @@ class Suite //extends Suite
     
   } 
 
-   def testEee(): Unit = {
-     val t = new Text(200)
+  def testEee(): Unit = {
+    val t = new Text(200)
     lam(  "eee.a", t, "e^x", "Eee(Var(x))")
     lam(  "eee.b", t, "e^(x+2)", "Eee(Par(Add(Var(x),Num(2))))")
     lam(  "eee.c", t, "e", "Var(e)")
