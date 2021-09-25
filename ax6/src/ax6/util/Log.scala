@@ -6,14 +6,14 @@ object Log
   val  text:Text = new Text(1000)
   type CS        = Text.CS
 
-// ... log and put output
-// log is the most called method that clears the buffer, delimits args and
-//   outputs a newline
-// put is more generic in that does not delimit the args and does not
-//  output a newline so put can be called multiple times to log a line of text
+  // ... log and put output
+  // log is the most called method that clears the buffer, delimits args and
+  //   outputs a newline
+  // put is more generic in that does not delimit the args and does not
+  //  output a newline so put can be called multiple times to log a line of text
 
-   def log( args:Any* ): Unit = { text.clear(); arg(args); eol() }
-   def put( args:Any* ): Unit = { text.clear(); seq(args); out() }
+  def log( args:Any* ): Unit = { text.clear(); arg(args); eol() }
+  def put( args:Any* ): Unit = { text.clear(); seq(args); out() }
 
 // .. Format args ...
 

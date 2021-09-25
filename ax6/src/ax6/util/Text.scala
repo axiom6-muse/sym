@@ -1,7 +1,8 @@
 package ax6.util
 
-import scala.collection.mutable.{ StringBuilder => StringBuilderText }
-import scala.collection.IndexedSeq
+//import scala.annotation.tailrec
+import scala.collection.mutable.{StringBuilder => StringBuilderText}
+//import scala.collection.IndexedSeq
 
 object Text
 {
@@ -34,13 +35,12 @@ object Text
   def toUpper( c:Char ) : Char = java.lang.Character.toUpperCase(c)
   def toLower( c:Char ) : Char = java.lang.Character.toLowerCase(c)
 
-
-  def equ( a:CS, b:CS )                   : Boolean = { Text.equ( a,  0, a.length, b, 0, b.length ) }
+  def equ( a:Text, ab:Int, al:Int, b:Text, bb:Int, bl:Int ) : Boolean = { Text.equ( a.sb, ab, al,  b.sb, bb, bl) }
+  def equ( a:Text, b:Text )               : Boolean = { Text.equ( a.sb, b.sb ) }
+  def equ( a:CS,   b:CS   )               : Boolean = { Text.equ( a,  0, a.length, b, 0, b.length ) }
   def equ( a:CS,   ab:Int, al:Int, b:CS ) : Boolean = { Text.equ( a, ab, al,       b, 0, b.length ) }
-  def equ( a:Text, ab:Int, al:Int,
-           b:Text, bb:Int, bl:Int ) : Boolean = { Text.equ( a.toCS, ab, al,  b.toCS, bb, bl) }
-  def equ( a:CS,   ab:Int, al:Int,
-           b:CS,   bb:Int, bl:Int ) : Boolean =
+
+  def equ( a:CS,   ab:Int, al:Int, b:CS,   bb:Int, bl:Int ) : Boolean =
   {
     if( a != null && b != null && al == bl )
     {
