@@ -82,9 +82,9 @@ class Vec( _n:Int ) {
   def text : Text =
   {
       val t:Text = new Text(n*6+4)
-      t.app(('[', a(0)))
+      t.all('[', a(0))
       for( i <- 1 until n )
-          t.app((',', a(i)))
+          t.all(',', a(i))
       t.app(']')
       t
   }

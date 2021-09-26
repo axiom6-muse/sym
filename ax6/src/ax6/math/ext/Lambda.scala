@@ -60,19 +60,22 @@ trait Lambda
   }
 
   def lambda( t:Text, name:String, s:String ): Unit =
-    { t.app( name, '(', s, ')' ) }
+    { t.all( name, '(', s, ')' ) }
 
   def lambda( t:Text, name:String, s1:String, s2:String ): Unit =
-    { t.app( name, '(', s1, ',', s2, ')' ) }
+    { t.all(name, '(', s1, ',', s2, ')') }
 
   def lambda( t:Text, name:String, u:Exp ): Unit =
-    { t.app( name, '(' ); u.lambda(t); t.app(')') }
+    { t.all( name, '('); u.lambda(t); t.app(')') }
 
   def lambda( t:Text, name:String, u:Exp, v:Exp ): Unit =
-    { t app(name, '('); u.lambda(t); t.app(','); v.lambda(t); t.app(')') }
+    { t all(name, '('); u.lambda(t); t.app(','); v.lambda(t); t.app(')') }
   
   def lambda( t:Text, name:String, a:Exp, b:Exp, u:Exp ): Unit =
-    { t.app( name, '(' ); a.lambda(t); t.app(','); b.lambda(t); t.app(','); u.lambda(t); t.app(')') }
+    { t.all(name, '('); a.lambda(t); t.app(','); b.lambda(t); t.app(','); u.lambda(t); t.app(')') }
+
+  // def lambdaExp( t:Text, name:String, u:Exp ): Unit =
+  //     { t.app( name ); u.lambda(t) }
   
   def lambdaCex( t:Text, r:Exp, i:Exp ): Unit =
     { t.app("Cex("); lambda(t,r); t.app(','); lambda(t,i); t.app(')') }
@@ -85,7 +88,7 @@ trait Lambda
   }
   
   def lambdaMex( t:Text, mat:Array[Vex] ): Unit = {
-    t.app( "Mex(", mat(0).lambda(t) ) 
+    t.all ("Mex(", mat(0).lambda(t))
     for( i <- 1 until mat.length )
       { t.app(','); mat(i).lambda(t) }
     t.app(')') 

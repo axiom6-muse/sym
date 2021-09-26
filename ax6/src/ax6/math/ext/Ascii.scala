@@ -15,22 +15,22 @@ trait Ascii
     {
       case Num(n)    => t.app( n.toString )
       case Dbl(r)    => t.app( r.toString )
-      case Rat(n,d)  => t.app((n.toString, '/', d.toString))
+      case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
       case Add(u,v)  => u.ascii(t); t.app('+'); v.ascii(t)
       case Sub(u,v)  => u.ascii(t); t.app('-'); v.ascii(t)
-      case Mul(u,v)  => group(t,u); t.app('*'); group(t,v)
-      case Div(u,v)  => group(t,u); t.app('/'); denom(t,v)
-      case Rec(u)    => t.app("1"); t.app('/'); denom(t,u)
-      case Pow(u,v)  => group(t,u); t.app('^'); group(t,v)
+      case Mul(u,v)  => u.ascii(t); t.app('*'); v.ascii(t)
+      case Div(u,v)  => u.ascii(t); t.app('/'); v.ascii(t)
+      case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
+      case Pow(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
       case Neg(u)    => t.app('-'); u.ascii(t)
       case Abs(u)    => t.app('|'); u.ascii(t); t.app('|')
-      case Par(u)    => paren(t,u)
+      case Par(u)    => t.app('('); u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{'); u.ascii(t); t.app('}')
       case Lnn(u)    => ascii( t, "ln", u )
       case Log(u,b)  => ascii( t, "log", b.r, u )
       case Roo(u,r)  => ascii( t, "root",r.r, u )
-      case Eee(u)    => t.app("e^"); group(t,u)
+      case Eee(u)    => t.app("e^"); u.ascii(t)
       case Sqt(u)    => ascii( t, "sqrt",   u )
       case Sin(u)    => ascii( t, "sin",    u )
       case Cos(u)    => ascii( t, "cos",    u )
@@ -59,18 +59,18 @@ trait Ascii
     }
   }
 
-// Optional paren for Add Sub to compensate for Simplify which strips Paren
+   // Optional paren for Add Sub to compensate for Simplify which strips Paren
    def group( t:Text, q:Exp ): Unit = q match {
      case Add(u,v) => u.ascii(t); t.app('+'); v.ascii(t)
-     case Sub(u,v) => u.ascii(t); t.app('+'); v.ascii(t)
-     case _        => q.ascii(t)
+     case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
+   //case _        => q.ascii(t)
    }
 
 // Optional paren for denominator to compensate for Simplify which strips Paren
-  def denom( t:Text, q:Exp ): Unit = q match
-    case Mul(u,v) => u.ascii(t); t.app('*'); v.ascii(t)
-    case _        => group(t,q)
-     
+  def denom( t:Text, q:Exp ): Unit = q match {
+    case Mul(u, v) => u.ascii(t); t.app('*'); v.ascii(t)
+    case _ => group(t, q)
+  }
   def paren( t:Text, u:Exp ): Unit = {
     t.app('('); u.ascii(t); t.app(')') }
      
@@ -83,16 +83,16 @@ trait Ascii
 
 // Function subscript
    def ascii( t:Text, func:String, r:Double, u:Exp ): Unit =
-      { t.app((func, '_', r)); paren(t,u) }
+      { t.all(func, '_', r); paren(t,u) }
    
 // Function subscript superscript
    def ascii( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
-     { t.app((func, '_')); a.ascii(t); t.app('^'); b.ascii(t); paren(t,u)   }
+     { t.all(func, '_'); a.ascii(t); t.app('^'); b.ascii(t); paren(t,u)   }
   
    def asciiDif( t:Text, u:Exp ): Unit = {
      u match
      {
-       case Var(s) if s.length==1 => t.app(('d', s))
+       case Var(s) if s.length==1 => t.all('d', s)
        case _                     => ascii( t, "d", u )
      }
    }

@@ -110,44 +110,12 @@ class Text( _cap:Int )
   def app( a:Array[Char] ) : Unit = { sb.appendAll( a ) }
   def app( a:Array[Text] ) : Unit = { app( toText(a) ) }
   def app( t:Text        ) : Unit = { if( t!=this ) sb.append( t ) }
-  def app( a:Any         ) : Unit = { sb.append( a   ) }
-//def app( _             ) : Unit = {}
-  
-  def any( v:Any ): Unit = {
-    v match
-    {
-    //case t:Tok          => app(t)
-      case t:Text         => app(t)
-      case s:CS           => app(s)
-      case c:Char         => app(c)
-      case b:Boolean      => app(b)
-      case y:Byte         => app(y)
-      case i:Int          => app(i)
-      case j:Short        => app(j)
-      case l:Long         => app(l)
-      case f:Float        => app(f)
-      case d:Double       => app(d)
-      case a:Array[Char]  => app(a)
-      case a:Array[Text]  => delim( ",", Seq(a) )
-      case a:List[_]      => delim( ",", a )
-    //case e:Enum         => app(e.name)
-      case u:Unit         => app(u)
-    //case r:Boun         => app(r)
-    //case u:Uri          => app(u.text)
-      case _              => app(v.toString)
-    }
+  def app( a:Any         ) : Unit = { sb.append(a) }
+  def app( a:Seq[Any]    ) : Unit = { seq(a) }
 
-  }
+  def all( args:Any*     ) : Unit = { for( arg<-args ) app(arg) }
+  def seq( args:Seq[Any] ) : Unit = { for( arg<-args ) app(arg) }
 
-  def copyArray( a:Array[Any] ) : Array[Any] = {
-    val b = new Array[Any](a.length)
-    for( i <- 0 until a.length-1 )
-      { b(i) = a(i) }
-    b
-  }
-
-  def all( args:Any*     ) : Unit = { for( arg<-args ) any(arg) }
-  def seq( args:Seq[Any] ) : Unit = { for( arg<-args ) any(arg) }
 
   def replace( a:Char, b:Char ) : Unit =
   {
@@ -161,8 +129,9 @@ class Text( _cap:Int )
     app( beg )
     for( i <- args.indices )
     {
-      if(  i < args.length-1 )
-        app((args(i), mid))
+      if(  i < args.length-1 ) {
+        app( args(i) )
+        app( mid     ) }
       else
         app( args(i) )
     }
@@ -170,47 +139,18 @@ class Text( _cap:Int )
   }
 
   def text( args:Any* ) : Text = { seq(args); this }
-
-  def att( name:CS, value:Any ) : Unit =  { app((" ", name, "=\"", value, "\"")); replace('_','-') }
-//def css( name:CS, value:Any ) : Unit =   {app( " ", name, ": ",  value, "; " ); replace('_','-') }
-  def css( name:CS, value:Any ) : Unit =
-   { app((" ", name, ": \"", value, "\"; ")); replace('_','-') }
+  def att( name:CS, value:Any ) : Unit = { all( " ", name, "=\"",  value, "\""   ); replace('_','-') }
+  def css( name:CS, value:Any ) : Unit = { all( " ", name, ": ",   value, "; "   ); replace('_','-') }
 
   def css( name:CS, value:Any, uom:String ) : Unit =
-    {app((" ", name, ": ", value, uom, "; ")); replace('_','-') }
+    { all(" ", name, ": ", value, uom, "; "); replace('_','-') }
 
   def space( n:Int ) : Unit =  { for(_ <-0 until n) app(' '     ); }
   def tab(   n:Int ) : Unit =  { for(_ <-0 until n) app(Text.tab); }
 
   def tab( n:Int, args:Any* ) : Unit = {tab(n); seq(args) }
 
-  def dec( dbl:Double ) : Int  =
-  {
-    var d:Int      = 0
-    var r:Double   = rem(dbl)
-    if( r < 0.000000000001 )
-      return d
-
-    var d1:Int  = 0
-    var d2:Int  = 0
-    var d3:Int  = 0
-
-    for(_ <- 0 until 15)  // Console.prIntln( "dbl", dbl, "---------" )
-    {                       // Console.prIntln( "r ", r  )
-      d1 = dig(r,10);       // Console.prIntln( "d1", d1 )
-      d2 = dig(r,100);      // Console.prIntln( "d2", d2 )
-      d3 = dig(r,1000);     // Console.prIntln( "d3", d3 )
-      if( d1==d2&&d2==d3 )
-        return d
-      else
-        d = d + 1
-      r = r * 10
-    }
-    d
-  }
-
   def rem( dbl:Double )             : Double = dbl - Math.floor(dbl)
   def dig( rem:Double, mul:Int    ) : Int    = (rem * mul).toInt % 10
   
 } // End of class Text
-

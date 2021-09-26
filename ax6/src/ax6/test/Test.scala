@@ -7,17 +7,16 @@ object Test
 {
   val  _expects:Text = new Text(1000)
   val  _results:Text = new Text(1000)
-  val  sep       = "::"
 
   def init( name:String, expects:Any* ): Unit = {
     _expects.clear()
-    _expects.app((name, sep))
+    _expects.app(name+":")
     _expects.seq( expects )
   }
 
   def test( name:String, results:Any* ): Unit = {
     _results.clear()
-    _results.app((name, sep))
+    _results.app(name+":")
     _results.seq( results )
     if( Text.equ( _expects, _results ) ) {
       Log.msg("Pass::"); Log.log(_expects) }

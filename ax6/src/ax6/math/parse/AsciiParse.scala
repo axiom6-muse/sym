@@ -61,7 +61,7 @@ object AsciiParse extends StdTokenParsers
 // ... cex vex mex ...
   def iii : Parser[Exp] = "i" ^^ { case "i" => Var("i") }
   def cex : Parser[Exp] = "[" ~> end ~ "," ~ end <~ "." <~ "i"  <~ "]"  ^^
-   { case u ~ "," ~ v => new Cex(u,v); case _ => Var("cex") }
+   { case u ~ "," ~ v => new Cex(u,v) }
 
   def vel : Parser[List[Exp]] = repsep(end, ",")
   
@@ -112,22 +112,21 @@ object AsciiParse extends StdTokenParsers
 // def eee : Parser[Exp] = ("e"|Var("e")) ~> "^" ~ end ^^             
    def log : Parser[Exp] = "log"  ~> "_" ~> DBL ~ arg  ^^ { case  b  ~  u => Log(u,b) }
    def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r) }
-   def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b); case _ => Var("lim") }
-                                                      
+   def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b) }
+
    def sum  : Parser[Exp] = ("Int"|"sum") ~ lim ~ arg  ^^ 
    { 
       case "sum" ~ Lim(a,b) ~ u => Sum(a,b,u)
       case "Int" ~ Lim(a,b) ~ u => Itl(a,b,u)
-      case _                    => Var("sum")
    }      
      
-   def neg : Parser[Exp] = "-" ~ end ^^ { case "-" ~ u => Neg(u); case _ => Var("neg") }
+   def neg : Parser[Exp] = "-" ~ end ^^ { case "-" ~ u => Neg(u) }
 
 // e is a reserved exponentialion keyword that must be followed by ^ 
 // e^u is handled by ee1
 // e standalone variable is handle by ee2
-   def ee1 : Parser[Exp] =  "e" ~ "^" ~ end  ^^ { case "e" ~ "^" ~ u => Eee(u);   case _ => Var("ee1") }
-   def ee2 : Parser[Exp] =  "e"              ^^ { case "e"           => Var("e"); case _ => Var("ee2") }
+   def ee1 : Parser[Exp] =  "e" ~ "^" ~ end  ^^ { case "e" ~ "^" ~ u => Eee(u)   }
+   def ee2 : Parser[Exp] =  "e"              ^^ { case "e"           => Var("e") }
    def eee : Parser[Exp] =  ee1 | ee2
  
 // d is a reserved differentiation keyword.
@@ -135,13 +134,13 @@ object AsciiParse extends StdTokenParsers
 //   since we have to split a variable string the call by VAR to variable() is needed
 // d(exp) or differentiation of an expression is handled by dif1
 // d standalone variable is handled by dif2
-   def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u.noparen); case _ => Var("dif1")   }
-   def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d");       case _ => Var("dif2") }
+   def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u.noparen)   }
+   def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d")         }
    def dif  : Parser[Exp] =  dif1 | dif2
 
 // Right now subscript and superscript are a problem with stack overflows
-// def sus : Parser[Exp] = VAR ~ "_" ~ NUM ^^ { case u ~ "_" ~ v => Sus(u,v); case _ => Var("sus") }
-// def sup : Parser[Exp] = end ~ "^" ~ end ^^ { case u ~ "^" ~ v => Sup(u,v); case _ => Var("sup") }
+// def sus : Parser[Exp] = VAR ~ "_" ~ NUM ^^ { case u ~ "_" ~ v => Sus(u,v) }
+// def sup : Parser[Exp] = end ~ "^" ~ end ^^ { case u ~ "^" ~ v => Sup(u,v) }
  
   // ...... Primary (pri) and Production (exp) Parser Rules ......
   
@@ -160,7 +159,6 @@ object AsciiParse extends StdTokenParsers
     case Success( exp, _  ) => exp
     case Failure( msg, _  ) => Msg( Text(50).text( "Ascii.parse Failure::<", str, ">::", msg  ) )
     case Error(   msg, _  ) => Msg( Text(50).text( "Ascii.parse Error::<",   str, ">::", msg  ) )
-  //case _                  => Msg( Text(50).text( "Ascii.parse Unknown::<", str, ">::" ) )
   }
 
 }

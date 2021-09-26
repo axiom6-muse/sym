@@ -45,15 +45,15 @@ class Mat( _n:Int, _m:Int )
   def text( t:Text, sp:String, eol:String ) : Text =
   {
     //val t:Text = new Text( n*(m*6+4) )
-    t.app((eol, '[', sp))
+    t.all(eol, '[', sp)
     for( i <- 0 until n )
     {
-      t.app((eol, '[', sp, a(i, 0)))
+      t.all(eol, '[', sp, a(i, 0))
       for( j <- 1 until m )
-        t.app((',', sp, a(i, j)))
-      t.app((sp, ']'))
+        t.all(',', sp, a(i, j))
+      t.all(sp, ']')
     }
-    t.app((eol, sp, ']'))
+    t.all(eol, sp, ']')
     t
   }
 

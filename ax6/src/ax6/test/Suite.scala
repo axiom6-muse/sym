@@ -14,13 +14,13 @@ object Suite
     runTests(tst) }
 
    def runTests(tst:Suite) : Unit =
-   {       
+   {
+       tst.testEee()
        tst.testExp()
        tst.testCex()
        tst.testVex()
        tst.testMex()
        tst.testRun()
-       tst.testEee()
        tst.testDif()
        tst.testItg()
        tst.testFun()
@@ -42,7 +42,7 @@ class Suite //extends Suite
   {
     txt.clear()
     for( str <- seq )
-      txt.app((str, ' '))
+      txt.all(str, ' ')
     Test.init( name, txt )
     txt.clear()
     for( str <- seq )
@@ -56,24 +56,24 @@ class Suite //extends Suite
   def par( name:String, txt:Text, str:String ): Unit = {
     txt.clear()
     Test.init( name, str )
-      AsciiParse(str).ascii(txt)
+    AsciiParse(str).ascii(txt)
     Test.test( name, txt )  
   }
 
   def sim( name:String, txt:Text, enter:String, bench:String ): Unit = {
     txt.clear()
     Test.init( name, bench )
-      AsciiParse(enter).sim.ascii(txt)
+    AsciiParse(enter).sim.ascii(txt)
     Test.test( name, txt )  
   }  
 
   def lam( name:String, txt:Text, str:String, lam:String ): Unit = {
     txt.clear()
     Test.init( name, str, ' ', lam )
-      val exp:Exp = AsciiParse(str)
-      exp.ascii(txt)
-      txt.app( ' ' )
-      exp.lambda(txt)
+    val exp:Exp = AsciiParse(str)
+    exp.ascii(txt)
+    txt.app( ' ' )
+    exp.lambda(txt)
     Test.test( name, txt )  
   }  
   
@@ -88,30 +88,39 @@ class Suite //extends Suite
     Test.test( name, txt )  
   }  
 
-   def testExp(): Unit = {
+  def testExp(): Unit = {
     val t = new Text(200)
 
+    val str = "(x+y)^3"
+    Test.init( "pow.a", str )
+    val powa:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
+    powa.ascii(t)
+    Test.test( "pow.a", t )
+
+    Test.init( "pow.b", Pow(Add(Var("x"),Var("y")),Num(3)) )
+    val powb:Exp = AsciiParse(str)
+    powb.lambda(t)
+    Test.test( "pow.b", t )
+
     Test.init( "lam.a", "x+x+7+y" )
-      val exp:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
-      exp.ascii(t)
+    val exp:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
+    exp.ascii(t)
     Test.test( "lam.a", t )
 
-    val env:Assign = { case "x" => 5 case "y" => 7 }
-    Test.init( "calc.a", "<x=5 y=7> ", t, " = ", 24 )
-    Test.test( "calc.a", "<x=5 y=7> ", t, " = ", exp.calc(env) ) 
-    
-    Test.init( "pow.a", "(x+y)^3" )
-      val pow:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
-      pow.ascii(t)
-    Test.test( "pow.a", t )    
-    
+    val powc:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
-    Test.init( "calc.b", "<x=2 y=1> ", t, " = ", 27 )
-    Test.test( "calc.b", "<x=2 y=1> ", t, " = ", pow.calc(ppp) )     
+    Test.init( "calc.b", "<x=2 y=1> ", t, " = ", 27.0 )
+    Test.test( "calc.b", "<x=2 y=1> ", t, " = ", powc.calc(ppp) )
 
     Test.init( "pow.dif.x", "3*(x+y)^2*(dx+dy)" )
-      pow.dif.ascii(t)
-    Test.test( "pow.dif.x", t )      
+    powc.dif.ascii(t)
+    Test.test( "pow.dif.x", t )
+
+
+
+    val env:Assign = { case "x" => 5 case "y" => 7 }
+    Test.init( "calc.a", "<x=5 y=7> ", t, " = ", "24.0" )
+    Test.test( "calc.a", "<x=5 y=7> ", t, " = ", exp.calc(env) )
    }
  
    def testCex(): Unit = {

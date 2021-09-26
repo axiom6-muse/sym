@@ -71,9 +71,9 @@ object Log
 // ... tab array ...
 
   def array( tag:CS, n:Int, arr:Array[Char] ): Unit = {
-     text.app((tag, ' ', n, " [ "))
+     text.all(tag, ' ', n, " [ ")
      for( a <- arr )
-       text.app((a, ' '))
+       text.all(a, ' ')
      if( text.len > 1 )
          text.delTail()
      text.app( " ]" )
