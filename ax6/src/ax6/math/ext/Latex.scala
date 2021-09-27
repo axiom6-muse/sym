@@ -16,7 +16,7 @@ trait Latex
      {
       case Num(n)    => t.app( n.toString )
       case Dbl(r)    => t.app( r.toString )
-      case Rat(n,d)  => t.app( n.toString, '/', d.toString )
+      case Rat(n,d)  => t.all( n.toString, '/', d.toString )
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
       case Add(u,v)  => u.latex(t); t.app('+'); v.latex(t)
       case Sub(u,v)  => u.latex(t); t.app('-'); v.latex(t)
@@ -66,22 +66,22 @@ trait Latex
 
 // Function subscript
    def latex( t:Text, func:String, r:Double, u:Exp ): Unit =
-     { t.app(func,'_',r); paren(t,u) }
+     { t.all(func,'_',r); paren(t,u) }
    
 // Function subscript superscript
    def latex( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
-     { t.app(func,'_'); a.latex(t); t.app('^'); b.latex(t); paren(t,u) }
+     { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); paren(t,u) }
   
    def latexDif( t:Text, u:Exp ): Unit = {
      u match
      {
        case Var(s) =>
          if( s.length==1 )
-           t.app( 'd', s )
+           t.all( 'd', s )
          else
-           t.app( "d(", s, ')' )
+           t.all( "d(", s, ')' )
         case _ =>
-           ascii( t, "d", u )
+           t.app("d("); u.latex(t); t.app(")")
      }
    }
   

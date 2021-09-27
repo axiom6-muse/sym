@@ -23,95 +23,97 @@ trait Ascii
       case Div(u,v)  => u.ascii(t); t.app('/'); v.ascii(t)
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
       case Pow(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
+      case Equ(u,v)  => u.ascii(t); t.app('='); v.ascii(t)
       case Neg(u)    => t.app('-'); u.ascii(t)
       case Abs(u)    => t.app('|'); u.ascii(t); t.app('|')
       case Par(u)    => t.app('('); u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{'); u.ascii(t); t.app('}')
-      case Lnn(u)    => ascii( t, "ln", u )
-      case Log(u,b)  => ascii( t, "log", b.r, u )
-      case Roo(u,r)  => ascii( t, "root",r.r, u )
       case Eee(u)    => t.app("e^"); u.ascii(t)
-      case Sqt(u)    => ascii( t, "sqrt",   u )
-      case Sin(u)    => ascii( t, "sin",    u )
-      case Cos(u)    => ascii( t, "cos",    u )
-      case Tan(u)    => ascii( t, "tan",    u )
-      case Csc(u)    => ascii( t, "csc",    u )
-      case Sec(u)    => ascii( t, "sec",    u )
-      case Cot(u)    => ascii( t, "cot",    u )
-      case ASin(u)   => ascii( t, "arcsin", u )
-      case ACos(u)   => ascii( t, "arccos", u )
-      case ATan(u)   => ascii( t, "arctan", u )
-      case ACsc(u)   => ascii( t, "arccsc", u )
-      case ASec(u)   => ascii( t, "arcsec", u )
-      case ACot(u)   => ascii( t, "arccot", u )
-      case Equ(u,v)  => u.ascii(t); t.app('='); v.ascii(t)
-      case Dif(u)    => asciiDif(t,u)
+      case Lnn(u)    => fun( t, "ln",     u )
+      case Sqt(u)    => fun( t, "sqrt",   u )
+      case Sin(u)    => fun( t, "sin",    u )
+      case Cos(u)    => fun( t, "cos",    u )
+      case Tan(u)    => fun( t, "tan",    u )
+      case Csc(u)    => fun( t, "csc",    u )
+      case Sec(u)    => fun( t, "sec",    u )
+      case Cot(u)    => fun( t, "cot",    u )
+      case ASin(u)   => fun( t, "arcsin", u )
+      case ACos(u)   => fun( t, "arccos", u )
+      case ATan(u)   => fun( t, "arctan", u )
+      case ACsc(u)   => fun( t, "arccsc", u )
+      case ASec(u)   => fun( t, "arcsec", u )
+      case ACot(u)   => fun( t, "arccot", u )
+      case Itg(u)    => fun( t, "Int",    u )
+
+      case Dif(u)    => dif(t,u)
       case Sus(u,v)  => u.ascii(t); t.app('_'); v.ascii(t)
       case Sup(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
+
+      case Log(u,b)  => base( t, "Log",  b.r, u )
+      case Roo(u,b)  => base( t, "root", b.r, u )
       case Lim(u,v)  => t.app('_'); u.ascii(t); t.app('^'); v.ascii(t)
-      case Itg(u)    => ascii( t, "Int", u )
-      case Itl(a,b,u)=> ascii( t, "Int", a, b, u )
-      case Sum(a,b,u)=> ascii( t, "sum", a, b, u )
-      case Cex(r,i)  => asciiCex(t,r,i)
-      case Vex(a)    => asciiVex(t,a)
-      case Mex(mat)  => asciiMex(t,mat)
+
+      case Itl(a,b,u)=> lim( t, "Int", a, b, u )
+      case Sum(a,b,u)=> lim( t, "sum", a, b, u )
+      case Cex(r,i)  => cex(t,r,i)
+      case Vex(a)    => vex(t,a)
+      case Mex(mat)  => mex(t,mat)
       case Msg(txt)  => t.app(txt)
     }
   }
 
-   // Optional paren for Add Sub to compensate for Simplify which strips Paren
-   def group( t:Text, q:Exp ): Unit = q match {
-     case Add(u,v) => u.ascii(t); t.app('+'); v.ascii(t)
-     case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
-   //case _        => q.ascii(t)
-   }
-
-// Optional paren for denominator to compensate for Simplify which strips Paren
-  def denom( t:Text, q:Exp ): Unit = q match {
-    case Mul(u, v) => u.ascii(t); t.app('*'); v.ascii(t)
-    case _ => group(t, q)
-  }
   def paren( t:Text, u:Exp ): Unit = {
     t.app('('); u.ascii(t); t.app(')') }
-     
-// Binary Operation
-// def ascii( t:Text, u:Exp, oper:String, v:Exp ) : Unit =
-//     { u.ascii(t); t.app(oper); v.ascii(t)  }     
 
-// Function
-   def ascii( t:Text, func:String, u:Exp ): Unit = { t.app(func); paren(t,u);  }
+  // Function
+  def fun( t:Text, func:String, u:Exp ): Unit = { t.app(func); paren(t,u);  }
 
-// Function subscript
-   def ascii( t:Text, func:String, r:Double, u:Exp ): Unit =
-      { t.all(func, '_', r); paren(t,u) }
+  // Function subscript
+  def base( t:Text, func:String, r:Double, u:Exp ): Unit =
+      { t.all( func, '_', r ); paren(t,u) }
    
-// Function subscript superscript
-   def ascii( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
-     { t.all(func, '_'); a.ascii(t); t.app('^'); b.ascii(t); paren(t,u)   }
+  // Function subscript superscript
+  def lim( t:Text, func:String, low:Exp, up:Exp, u:Exp ): Unit =
+     { t.all(func, '_'); low.ascii(t); t.app('^'); up.ascii(t); paren(t,u)   }
   
-   def asciiDif( t:Text, u:Exp ): Unit = {
+   def dif( t:Text, u:Exp ): Unit = {
      u match
      {
        case Var(s) if s.length==1 => t.all('d', s)
-       case _                     => ascii( t, "d", u )
+       case _                     => fun( t, "d", u )
      }
    }
    
-   def asciiCex( t:Text, r:Exp, i:Exp ): Unit =
+   def cex( t:Text, r:Exp, i:Exp ): Unit =
      { t.app('['); ascii(t,r); t.app(','); ascii(t,i); t.app(".i]") }
   
-   def asciiVex( t:Text, a:Array[Exp] ): Unit = {
-     t.app('['); a(0).ascii(t)
-      for( i <- 1 until a.length ) 
-        { t.app( ',' ); a(i).ascii(t) }
+   def vex( t:Text, a:Array[Exp] ): Unit = {
+     t.app('[')
+     a(0).ascii(t)
+     for( i <- 1 until a.length )
+       { t.app( ',' ); a(i).ascii(t) }
      t.app( ']' )
    }
    
-   def asciiMex( t:Text, mat:Array[Vex] ): Unit = {
+   def mex( t:Text, mat:Array[Vex] ): Unit = {
     t.app( '[' )
     for( i <- mat.indices)
       mat(i).ascii(t)
     t.app( ']' )
   }
+
+  // Optional paren for Add Sub to compensate for Simplify which strips Paren
+  def group( t:Text, q:Exp ): Unit = q match {
+    case Add(u,v) => u.ascii(t); t.app('+'); v.ascii(t)
+    case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
+    //case _        => q.ascii(t)
+  }
+
+  // Optional paren for denominator to compensate for Simplify which strips Paren
+  def denom( t:Text, q:Exp ): Unit = q match {
+    case Mul(u, v) => u.ascii(t); t.app('*'); v.ascii(t)
+    case _ => group(t, q)
+  }
+
   
 }

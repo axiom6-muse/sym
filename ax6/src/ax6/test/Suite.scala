@@ -15,8 +15,10 @@ object Suite
 
    def runTests(tst:Suite) : Unit =
    {
-       tst.testEee()
+       tst.testFal()
        tst.testExp()
+       tst.testEee()
+
        tst.testCex()
        tst.testVex()
        tst.testMex()
@@ -29,7 +31,7 @@ object Suite
     // tst.testSim()
     // tst.testSus
     // tst.testErr
-    // tst.testFail       
+
    } 
 }
   
@@ -86,11 +88,11 @@ class Suite //extends Suite
       val Ixp = exp.itg.sim
           Ixp.ascii(txt)
     Test.test( name, txt )  
-  }  
+  }
 
-  def testExp(): Unit = {
+  def testFal(): Unit = {
     val t = new Text(200)
-
+    
     val str = "(x+y)^3"
     Test.init( "pow.a", str )
     val powa:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
@@ -106,7 +108,11 @@ class Suite //extends Suite
     val exp:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
     exp.ascii(t)
     Test.test( "lam.a", t )
+  }
 
+  def testExp(): Unit = {
+    val t = new Text(200)
+    
     val powc:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
     Test.init( "calc.b", "<x=2 y=1> ", t, " = ", 27.0 )
@@ -116,11 +122,9 @@ class Suite //extends Suite
     powc.dif.ascii(t)
     Test.test( "pow.dif.x", t )
 
-
-
     val env:Assign = { case "x" => 5 case "y" => 7 }
     Test.init( "calc.a", "<x=5 y=7> ", t, " = ", "24.0" )
-    Test.test( "calc.a", "<x=5 y=7> ", t, " = ", exp.calc(env) )
+    Test.test( "calc.a", "<x=5 y=7> ", t, " = ", powc.calc(env) )
    }
  
    def testCex(): Unit = {
@@ -145,10 +149,10 @@ class Suite //extends Suite
      
      val sb = "[[dx,2*x*dx,3*x^2*dx][dy,2*y*dy,3*y^2*dy][dz,2*z*dz,3*z^2*dz]]"
      Test.init( "mex.dif.mb", sb )
-       val eb:Exp = AsciiParse( sb )
-       val mb:Mex = Mex(eb)
-           mb.dif.sim
-           mb.ascii(t)
+     val eb:Exp = AsciiParse( sb )
+     val mb:Mex = Mex(eb)
+     mb.dif
+     mb.ascii(t)
      Test.test( "mex.dif.mb", t )  
    
      val rc:Assign = { case "x"=>1 case "y"=>2 case "z"=>3 }
