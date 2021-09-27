@@ -17,8 +17,8 @@ trait Ascii
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
-      case Add(u,v)  => u.ascii(t); t.app('+'); v.ascii(t)
-      case Sub(u,v)  => u.ascii(t); t.app('-'); v.ascii(t)
+      case Add(u,v)  => binOp( t, "+", u, v )
+      case Sub(u,v)  => binOp( t, "-", u, v )
       case Mul(u,v)  => u.ascii(t); t.app('*'); v.ascii(t)
       case Div(u,v)  => u.ascii(t); t.app('/'); v.ascii(t)
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
@@ -44,15 +44,12 @@ trait Ascii
       case ASec(u)   => fun( t, "arcsec", u )
       case ACot(u)   => fun( t, "arccot", u )
       case Itg(u)    => fun( t, "Int",    u )
-
       case Dif(u)    => dif(t,u)
       case Sus(u,v)  => u.ascii(t); t.app('_'); v.ascii(t)
       case Sup(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
-
       case Log(u,b)  => base( t, "Log",  b.r, u )
       case Roo(u,b)  => base( t, "root", b.r, u )
       case Lim(u,v)  => t.app('_'); u.ascii(t); t.app('^'); v.ascii(t)
-
       case Itl(a,b,u)=> lim( t, "Int", a, b, u )
       case Sum(a,b,u)=> lim( t, "sum", a, b, u )
       case Cex(r,i)  => cex(t,r,i)
@@ -64,6 +61,14 @@ trait Ascii
 
   def paren( t:Text, u:Exp ): Unit = {
     t.app('('); u.ascii(t); t.app(')') }
+
+  // t.tail() == '(' is a week condition for detecting detect that a binOp is already enclose by parens
+  def binOp( t:Text, op:String, u:Exp, v:Exp ) : Unit = {
+    if( t.tail() == '(' ) {
+      u.ascii(t); t.app(op); v.ascii(t) }
+    else {
+      t.app('('); u.ascii(t); t.app(op); v.ascii(t); t.app(')') }
+  }
 
   // Function
   def fun( t:Text, func:String, u:Exp ): Unit = { t.app(func); paren(t,u);  }

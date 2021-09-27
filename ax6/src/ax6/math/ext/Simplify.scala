@@ -99,9 +99,35 @@ trait Simplify
     case( Num(a),   Dbl(b)   ) => Dbl(a/b)
     case( Dbl(a),   Num(b)   ) => Dbl(a/b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a/b) 
-    case( Mul(a,b), denom    ) => Div(mul(a,b),sim(denom))
-    case( numer, Mul(a,b)    ) => Div(sim(numer),mul(a,b))  // Causes stack overflow
+  //case( Mul(a,b), denom    ) => Div(mul(a,b),sim(denom))
+  //case( numer, Mul(a,b)    ) => Div(sim(numer),mul(a,b))  // has Caused stack overflow
+    case( Mul(a,b), Mul(c,d) ) => factorMul( a, b, c, d )
+    case( a:Exp,    Mul(c,d) ) => factorTop( a,    c, d )
+    case( Mul(a,b), c:Exp    ) => factorBot( a, b, c    )
     case _                     => Div(sim(u),sim(v))
+  }
+
+  // A good start while consider deeper factoring
+  def factorMul( a:Exp, b:Exp, c:Exp, d:Exp ) : Exp = {
+     if(      a == c ) Div(sim(b),sim(d))
+     else if( a == d ) Div(sim(b),sim(c))
+     else if( b == c ) Div(sim(a),sim(d))
+     else if( b == d ) Div(sim(a),sim(c))
+     else              Div(Mul(a,b),Mul(c,d))
+  }
+
+  // A good start while consider deeper factoring
+  def factorTop( a:Exp, c:Exp, d:Exp ) : Exp = {
+    if(      a == c ) Rec(sim(d))
+    else if( a == d ) Rec(sim(c))
+    else              Div(sim(a),Mul(sim(c),sim(d)))
+  }
+
+  // A good start while consider deeper factoring
+  def factorBot( a:Exp, b:Exp, c:Exp ) : Exp = {
+    if(      a == c ) sim(b)
+    else if( b == c ) sim(a)
+    else              Div(Mul(sim(a),sim(b)),sim(c))
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match

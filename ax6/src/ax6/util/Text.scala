@@ -90,9 +90,10 @@ class Text( _cap:Int )
 
   def in( b:Int, e:Int ) : Boolean = in(b)&& in(e-1) && b <= e
   def in( i:Int )        : Boolean = 0 <= i && i < len
+  def head()             : Char    = sb.charAt(0)
+  def tail()             : Char    = if(sb.nonEmpty ) sb.charAt(sb.size-1) else '\u0000'
   def has(     c:Char )  : Boolean = sb.contains( c )
-  def hasTail( c:Char )  : Boolean = sb.charAt(sb.size-1)==c
-
+  def hasTail( c:Char )  : Boolean = tail()==c
   def delTail()          : Unit = { sb.setLength(sb.size-1) }
   def delTail(c:Char)    : Unit = { if( hasTail(c)) delTail() }
 
