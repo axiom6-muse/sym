@@ -6,7 +6,6 @@ import  ax6.math.exp._
 import  scala.util.parsing.combinator.lexical.StdLexical
 import  scala.util.parsing.combinator.syntactical.StdTokenParsers
 
-
 // Need to consider match not exhaustive warning
 
 sealed abstract class Parser[Exp]
@@ -26,10 +25,10 @@ object AsciiParse extends StdTokenParsers
     "arcsin","arccos","arctan","arccot","arcsec","arccsc")
 
  
-// Need to lex Double
-   def NUM : Parser[Num] = numericLit ^^ { (s:String) => Num(s.toInt)    }
-   def DBL : Parser[Dbl] = numericLit ^^ { (s:String) => Dbl(s.toDouble) }
-   def VAR : Parser[Exp] = ident      ^^ { (s:String) => variable(s)     }
+  // Need to lex Double
+  def NUM : Parser[Num] = numericLit ^^ { (s:String) => Num(s.toInt)    }
+  def DBL : Parser[Dbl] = numericLit ^^ { (s:String) => Dbl(s.toDouble) }
+  def VAR : Parser[Exp] = ident      ^^ { (s:String) => variable(s)     }
   
   def variable( s:String ) : Exp = 
   {
@@ -39,7 +38,7 @@ object AsciiParse extends StdTokenParsers
       Var(s)
   }
   
-// ... Binary pass through parsers from high to low precedence
+  // ... Binary pass through parsers from high to low precedence
 
   def beg : Parser[Exp] = base | oper
   
@@ -52,13 +51,13 @@ object AsciiParse extends StdTokenParsers
 
   def end : Parser[Exp] = equ   
   
-// ... Grouping ...
+  // ... Grouping ...
                     
   def par : Parser[Exp] = "(" ~> end <~ ")"  ^^ { (u:Exp) => Par(u) }    
   def brc : Parser[Exp] = "{" ~> end <~ "}"  ^^ { (u:Exp) => Brc(u) }    
   def abs : Parser[Exp] = "|" ~> end <~ "|"  ^^ { (u:Exp) => Abs(u) }    
   
-// ... cex vex mex ...
+  // ... cex vex mex ...
   def iii : Parser[Exp] = "i" ^^ { case "i" => Var("i") }
   def cex : Parser[Exp] = "[" ~> end ~ "," ~ end <~ "." <~ "i"  <~ "]"  ^^
    { case u ~ "," ~ v => new Cex(u,v) }
@@ -73,13 +72,13 @@ object AsciiParse extends StdTokenParsers
   def mex : Parser[Exp] = "[" ~> ves <~ "]" ^^ 
     { (u:List[Exp]) => new Mex(u) }
   
-// ... func(arg) ln, logb root ...
+  // ... func(arg) ln, logb root ...
 
   def arg : Parser[Exp] = "(" ~> end <~ ")" // consumes (u) for functions
   
   def fun : Parser[Exp] = farg  ~ arg ^^  { case f ~ u  => func(f,u) }
 
-//def fer : Parser[Exp] = stringLit ~ arg ^^  { case f ~ u  => func(f,u) }
+  //def fer : Parser[Exp] = stringLit ~ arg ^^  { case f ~ u  => func(f,u) }
   
   def farg : Parser[String] =  // Functions with a single argument
     "sqrt"|"ln"|"log"|"sin"|"cos"|"tan"|"cot"|"sec"|"csc"|
@@ -87,22 +86,22 @@ object AsciiParse extends StdTokenParsers
 
   // Check case where "log" => Lnn(u)
   def func( f:String, u:Exp ) : Exp = f match {
-    case "sqrt" => Sqt(u)
-    case "ln"   => Lnn(u)
-    case "log" => Lnn(u)
-    case "sin" => Sin(u)
-    case "cos" => Cos(u)
-    case "tan" => Tan(u)
-    case "cot" => Cot(u)
-    case "sec" => Sec(u)
-    case "csc" => Csc(u)
+    case "sqrt"   => Sqt(u)
+    case "ln"     => Lnn(u)
+    case "log"    => Lnn(u)
+    case "sin"    => Sin(u)
+    case "cos"    => Cos(u)
+    case "tan"    => Tan(u)
+    case "cot"    => Cot(u)
+    case "sec"    => Sec(u)
+    case "csc"    => Csc(u)
     case "arcsin" => ASin(u)
     case "arccos" => ACos(u)
     case "arctan" => ATan(u)
     case "arccot" => ACot(u)
     case "arcsec" => ASec(u)
     case "arccsc" => ACsc(u)
-    case "d" => Dif(u)
+    case "d"      => Dif(u)
     case _ => Msg(Text(50).text("Ascii.func::", f, '(', u.text, ')', " :: is an unknown function"))
   }
   

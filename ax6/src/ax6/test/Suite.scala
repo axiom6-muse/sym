@@ -28,7 +28,7 @@ object Suite
        tst.testFun()
        tst.testSum()
        tst.testEqu()
-    // tst.testSim()
+       tst.testSim()
     // tst.testSus
     // tst.testErr
 
@@ -65,16 +65,20 @@ class Suite //extends Suite
   def sim( name:String, txt:Text, enter:String, bench:String ): Unit = {
     txt.clear()
     Test.init( name, bench )
-    AsciiParse(enter).sim.ascii(txt)
+    val exp1:Exp = AsciiParse(enter)
+    val exp2:Exp = exp1.sim
+    exp1.ascii(txt)
+    txt.app(" | ")
+    exp2.ascii(txt)
     Test.test( name, txt )  
   }  
 
   def lam( name:String, txt:Text, str:String, lam:String ): Unit = {
     txt.clear()
-    Test.init( name, str, ' ', lam )
+    Test.init( name, str, " | ", lam )
     val exp:Exp = AsciiParse(str)
     exp.ascii(txt)
-    txt.app( ' ' )
+    txt.app(" | ")
     exp.lambda(txt)
     Test.test( name, txt )  
   }  
@@ -100,7 +104,7 @@ class Suite //extends Suite
     Test.test( "pow.a", t )
 
     Test.init( "pow.b", Pow(Add(Var("x"),Var("y")),Num(3)) )
-    val powb:Exp = AsciiParse(str)
+    val powb:Exp = AsciiParse(str).sim
     powb.lambda(t)
     Test.test( "pow.b", t )
 
@@ -220,7 +224,7 @@ class Suite //extends Suite
   def testEee(): Unit = {
     val t = new Text(200)
     lam(  "eee.a", t, "e^x", "Eee(Var(x))")
-    lam(  "eee.b", t, "e^(x+2)", "Eee(Par(Add(Var(x),Num(2))))")
+    lam(  "eee.b", t, "e^(x+2)", "Eee(Add(Var(x),Num(2)))")
     lam(  "eee.c", t, "e", "Var(e)")
     lam(  "eee.d", t, "ln(e)",   "Lnn(Var(e))")
     lam(  "eee.e", t, "ln(e^1)", "Lnn(Eee(Num(1)))")
@@ -321,7 +325,7 @@ class Suite //extends Suite
      lam(  "Root.a", t, "root_10(y)", "Roo(Var(y),Dbl(10.0))" )  // (y^5-z+1)       
      lam(  "Eee.a",  t, "e^x", "Eee(Var(x))" )      
      lam(  "Abs.a",  t, "|x-y|", "Abs(Sub(Var(x),Var(y)))" )      
-     lam(  "Neg.a",  t, "-(x-y)", "Neg(Par(Sub(Var(x),Var(y))))" )       
+     lam(  "Neg.a",  t, "-(x-y)", "Neg(Sub(Var(x),Var(y)))" )
      par(  "Big.a",  t, "[a^3,b*i]+sin(x^2)*sqrt(y)-20*ln(z)" )
    }
   
@@ -364,8 +368,8 @@ class Suite //extends Suite
     val t = new Text(200)
     sim( "Sim.a", t, "(x+y)/(x+y)",          "1" )
     sim( "Sim.b", t, "(x+y)^3/(x+y)^3",      "1" )
-    sim( "Sim.c", t,  "(x+y)*(a+b)/(x+y)",    "a+b" )
-    sim( "Sim.d", t, "((x+y)*(a+b))/(x+y)",   "a+b" )
+    sim( "Sim.c", t, "(x+y)*(a+b)/(x+y)",    "a+b" )
+    sim( "Sim.d", t, "((x+y)*(a+b))/(x+y)",  "a+b" )
     sim( "Sim.e", t, "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
     sim( "Sim.f", t, "(w*x*y*z)/(x*y*z)",    "w" )    
     sim( "Sim.g", t, "(x*y*z)/(x*y*z*w)",    "1/w" ) 

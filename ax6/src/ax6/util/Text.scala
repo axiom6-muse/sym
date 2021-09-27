@@ -115,14 +115,11 @@ class Text( _cap:Int )
 
   def all( args:Any*     ) : Unit = { for( arg<-args ) app(arg) }
   def seq( args:Seq[Any] ) : Unit = { for( arg<-args ) app(arg) }
-
-
+  
   def replace( a:Char, b:Char ) : Unit =
-  {
-    for( i <- sb.indices ) if( a == sb.charAt(i) ) sb.setCharAt(i,b)
-  }
+    { for( i <- sb.indices ) if( a == sb.charAt(i) ) sb.setCharAt(i,b) }
 
-//def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( "", mid, "", args ) }
+  //def delim( mid:CS, args:IndexedSeq[Any] ) : Unit = { delim( "", mid, "", args ) }
   def delim( mid:CS, args:Seq[Any] )        : Unit = { delim( "", mid, "", args ) }
 
   def delim( beg:CS, mid:CS, end:CS, args:Seq[Any] ): Unit = {
@@ -148,7 +145,7 @@ class Text( _cap:Int )
   def space( n:Int ) : Unit =  { for(_ <-0 until n) app(' '     ); }
   def tab(   n:Int ) : Unit =  { for(_ <-0 until n) app(Text.tab); }
 
-  def tab( n:Int, args:Any* ) : Unit = {tab(n); seq(args) }
+  def tab( n:Int, args:Any* ) : Unit = { tab(n); seq(args) }
 
   def rem( dbl:Double )             : Double = dbl - Math.floor(dbl)
   def dig( rem:Double, mul:Int    ) : Int    = (rem * mul).toInt % 10

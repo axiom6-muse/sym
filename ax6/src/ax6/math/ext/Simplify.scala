@@ -4,8 +4,6 @@ package ax6.math.ext
 import  ax6.math.exp._
 import  ax6.util.Text
 
-//import  core.topo.{ Hold, Hode }
-
 trait Simplify
 {
   self:Exp =>
@@ -18,15 +16,15 @@ trait Simplify
     case Dbl(d)    => dbl(d)
     case Rat(n,d)  => rat(n,d)
     case Var(_)    => exp
-    case Add(u,v)  => add(noparen(u),noparen(v))
-    case Sub(u,v)  => sub(noparen(u),noparen(v))
-    case Mul(u,v)  => mul(noparen(u),noparen(v))
-    case Div(u,v)  => div(noparen(u),noparen(v))    
-    case Pow(u,v)  => pow(noparen(u),noparen(v))
+    case Add(u,v)  => par(add(u,v))
+    case Sub(u,v)  => par(sub(u,v))
+    case Mul(u,v)  => par(mul(u,v))
+    case Div(u,v)  => par(div(u,v))
+    case Pow(u,v)  => par(pow(u,v))
+    case Neg(u)    => par(Neg(sim(u)))
+    case Par(u)    => par(sim(u))
     case Rec(u)    => rec(u)
-    case Neg(u)    => Neg(sim(u))
     case Abs(u)    => Abs(sim(u))
-    case Par(u)    => Par(sim(u))
     case Brc(u)    => Brc(sim(u))
     case Lnn(u)    => Lnn(sim(u))
     case Log(u,r)  => Log(sim(u),r)
@@ -59,6 +57,15 @@ trait Simplify
     case Msg(t)    => Msg(t)
   }
 
+  // Pemove parans for high precendence binary ops
+  def par( exp:Exp ) : Exp = exp match
+  {
+    case Pow(u,v) => Pow(u,v)
+    case Mul(u,v) => Mul(u,v)
+    case Div(u,v) => Div(u,v)
+    case _        => exp
+  }
+
   def dbl( r:Double ) : Exp = if(r==r.toInt) Num(r.toInt) else Dbl(r)
 
   def rat( n:Int, d:Int ) : Exp = (n,d) match
@@ -80,7 +87,7 @@ trait Simplify
     case( Add(a,b), r         ) => sim( sim(a)*sim(r)+sim(b)*sim(b) )
     case( q,        Sub(a,b)  ) => sim( sim(q)*sim(a)-sim(u)*sim(b) )
     case( Sub(a,b), r         ) => sim( sim(a)*sim(r)-sim(b)*sim(b) )
-    case _                      => sim(u)*sim(v)
+    case _                      => Mul(sim(u),sim(v))
   }
 
   // Stack recursion needs to be reexamined
@@ -92,9 +99,9 @@ trait Simplify
     case( Num(a),   Dbl(b)   ) => Dbl(a/b)
     case( Dbl(a),   Num(b)   ) => Dbl(a/b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a/b) 
-    case( Mul(a,b), denom    ) => div(mul(a,b),sim(denom))
-  //case( numer, Mul(a,b)    ) => div(sim(numer),mul(a,b))
-    case _                     => u / v
+    case( Mul(a,b), denom    ) => Div(mul(a,b),sim(denom))
+    case( numer, Mul(a,b)    ) => Div(sim(numer),mul(a,b))  // Causes stack overflow
+    case _                     => Div(sim(u),sim(v))
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -106,7 +113,7 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a+b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a+b)     
     case( q,        Neg(b)   ) => sim( sim(q)-sim(b) )
-    case _                     =>      sim(u)+sim(v)
+    case _                     => Add(sim(u),sim(v))
   }
 
   def sub( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -117,8 +124,8 @@ trait Simplify
     case( Num(a),   Dbl(b)   ) => Dbl(a-b)
     case( Dbl(a),   Num(b)   ) => Dbl(a-b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a-b)    
-    case( q,        Neg(b)   ) => sim( sim(q)+sim(b) )
-    case _                     => sim(u)-sim(v)
+    case( q,        Neg(b)   ) => Add(sim(q),sim(b))
+    case _                     => Sub(sim(u),sim(v))
   }
 
   def pow( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -131,7 +138,7 @@ trait Simplify
     case( Num(a),   Dbl(b)   ) => Dbl(Math.pow(a,b))
     case( Dbl(a),   Num(b)   ) => Dbl(Math.pow(a,b))
     case( Dbl(a),   Dbl(b)   ) => Dbl(Math.pow(a,b))    
-    case _                     => sim(u)~^sim(v)
+    case _                     => Pow(sim(u),sim(v))
   }
 
   def rec( u:Exp ) : Exp = u match
