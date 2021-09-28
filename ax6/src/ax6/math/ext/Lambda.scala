@@ -70,8 +70,15 @@ trait Lambda
   def lambdaUnay( t:Text, name:String, u:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(')') }
 
-  def lambdaList( t:Text, name:String, u:List[Exp] ): Unit =
-    { t.all( name, '(' ); t.app(u.mkString(",")); t.app(')') }
+  def lambdaList( t:Text, name:String, exps:List[Exp] ): Unit = {
+    t.all( name, '(' )
+    for( exp <- exps ) {
+      exp.lambda(t)
+      t.app(',')
+    }
+    t.delTail()
+    t.app(')')
+  }
 
   def lambdaBins( t:Text, name:String, u:Exp, v:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(','); v.lambda(t); t.app(')') }

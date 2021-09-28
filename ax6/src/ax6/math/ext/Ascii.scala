@@ -26,7 +26,7 @@ trait Ascii
       case Equ(u,v)  => u.ascii(t); t.app('='); v.ascii(t)
       case Neg(u)    => t.app('-'); u.ascii(t)
       case Pls(u)    => t.app('+'); u.ascii(t)
-      case Lis(exps) => list( t, exps )
+      case Lis(exps) => asciLlist( t, exps )
       case Abs(u)    => t.app('|'); u.ascii(t); t.app('|')
       case Par(u)    => t.app('('); u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{'); u.ascii(t); t.app('}')
@@ -102,11 +102,10 @@ trait Ascii
      t.app( ']' )
    }
 
-    def list( t:Text, exps:List[Exp] ): Unit = {
-      t.app('(')
+    def asciLlist( t:Text, exps:List[Exp] ): Unit = {
       for( exp <- exps )
-        { t.app( ',' ); exp.ascii(t) }
-      t.app( ')' )
+        { exp.ascii(t); t.app( '+' ) }
+      t.delTail()
     }
    
    def mex( t:Text, mat:Array[Vex] ): Unit = {

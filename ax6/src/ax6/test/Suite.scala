@@ -16,6 +16,7 @@ object Suite
    def runTests(tst:Suite) : Unit =
    {
        tst.testFal()
+       tst.testSim()
     // tst.testExp()
     // tst.testEee()
     // tst.testCex()
@@ -96,16 +97,16 @@ class Suite //extends Suite
   def testFal(): Unit = {
     val t = new Text(200)
     
-    val stra = "(x+y)^3"
-    Test.init( "pow.a", stra )
+    val strp = "(x+y)^3"
+    Test.init( "pow.a", strp )
     val powa:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
     t.clear()
     powa.ascii(t)
     Test.test( "pow.a", t )
 
-    val strb = "(x+y)^3"
+    val strq = "(x+y)^3"
     Test.init( "pow.b", "(x+y)^3 | Pow(Add(Var(x),Var(y)),Num(3))" )
-    val powb:Exp = AsciiParse(strb)
+    val powb:Exp = AsciiParse(strq)
     t.clear()
     powb.ascii(t)
     t.app(" | ")
@@ -121,6 +122,19 @@ class Suite //extends Suite
     t.app(" | ")
     expa.lambda(t)
     Test.test( "add.a", t )
+
+    // Fail::add.a:x+x+7+y     | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
+    //     ::add.a:(x+x+(7+y)) | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
+    // Fail::add.b:x+x+7+y     | Lis(Var(x),Var(x),Num(7),Var(y))
+    //     ::add.b:(x+x+7+y)   | Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))
+    val strb = "x+x+7+y"
+    Test.init( "add.b", "x+x+7+y | Lis(Var(x),Var(x),Num(7),Var(y))" )
+    val expb:Exp = AsciiParse(strb).sim
+    t.clear()
+    expb.ascii(t)
+    t.app(" | ")
+    expb.lambda(t)
+    Test.test( "add.b", t )
 
     // Fail::sub.a:x-x-7-z       | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
     //     ::sub.a:(x-x-(7-z))   | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))

@@ -138,7 +138,7 @@ trait Simplify
   }
 
   def listSim( exps:List[Exp] ) : Exp = {
-    var list = new LB()
+    val list = new LB()
     for( exp <- exps )
       list += sim(exp)
     Lis(list.toList)
@@ -146,6 +146,8 @@ trait Simplify
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match
   {
+    case( Add(a,b), Add(c,d) ) => Lis( List( sim(a),sim(b),sim(c),sim(d) ) )
+    case( Add(a,b), c        ) => Lis( List( sim(a),sim(b),sim(c) ) )
     case( q, Num(0)|Dbl(0.0) ) => sim(q)
     case( Num(0)|Dbl(0.0), r ) => sim(r)
     case( Num(a),   Num(b)   ) => Num(a+b)
