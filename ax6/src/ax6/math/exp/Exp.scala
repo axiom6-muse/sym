@@ -1,15 +1,18 @@
 
 package ax6.math.exp
 
-import  ax6.math.ext._
-import  ax6.util.Text
-import  scala.language.implicitConversions
+import ax6.math.ext._
+import ax6.util.Text
+
+import scala.collection.mutable.ListBuffer
+import scala.language.implicitConversions
 
 abstract class Exp extends Ascii
   with Lambda    with MathML        with Latex
   with Calculate with Differentiate with Integrate with Precedence with Simplify
 {
-  type dbl     = Double
+  type dbl = Double
+  type LB  = ListBuffer[Exp]
 
   implicit def Int2Num( n:Int    ) : Exp = Num(n)
   implicit def dbl2Dbl( r:Double ) : Exp = Dbl(r)

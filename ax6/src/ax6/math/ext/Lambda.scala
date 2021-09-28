@@ -25,7 +25,7 @@ trait Lambda
       case Pow(u,v)  => lambdaBins( t, "Pow", u, v )
       case Neg(u)    => lambdaUnay( t, "Neg", u )
       case Pls(u)    => lambdaUnay( t, "Pls", u )
-      case Lis(u)    => lambdaUnay( t, "Lis", u )
+      case Lis(u)    => lambdaList( t, "Lis", u )
       case Abs(u)    => lambdaUnay( t, "Abs", u )
       case Par(u)    => lambdaUnay( t, "Par", u )
       case Brc(u)    => lambdaUnay( t, "Brc", u )
@@ -69,6 +69,9 @@ trait Lambda
 
   def lambdaUnay( t:Text, name:String, u:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(')') }
+
+  def lambdaList( t:Text, name:String, u:List[Exp] ): Unit =
+    { t.all( name, '(' ); t.app(u.mkString(",")); t.app(')') }
 
   def lambdaBins( t:Text, name:String, u:Exp, v:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(','); v.lambda(t); t.app(')') }

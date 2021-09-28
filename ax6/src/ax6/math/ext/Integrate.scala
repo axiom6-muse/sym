@@ -92,10 +92,10 @@ trait Integrate
    def IPart( u:Exp, v:Exp ) : Exp = Not(Itg(Mul(u,v)))
 
   def list( exps:List[Exp] ) : Exp = {
-    var list:List[Exp] = List[Exp]()
+    var list = new LB()
     for( exp <- exps )
-      list = exp :: list
-    Lis(list)
+      list += exp
+    Lis(list.toList)
   }
 
 }

@@ -138,10 +138,10 @@ trait Simplify
   }
 
   def listSim( exps:List[Exp] ) : Exp = {
-    var list = List[Exp]()
+    var list = new LB()
     for( exp <- exps )
-      list  =  sim(exp) :: list
-    Lis(list)
+      list += sim(exp)
+    Lis(list.toList)
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match

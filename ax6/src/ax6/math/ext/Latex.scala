@@ -7,11 +7,11 @@ import  ax6.util.Text
 
 trait Latex
 {
-   self:Exp =>
+  self:Exp =>
      
-   def latex(  t:Text ): Unit = {  latex(t,this) }
+  def latex(  t:Text ): Unit = {  latex(t,this) }
 
-   def latex( t:Text, exp:Exp ): Unit = {
+  def latex( t:Text, exp:Exp ): Unit = {
      exp match
      {
       case Num(n)    => t.app( n.toString )
@@ -63,7 +63,7 @@ trait Latex
    }
   
 // Function
-   def latex( t:Text, func:String, u:Exp ): Unit =
+  def latex( t:Text, func:String, u:Exp ): Unit =
      { t.app(func); paren(t,u) }
 
 // Function subscript
@@ -71,7 +71,7 @@ trait Latex
      { t.all(func,'_',r); paren(t,u) }
    
 // Function subscript superscript
-   def latex( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
+  def latex( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
      { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); paren(t,u) }
   
   def latexDif( t:Text, u:Exp ): Unit = {
@@ -113,7 +113,7 @@ trait Latex
   def latexList( t:Text, exps:List[Exp] ): Unit = {
     t.app( "\\begin{bmatrix}" )
     for( exp <- exps )
-    { t.app(" & "); exp.latex(t) }
+      { t.app(" & "); exp.latex(t) }
     t.app( "\\end{bmatrix}" )
   }
 }

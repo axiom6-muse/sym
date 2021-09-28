@@ -10,7 +10,6 @@ trait Differentiate
     case Var(s)   => Dif(Var(s)) // x becomes dx
     case Par(u)   => Par(d(u))
     case Neg(u)   => -d(u)
-    case Pls(u)   =>  d(u)
     case Pow(u,v) => v * u~^(v-1) * d(u)
     case Mul(u,v) => v * d(u) + u * d(v)
     case Div(u,v) => Par( v*d(u) - u*d(v) ) / v~^2

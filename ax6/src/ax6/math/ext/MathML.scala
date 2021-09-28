@@ -25,7 +25,7 @@ trait MathML
       case Pow(u,v)  => mathML( t, "msup",   u, v )
       case Neg(u)    => mathML( t, "mo", "-" ); u.mathML(t)
       case Pls(u)    => mathML( t, "mo", "+" ); u.mathML(t)
-      case Lis(exps:List[Exp])    => listML( t, exps )
+      case Lis(exps) => listML( t, exps )
       case Abs(u)    => mathML( t, "mo", "|" ); u.mathML(t)
       case Par(u)    => mathML( t, "mfence", u )
       case Brc(u)    => mathML( t, "mfence", u )

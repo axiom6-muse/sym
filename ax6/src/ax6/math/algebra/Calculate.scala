@@ -14,8 +14,6 @@ trait Calculate
     case Var(s)   => a(s)       // Return double assigned to variable
     case Par(u)   =>  calc(u,a)  // Strip off parentheses
     case Neg(u)   => -calc(u,a)
-    case Pls(u)   =>  calc(u,a)
-    case Lis(u)   =>  calc(u,a) // ???
     case Pow(u,v) => Math.pow( calc(u,a), calc(v,a) )
     case Mul(u,v) => calc(u,a) * calc(v,a)
     case Div(u,v) => val de=calc(v,a); if(de==0.0) NaN else calc(u,a)/de
