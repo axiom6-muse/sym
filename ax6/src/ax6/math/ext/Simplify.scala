@@ -16,12 +16,19 @@ trait Simplify
     case Dbl(d)    => dbl(d)
     case Rat(n,d)  => rat(n,d)
     case Var(_)    => exp
-    case Add(u,v)  => par(add(u,v))
-    case Sub(u,v)  => par(sub(u,v))
-    case Mul(u,v)  => par(mul(u,v))
-    case Div(u,v)  => par(div(u,v))
-    case Pow(u,v)  => par(pow(u,v))
-    case Neg(u)    => par(Neg(sim(u)))
+    case Add(u,v)  => add(u,v)
+    case Sub(u,v)  => sub(u,v)
+    case Mul(u,v)  => mul(u,v)
+    case Div(u,v)  => div(u,v)
+    case Pow(u,v)  => pow(u,v)
+    case Par(Add(u,v))  => add(u,v)
+    case Par(Sub(u,v))  => sub(u,v)
+    case Par(Mul(u,v))  => mul(u,v)
+    case Par(Div(u,v))  => div(u,v)
+    case Par(Pow(u,v))  => pow(u,v)
+    case Neg(u)    => Neg(sim(u))
+    case Pls(u)    => Pls(sim(u))
+    case Lis(u)    => listSim(u)
     case Par(u)    => par(sim(u))
     case Rec(u)    => rec(u)
     case Abs(u)    => Abs(sim(u))
@@ -128,6 +135,13 @@ trait Simplify
     if(      a == c ) sim(b)
     else if( b == c ) sim(a)
     else              Div(Mul(sim(a),sim(b)),sim(c))
+  }
+
+  def listSim( exps:List[Exp] ) : Exp = {
+    var list = List[Exp]()
+    for( exp <- exps )
+      list  =  sim(exp) :: list
+    Lis(list)
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match

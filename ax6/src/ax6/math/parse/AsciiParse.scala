@@ -113,13 +113,14 @@ object AsciiParse extends StdTokenParsers
    def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r) }
    def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b) }
 
-   def sum  : Parser[Exp] = ("Int"|"sum") ~ lim ~ arg  ^^ 
-   { 
+  def sum  : Parser[Exp] = ("Int"|"sum") ~ lim ~ arg  ^^
+  {
       case "sum" ~ Lim(a,b) ~ u => Sum(a,b,u)
       case "Int" ~ Lim(a,b) ~ u => Itl(a,b,u)
-   }      
+  }
      
-   def neg : Parser[Exp] = "-" ~ end ^^ { case "-" ~ u => Neg(u) }
+  def neg : Parser[Exp] = "-" ~ end ^^ { case "-" ~ u => Neg(u) }
+  def pls : Parser[Exp] = "+" ~ end ^^ { case "+" ~ u => Pls(u) }
 
 // e is a reserved exponentialion keyword that must be followed by ^ 
 // e^u is handled by ee1
@@ -145,7 +146,7 @@ object AsciiParse extends StdTokenParsers
   
   def base:Parser[Exp] = NUM | dif | VAR | par | brc | abs | cex | vex | mex
 
-  def oper:Parser[Exp] = fun | log | roo | eee | iii | sum | neg // | sus | sup
+  def oper:Parser[Exp] = fun | log | roo | eee | iii | sum | neg | pls // | sus | sup
 
 // Everything is an expression (expr) or an equation (equ)
    def all:Parser[Exp] = end | failure("end")

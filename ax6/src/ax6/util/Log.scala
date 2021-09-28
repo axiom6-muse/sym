@@ -11,12 +11,11 @@ object Log
   //   outputs a newline
   // put is more generic in that does not delimit the args and does not
   //  output a newline so put can be called multiple times to log a line of text
-
   def log( args:Any* ): Unit = { text.clear(); arg(args); eol() }
   def put( args:Any* ): Unit = { text.clear(); seq(args); out() }
 
-// .. Format args ...
-
+  // .. Format args ...
+  def arg(   args:Seq[Any] ): Unit = { text.delim(" ",args); out() }
   def app(   args:Any*     ): Unit = { text.seq(args)  }
   def seq(   args:Seq[Any] ): Unit = { text.seq(args)  }
   def delim( args:Seq[Any] ): Unit = { text.delim(" ",args)  }
@@ -24,7 +23,7 @@ object Log
 // ... log error trace stack output ...
 
 // Delimit with spaces and output args
-   def arg( args:Seq[Any] ): Unit = { text.delim(" ",args); out() }
+
 
 // ... error trace stack ...
   def error(        args:Any* ): Unit = { msg("Error:  "); arg(args); tracen(1); eol() }

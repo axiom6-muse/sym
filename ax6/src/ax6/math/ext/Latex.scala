@@ -25,6 +25,8 @@ trait Latex
       case Rec(u)  => t.app("1"); t.app('/'); group(t,u)
       case Pow(u,v)  => group(t,u); t.app('^'); group(t,v)
       case Neg(u)    => t.app('-'); u.latex(t)
+      case Pls(u)    => t.app('+'); u.latex(t)
+      case Lis(u)    => latexList(t,u)
       case Abs(u)    => t.app('|'); u.latex(t); t.app('|')
       case Par(u)    => paren(t,u)
       case Brc(u)    => t.app('{'); u.latex(t); t.app('}')
@@ -72,7 +74,7 @@ trait Latex
    def latex( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
      { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); paren(t,u) }
   
-   def latexDif( t:Text, u:Exp ): Unit = {
+  def latexDif( t:Text, u:Exp ): Unit = {
      u match
      {
        case Var(s) =>
@@ -88,14 +90,14 @@ trait Latex
    def latexCex( t:Text, r:Exp, i:Exp ): Unit =
      { t.app('['); latex(t,r); t.app(','); latex(t,i); t.app("\\ii]") }
   
-   def latexVex( t:Text, a:Array[Exp] ): Unit = {
+  def latexVex( t:Text, a:Array[Exp] ): Unit = {
     t.app( "\\begin{bmatrix}" ); a(0).latex(t)
     for( i <- 1 until a.length ) 
       { t.app(" & "); a(i).latex(t) }
     t.app( "\\end{bmatrix}" )
   }
    
-   def latexMex( t:Text, mat:Array[Vex] ): Unit = {
+  def latexMex( t:Text, mat:Array[Vex] ): Unit = {
     t.app( "\\begin{bmatrix}" )
     for( i <- mat.indices)
     { 
@@ -106,5 +108,12 @@ trait Latex
     }
     t.app( "\\end{bmatrix}" )
   }
-   
+
+  // ??? Need Latex exp for List
+  def latexList( t:Text, exps:List[Exp] ): Unit = {
+    t.app( "\\begin{bmatrix}" )
+    for( exp <- exps )
+    { t.app(" & "); exp.latex(t) }
+    t.app( "\\end{bmatrix}" )
+  }
 }

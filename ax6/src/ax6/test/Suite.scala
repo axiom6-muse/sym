@@ -16,19 +16,18 @@ object Suite
    def runTests(tst:Suite) : Unit =
    {
        tst.testFal()
-       tst.testExp()
-       tst.testEee()
-
-       tst.testCex()
-       tst.testVex()
-       tst.testMex()
-       tst.testRun()
-       tst.testDif()
-       tst.testItg()
-       tst.testFun()
-       tst.testSum()
-       tst.testEqu()
-       tst.testSim()
+    // tst.testExp()
+    // tst.testEee()
+    // tst.testCex()
+    // tst.testVex()
+    // tst.testMex()
+    // tst.testRun()
+    // tst.testDif()
+    // tst.testItg()
+    // tst.testFun()
+    // tst.testSum()
+    // tst.testEqu()
+    // tst.testSim()
     // tst.testSus
     // tst.testErr
 
@@ -97,21 +96,43 @@ class Suite //extends Suite
   def testFal(): Unit = {
     val t = new Text(200)
     
-    val str = "(x+y)^3"
-    Test.init( "pow.a", str )
+    val stra = "(x+y)^3"
+    Test.init( "pow.a", stra )
     val powa:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
+    t.clear()
     powa.ascii(t)
     Test.test( "pow.a", t )
 
-    Test.init( "pow.b", Pow(Add(Var("x"),Var("y")),Num(3)) )
-    val powb:Exp = AsciiParse(str).sim
-    powb.lambda(t)
+    val strb = "(x+y)^3"
+    Test.init( "pow.b", "(x+y)^3 | Pow(Add(Var(x),Var(y)),Num(3))" )
+    val powb:Exp = AsciiParse(strb)
+    t.clear()
+    powb.ascii(t)
+    t.app(" | ")
+    powb.sim.lambda(t)
     Test.test( "pow.b", t )
 
-    Test.init( "lam.a", "x+x+7+y" )
-    val exp:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
-    exp.ascii(t)
-    Test.test( "lam.a", t )
+    // Fail::add.a:x+x+7+y       | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
+    //     ::add.a:(x+x+(7+y))   | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
+    Test.init( "add.a", "x+x+7+y | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))" )
+    val expa:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
+    t.clear()
+    expa.ascii(t)
+    t.app(" | ")
+    expa.lambda(t)
+    Test.test( "add.a", t )
+
+    // Fail::sub.a:x-x-7-z       | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
+    //     ::sub.a:(x-x-(7-z))   | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
+    // Fail::sub.a:x-x-7-z       | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
+    //     ::sub.a:(x-y-(7-z))   | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
+    Test.init( "sub.a", "x-x-7-z | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))" )
+    val exps:Exp = Sub(Sub(Var("x"),Var("y")),Sub(Num(7),Var("z")))
+    t.clear()
+    exps.ascii(t)
+    t.app(" | ")
+    exps.lambda(t)
+    Test.test( "sub.a", t )
   }
 
   def testExp(): Unit = {

@@ -24,6 +24,8 @@ trait Lambda
       case Rec(u)    => lambdaBins( t, "Rec", Num(1), u )
       case Pow(u,v)  => lambdaBins( t, "Pow", u, v )
       case Neg(u)    => lambdaUnay( t, "Neg", u )
+      case Pls(u)    => lambdaUnay( t, "Pls", u )
+      case Lis(u)    => lambdaUnay( t, "Lis", u )
       case Abs(u)    => lambdaUnay( t, "Abs", u )
       case Par(u)    => lambdaUnay( t, "Par", u )
       case Brc(u)    => lambdaUnay( t, "Brc", u )

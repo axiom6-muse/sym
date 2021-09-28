@@ -13,10 +13,11 @@ object Parse extends StdTokenParsers
   val lexical = new StdLexical
   lexical.delimiters ++= List( "(",")","+","-","^","/","*" )
 
-  def NUM:Parser[Exp] = numericLit        ^^ { (s:String)   => Num(s.toDouble)}
-  def VAR:Parser[Exp] = ident             ^^ { (s:String)   => Var(s) }
-  def par:Parser[Exp] = "(" ~> end <~ ")" ^^ { (u:Exp)      => Par(u) }
-  def neg:Parser[Exp]  = "-" ~  end        ^^ { case "-" ~ u => Neg(u); case _ => Var("neg") }
+  def NUM:Parser[Exp] = numericLit        ^^ { (s:String)    => Num(s.toDouble)}
+  def VAR:Parser[Exp] = ident             ^^ { (s:String)    => Var(s) }
+  def par:Parser[Exp] = "(" ~> end <~ ")" ^^ { (u:Exp)       => Par(u) }
+  def neg:Parser[Exp]  = "-" ~  end        ^^ { case "-" ~ u => Neg(u) }
+  def pls:Parser[Exp]  = "+" ~  end        ^^ { case "+" ~ u => Pls(u) }
 
   def beg:Parser[Exp] = NUM | VAR | par | neg
   def pow:Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )

@@ -23,6 +23,8 @@ trait Integrate
     case Pow(u,v)  => IPow(noparen(u),noparen(v))
     case Rec(u)    => Lnn(u)
     case Neg(u)    => -I(u)
+    case Pls(u)    =>  I(u)
+    case Lis(exps) => list(exps)
     case Abs(u)    => Abs(I(u))
     case Par(u)    => I(u)
     case Brc(u)    => I(u)
@@ -88,5 +90,12 @@ trait Integrate
 // I(u*d(v)) = u*v - I(v*d(u))
 // I(v*d(u)) = u*v - I(u*d(v))
    def IPart( u:Exp, v:Exp ) : Exp = Not(Itg(Mul(u,v)))
+
+  def list( exps:List[Exp] ) : Exp = {
+    var list:List[Exp] = List[Exp]()
+    for( exp <- exps )
+      list = exp :: list
+    Lis(list)
+  }
 
 }

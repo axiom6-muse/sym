@@ -24,6 +24,8 @@ trait MathML
       case Rec(u)    => mathML( t, "mfrac", Num(1), u )
       case Pow(u,v)  => mathML( t, "msup",   u, v )
       case Neg(u)    => mathML( t, "mo", "-" ); u.mathML(t)
+      case Pls(u)    => mathML( t, "mo", "+" ); u.mathML(t)
+      case Lis(exps:List[Exp])    => listML( t, exps )
       case Abs(u)    => mathML( t, "mo", "|" ); u.mathML(t)
       case Par(u)    => mathML( t, "mfence", u )
       case Brc(u)    => mathML( t, "mfence", u )
@@ -60,39 +62,39 @@ trait MathML
   }
 
   def mathML( t:Text, tag:String, s:String ): Unit =
-    { t.app( '<', tag, '>', s, "</", tag, '>' ) }
+    { t.all( '<', tag, '>', s, "</", tag, '>' ) }
 
   def mathML( t:Text, tag:String, u:Exp ): Unit =
-    { t.app( '<', tag, '>' ); u.mathML(t); t.app( "</", tag, '>' ) }
+    { t.all( '<', tag, '>' ); u.mathML(t); t.all( "</", tag, '>' ) }
 
   def funcML( t:Text, func:String, u:Exp ): Unit = {
-    t.app( '<',  "mrow", '>' )
+    t.all( '<',  "mrow", '>' )
       mathML( t, "mi", func )
       mathML( t, "mfence", u )
-    t.app( "</", "mrow", '>' )
+    t.all( "</", "mrow", '>' )
   }
 
   def mathML( t:Text, tag:String, u:Exp, v:Exp ): Unit = {
-    t.app( '<',  tag,  '>' )
+    t.all( '<',  tag,  '>' )
       u.mathML(t)
       v.mathML(t)
-    t.app( "</", tag, '>' )
+    t.all( "</", tag, '>' )
   }
 
   def mathML( t:Text, tag:String, u:Exp, op:String, v:Exp ): Unit = {
-    t.app( '<',  tag,  '>' )
+    t.all( '<',  tag,  '>' )
       u.mathML(t)
       mathML( t, "mo", op )
       v.mathML(t)
-    t.app( "</", tag, '>' )
+    t.all( "</", tag, '>' )
   }
   
   def operML( t:Text, tag:String, op:String, a:Exp, b:Exp, u:Exp ): Unit = {
-    t.app( '<',  tag,  '>' )
+    t.all( '<',  tag,  '>' )
     mathML( t, "mo", op )
     a.mathML(t)
     b.mathML(t)
-    t.app( "</", tag, '>' )
+    t.all( "</", tag, '>' )
     u.mathML(t)
   }
   
@@ -104,10 +106,17 @@ trait MathML
     for( i <- a.indices )
       a(i).mathML(t)            // MathML takes care of commas
     t.app( "</mfenced>" )
-  } 
-  
+  }
+
+  def listML( t:Text, exps:List[Exp] ): Unit = {
+    t.app( "<mfenced open='[' close=']'>" )
+    for( exp <- exps )
+      exp.mathML(t)            // MathML takes care of commas
+    t.app( "</mfenced>" )
+  }
+
   def mathMLMex( t:Text, mat:Array[Vex] ): Unit = {
-    t.app( "<mfenced open='[' close=']'>", "<mtable>" )
+    t.all( "<mfenced open='[' close=']'>", "<mtable>" )
     for( i <- mat.indices )
     { 
       t.app( "<mtr>" )
@@ -115,18 +124,18 @@ trait MathML
         { t.app("<mtd>"); mat(i)(j).mathML(t); t.app("</mtd>") }
       t.app( "</mtr>" )
     }
-    t.app( "</mtable>", "</mfenced>" )
+    t.all( "</mtable>", "</mfenced>" )
   }    
   
   def headML( t:Text ): Unit = {
-    t.app( "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", Text.eol )
-    t.app( "<?xml-stylesheet type=\"text/css\" href=\"MathML.css\" ?>", Text.eol )
-    t.app( "<root xmlns=\"http://www.w3.org/1998/Math/MathML\">", Text.eol )
+    t.all( "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", Text.eol )
+    t.all( "<?xml-stylesheet type=\"text/css\" href=\"MathML.css\" ?>", Text.eol )
+    t.all( "<root xmlns=\"http://www.w3.org/1998/Math/MathML\">", Text.eol )
   }
 
   def begML(  t:Text ): Unit = { t.app("<math>") }
-  def endML(  t:Text ): Unit = { t.app("</math>", Text.eol ) }
-  def footML( t:Text ): Unit = { t.app("</root>", Text.eol ) }
+  def endML(  t:Text ): Unit = { t.all("</math>", Text.eol ) }
+  def footML( t:Text ): Unit = { t.all("</root>", Text.eol ) }
 
 
 }

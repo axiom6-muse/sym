@@ -23,6 +23,8 @@ trait Differentiate
     case Rec(u)    => -d(u) / u~^2
     case Pow(u,v)  => dpow(u,v)
     case Neg(u)    => -d(u)
+    case Pls(u)    =>  d(u)
+    case Lis(exps) => list(exps)
     case Abs(u)    => Abs(d(u))
     case Par(u)    => Par(d(u))
     case Brc(u)    => Brc(d(u))
@@ -67,5 +69,12 @@ trait Differentiate
     case ( Num(n), v1 ) => ln(n) * n~^v1 * d(v1)
     case ( Dbl(r), v1 ) => ln(r) * r~^v1 * d(v1)
     case _              => v * u~^(v-1)  * d(u) + Lnn(u) * u~^v * d(v)
+  }
+
+  def list( exps:List[Exp] ) : Exp = {
+     var list:List[Exp] = new List[Exp]()
+     for( exp <- exps ) {
+       list  = d(exp) :: list }
+     Lis(list)
   }
 }
