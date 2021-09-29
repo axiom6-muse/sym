@@ -27,8 +27,8 @@ trait Simplify
     case Par(Div(u,v))  => div(u,v)
     case Par(Pow(u,v))  => pow(u,v)
     case Neg(u)    => Neg(sim(u))
-    case Pls(u)    => Pls(sim(u))
-    case Lis(u)    => listSim(u)
+    case Adds(u)   => simAdds(u)
+    case Muls(u)   => simMuls(u)
     case Par(u)    => par(sim(u))
     case Rec(u)    => rec(u)
     case Abs(u)    => Abs(sim(u))
@@ -136,18 +136,30 @@ trait Simplify
     else if( b == c ) sim(a)
     else              Div(Mul(sim(a),sim(b)),sim(c))
   }
+  
+  def simAdds( list:List[Exp] ) : Exp = { list match {
+    case Add(a,b) :: tail => Adds( sim(a) :: sim(b) :: tail )
+    case _                => listExps(list)
+    }
+  }
 
-  def listSim( exps:List[Exp] ) : Exp = {
+  def simMuls( list:List[Exp] ) : Exp = { list match {
+    case Mul(a,b) :: tail => Muls( sim(a) :: sim(b) :: tail )
+    case _                => listExps(list)
+  }
+  }
+  
+  def listExps( exps:List[Exp] ) : Exp = {
     val list = new LB()
     for( exp <- exps )
       list += sim(exp)
-    Lis(list.toList)
+    sim(Adds(list.toList))
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( Add(a,b), Add(c,d) ) => Lis( List( sim(a),sim(b),sim(c),sim(d) ) )
-    case( Add(a,b), c        ) => Lis( List( sim(a),sim(b),sim(c) ) )
+    case( Add(a,b), Add(c,d) ) => Adds( List( sim(a),sim(b),sim(c),sim(d) ) )
+    case( Add(a,b), c        ) => Adds( List( sim(a),sim(b),sim(c) ) )
     case( q, Num(0)|Dbl(0.0) ) => sim(q)
     case( Num(0)|Dbl(0.0), r ) => sim(r)
     case( Num(a),   Num(b)   ) => Num(a+b)

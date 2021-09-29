@@ -125,10 +125,10 @@ class Suite //extends Suite
 
     // Fail::add.a:x+x+7+y     | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
     //     ::add.a:(x+x+(7+y)) | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    // Fail::add.b:x+x+7+y     | Lis(Var(x),Var(x),Num(7),Var(y))
+    // Fail::add.b:x+x+7+y     | Adds(Var(x),Var(x),Num(7),Var(y))
     //     ::add.b:(x+x+7+y)   | Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))
     val strb = "x+x+7+y"
-    Test.init( "add.b", "x+x+7+y | Lis(Var(x),Var(x),Num(7),Var(y))" )
+    Test.init( "add.b", "x+x+7+y | Adds(Var(x),Var(x),Num(7),Var(y))" )
     val expb:Exp = AsciiParse(strb).sim
     t.clear()
     expb.ascii(t)

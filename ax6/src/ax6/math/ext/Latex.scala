@@ -25,8 +25,8 @@ trait Latex
       case Rec(u)  => t.app("1"); t.app('/'); group(t,u)
       case Pow(u,v)  => group(t,u); t.app('^'); group(t,v)
       case Neg(u)    => t.app('-'); u.latex(t)
-      case Pls(u)    => t.app('+'); u.latex(t)
-      case Lis(u)    => latexList(t,u)
+      case Adds(list)    => latexList(t,'+',list)
+      case Muls(list)    => latexList(t,'*',list)
       case Abs(u)    => t.app('|'); u.latex(t); t.app('|')
       case Par(u)    => paren(t,u)
       case Brc(u)    => t.app('{'); u.latex(t); t.app('}')
@@ -110,7 +110,7 @@ trait Latex
   }
 
   // ??? Need Latex exp for List
-  def latexList( t:Text, exps:List[Exp] ): Unit = {
+  def latexList( t:Text, op:Char,exps:List[Exp] ): Unit = {
     t.app( "\\begin{bmatrix}" )
     for( exp <- exps )
       { t.app(" & "); exp.latex(t) }

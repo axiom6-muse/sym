@@ -23,8 +23,8 @@ trait Differentiate
     case Rec(u)    => -d(u) / u~^2
     case Pow(u,v)  => dpow(u,v)
     case Neg(u)    => -d(u)
-    case Pls(u)    =>  d(u)
-    case Lis(exps) => listDif(exps)
+    case Adds(list) => listDif('+',list)
+    case Muls(list) => listDif('*',list)
     case Abs(u)    => Abs(d(u))
     case Par(u)    => Par(d(u))
     case Brc(u)    => Brc(d(u))
@@ -71,10 +71,11 @@ trait Differentiate
     case _              => v * u~^(v-1)  * d(u) + Lnn(u) * u~^v * d(v)
   }
 
-  def listDif( exps:List[Exp] ) : Exp = {
+  def listDif( op:Char, exps:List[Exp] ) : Exp = {
     val list: LB = new LB()
      for( exp <- exps ) {
-       list += d(exp) }
-     Lis( list.toList )
+       if( op=='+' ) list += d(exp) else list += d(exp) // ??? Muls is differeny
+     }
+     if( op=='+' ) Adds( list.toList ) else Muls( list.toList )
   }
 }

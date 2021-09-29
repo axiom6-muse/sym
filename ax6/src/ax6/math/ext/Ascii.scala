@@ -25,8 +25,8 @@ trait Ascii
       case Pow(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
       case Equ(u,v)  => u.ascii(t); t.app('='); v.ascii(t)
       case Neg(u)    => t.app('-'); u.ascii(t)
-      case Pls(u)    => t.app('+'); u.ascii(t)
-      case Lis(exps) => asciLlist( t, exps )
+      case Adds(list) => asciLlist( t, '+', list )
+      case Muls(list) => asciLlist( t, '*', list )
       case Abs(u)    => t.app('|'); u.ascii(t); t.app('|')
       case Par(u)    => t.app('('); u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{'); u.ascii(t); t.app('}')
@@ -102,9 +102,9 @@ trait Ascii
      t.app( ']' )
    }
 
-    def asciLlist( t:Text, exps:List[Exp] ): Unit = {
+    def asciLlist( t:Text, op:Char, exps:List[Exp] ): Unit = {
       for( exp <- exps )
-        { exp.ascii(t); t.app( '+' ) }
+        { exp.ascii(t); t.app(op) }
       t.delTail()
     }
    

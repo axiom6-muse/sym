@@ -24,8 +24,8 @@ trait MathML
       case Rec(u)    => mathML( t, "mfrac", Num(1), u )
       case Pow(u,v)  => mathML( t, "msup",   u, v )
       case Neg(u)    => mathML( t, "mo", "-" ); u.mathML(t)
-      case Pls(u)    => mathML( t, "mo", "+" ); u.mathML(t)
-      case Lis(exps) => listML( t, exps )
+      case Adds(exps) => listML( t, '+', exps )
+      case Muls(exps) => listML( t, '*', exps )
       case Abs(u)    => mathML( t, "mo", "|" ); u.mathML(t)
       case Par(u)    => mathML( t, "mfence", u )
       case Brc(u)    => mathML( t, "mfence", u )
@@ -108,7 +108,8 @@ trait MathML
     t.app( "</mfenced>" )
   }
 
-  def listML( t:Text, exps:List[Exp] ): Unit = {
+  // ??? needs to deal with op
+  def listML( t:Text, op:Char, exps:List[Exp] ): Unit = {
     t.app( "<mfenced open='[' close=']'>" )
     for( exp <- exps )
       exp.mathML(t)            // MathML takes care of commas

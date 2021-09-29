@@ -27,7 +27,6 @@ abstract class Exp extends Ascii
   def /   ( v:Exp ) : Exp = Div(this,v)
   def ~^  ( v:Exp ) : Exp = Pow(this,v) // ~^is used instead of ^ for highest precedence
   def unary_-       : Exp = Neg(this)
-  def unary_+       : Exp = Pls(this)
 
   def noparen( e:Exp ) : Exp = e match
   {
@@ -59,11 +58,13 @@ case class Mul( u:Exp, v:Exp ) extends Exp // u * v
 case class Div( u:Exp, v:Exp ) extends Exp // u / v
 case class Pow( u:Exp, v:Exp ) extends Exp // u ^ v
 
+// Lists of Add and Muliply sequences
+case class Adds( exps:List[Exp] ) extends Exp
+case class Muls( exps:List[Exp] ) extends Exp
+
 // Unary operator high precendence
 case class Rec( u:Exp )          extends Exp // 1 / u
 case class Neg( u:Exp )          extends Exp // -u
-case class Pls( u:Exp )          extends Exp // +u
-case class Lis( exps:List[Exp] ) extends Exp
 
 // Parenthesis Braces and Absolute Value
 case class Par( u:Exp )        extends Exp // (u)

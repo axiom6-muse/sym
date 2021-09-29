@@ -67,8 +67,8 @@ trait Precedence
     case Rec(_)    => div
     case Pow(_,_)  => pow
     case Neg(_)    => neg
-    case Pls(_)    => neg
-    case Lis(_)    => vex
+    case Adds(_)   => vex
+    case Muls(_)   => vex
     case Abs(_)    => abs
     case Par(_)    => par
     case Brc(_)    => par

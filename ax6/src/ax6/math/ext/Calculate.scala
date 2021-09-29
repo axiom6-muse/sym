@@ -26,8 +26,8 @@ trait Calculate {
     case Rec(u)    => div(a,1,u)
     case Pow(u,v)  => pow( u.calc(a), v.calc(a) )
     case Neg(u)    => -u.calc(a)
-    case Pls(u)    =>  u.calc(a)
-    case Lis(exps) => listCalc(a,exps)
+    case Adds(list) => listCalc(a,'+',list)
+    case Muls(list) => listCalc(a,'*',list)
     case Abs(u)    => abs(u.calc(a))
     case Par(u)    => u.calc(a)
     case Brc(u)    => u.calc(a)
@@ -87,10 +87,13 @@ trait Calculate {
   def asec( d:Double ) : Double = Math.acos(1.0/d)
   def acot( d:Double ) : Double = Math.atan(1.0/d)
 
-  def listCalc( a:Assign, exps:List[Exp] ) : Double = {
-    var sum : Double =  0.0
+  def listCalc( a:Assign, op:Char, exps:List[Exp] ) : Double = {
+    var sum : Double =  if(op == '+') 0.0 else 1.0
     for( exp <- exps )
-      sum += calc( a, exp )
+      if(op == '+')
+        sum += calc( a, exp )
+      else
+        sum *= calc( a, exp )
     sum
   }
   
