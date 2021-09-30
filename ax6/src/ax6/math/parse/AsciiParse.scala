@@ -105,13 +105,13 @@ object AsciiParse extends StdTokenParsers
     case _ => Msg(Text(50).text("Ascii.func::", f, '(', u.text, ')', " :: is an unknown function"))
   }
   
-// log Interpreted as base e same as Ln for other bases use log_b(arg) 
-// e^u should not be a problem since "e" is reserved
-// ^ not a problem for Int and sum since lim consumes _ a ^ b 
-// def eee : Parser[Exp] = ("e"|Var("e")) ~> "^" ~ end ^^             
-   def log : Parser[Exp] = "log"  ~> "_" ~> DBL ~ arg  ^^ { case  b  ~  u => Log(u,b) }
-   def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r) }
-   def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b) }
+  // log Interpreted as base e same as Ln for other bases use log_b(arg)
+  // e^u should not be a problem since "e" is reserved
+  // ^ not a problem for Int and sum since lim consumes _ a ^ b
+  // def eee : Parser[Exp] = ("e"|Var("e")) ~> "^" ~ end ^^
+  def log : Parser[Exp] = "log"  ~> "_" ~> DBL ~ arg  ^^ { case  b  ~  u => Log(u,b) }
+  def roo : Parser[Exp] = "root" ~> "_" ~> DBL ~ arg  ^^ { case  r  ~  u => Roo(u,r) }
+  def lim : Parser[Exp] = "_" ~ beg ~ "^"  ~ beg      ^^ { case "_" ~  a ~ "^" ~ b => Lim(a,b) }
 
   def sum  : Parser[Exp] = ("Int"|"sum") ~ lim ~ arg  ^^
   {
@@ -121,25 +121,25 @@ object AsciiParse extends StdTokenParsers
      
   def neg : Parser[Exp] = "-" ~ end ^^ { case "-" ~ u => Neg(u) }
 
-// e is a reserved exponentialion keyword that must be followed by ^ 
-// e^u is handled by ee1
-// e standalone variable is handle by ee2
-   def ee1 : Parser[Exp] =  "e" ~ "^" ~ end  ^^ { case "e" ~ "^" ~ u => Eee(u)   }
-   def ee2 : Parser[Exp] =  "e"              ^^ { case "e"           => Var("e") }
-   def eee : Parser[Exp] =  ee1 | ee2
+  // e is a reserved exponentialion keyword that must be followed by ^
+  // e^u is handled by ee1
+  // e standalone variable is handle by ee2
+  def ee1 : Parser[Exp] =  "e" ~ "^" ~ end  ^^ { case "e" ~ "^" ~ u => Eee(u)   }
+  def ee2 : Parser[Exp] =  "e"              ^^ { case "e"           => Var("e") }
+  def eee : Parser[Exp] =  ee1 | ee2
  
-// d is a reserved differentiation keyword.
-// dx is handled by variable() converts dx Into Into Dif(Var(x)) fo just a 1 Char variable
-//   since we have to split a variable string the call by VAR to variable() is needed
-// d(exp) or differentiation of an expression is handled by dif1
-// d standalone variable is handled by dif2
-   def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u.noparen)   }
-   def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d")         }
-   def dif  : Parser[Exp] =  dif1 | dif2
+  // d is a reserved differentiation keyword.
+  // dx is handled by variable() converts dx Into Into Dif(Var(x)) fo just a 1 Char variable
+  //   since we have to split a variable string the call by VAR to variable() is needed
+  // d(exp) or differentiation of an expression is handled by dif1
+  // d standalone variable is handled by dif2
+  def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u.noparen)   }
+  def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d")         }
+  def dif  : Parser[Exp] =  dif1 | dif2
 
-// Right now subscript and superscript are a problem with stack overflows
-// def sus : Parser[Exp] = VAR ~ "_" ~ NUM ^^ { case u ~ "_" ~ v => Sus(u,v) }
-// def sup : Parser[Exp] = end ~ "^" ~ end ^^ { case u ~ "^" ~ v => Sup(u,v) }
+  // Right now subscript and superscript are a problem with stack overflows
+  // def sus : Parser[Exp] = VAR ~ "_" ~ NUM ^^ { case u ~ "_" ~ v => Sus(u,v) }
+  // def sup : Parser[Exp] = end ~ "^" ~ end ^^ { case u ~ "^" ~ v => Sup(u,v) }
  
   // ...... Primary (pri) and Production (exp) Parser Rules ......
   
@@ -147,8 +147,8 @@ object AsciiParse extends StdTokenParsers
 
   def oper:Parser[Exp] = fun | log | roo | eee | iii | sum | neg  // | sus | sup
 
-// Everything is an expression (expr) or an equation (equ)
-   def all:Parser[Exp] = end | failure("end")
+  // Everything is an expression (expr) or an equation (equ)
+  def all:Parser[Exp] = end | failure("end")
    
   def apply( str:String ) : Exp = parse( str )
                  

@@ -137,29 +137,31 @@ trait Simplify
     else              Div(Mul(sim(a),sim(b)),sim(c))
   }
   
-  def simAdds( list:List[Exp] ) : Exp = { list match {
-    case Add(a,b) :: tail => Adds( sim(a) :: sim(b) :: tail )
-    case _                => listExps(list)
+  def simAdds( exps:List[Exp] ) : Exp = {
+    val list = new LB()
+    for( exp <- exps ) {
+      exp match {
+        case Adds(es) => for( e <- es ) { list += e }
+        case Add(a,b) => list += a; list += b
+        case _        => list += exp
+      }
     }
+    Adds(list.toList)
   }
 
-  def simMuls( list:List[Exp] ) : Exp = { list match {
-    case Mul(a,b) :: tail => Muls( sim(a) :: sim(b) :: tail )
-    case _                => listExps(list)
-  }
-  }
-  
-  def listExps( exps:List[Exp] ) : Exp = {
+  def simMuls( exps:List[Exp] ) : Exp = {
     val list = new LB()
-    for( exp <- exps )
-      list += sim(exp)
-    sim(Adds(list.toList))
+    for( exp <- exps ) {
+      exp match {
+        case Mul(a,b) => list += a; list += b
+        case _        => list += exp
+      }
+    }
+    Muls(list.toList)
   }
 
   def add( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( Add(a,b), Add(c,d) ) => Adds( List( sim(a),sim(b),sim(c),sim(d) ) )
-    case( Add(a,b), c        ) => Adds( List( sim(a),sim(b),sim(c) ) )
     case( q, Num(0)|Dbl(0.0) ) => sim(q)
     case( Num(0)|Dbl(0.0), r ) => sim(r)
     case( Num(a),   Num(b)   ) => Num(a+b)
@@ -167,7 +169,9 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a+b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a+b)     
     case( q,        Neg(b)   ) => sim( sim(q)-sim(b) )
-    case _                     => Add(sim(u),sim(v))
+    case( Add(a,b), Add(c,d) ) => simAdds( List(sim(a),sim(b),sim(c),sim(d)) )
+    case( Add(a,b), c        ) => simAdds( List(sim(a),sim(b),sim(c)) )
+    case( a,        b        ) => simAdds( List(sim(a),sim(b)) )
   }
 
   def sub( u:Exp, v:Exp ) : Exp = (u,v) match

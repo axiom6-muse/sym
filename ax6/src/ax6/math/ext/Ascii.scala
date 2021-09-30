@@ -25,8 +25,8 @@ trait Ascii
       case Pow(u,v)  => u.ascii(t); t.app('^'); v.ascii(t)
       case Equ(u,v)  => u.ascii(t); t.app('='); v.ascii(t)
       case Neg(u)    => t.app('-'); u.ascii(t)
-      case Adds(list) => asciLlist( t, '+', list )
-      case Muls(list) => asciLlist( t, '*', list )
+      case Adds(list) => asciIlist( t, '+', list )
+      case Muls(list) => asciIlist( t, '*', list )
       case Abs(u)    => t.app('|'); u.ascii(t); t.app('|')
       case Par(u)    => t.app('('); u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{'); u.ascii(t); t.app('}')
@@ -66,10 +66,10 @@ trait Ascii
 
   // t.tail() == '(' is a week condition for detecting detect that a binOp is already enclose by parens
   def binOp( t:Text, op:String, u:Exp, v:Exp ) : Unit = {
-    if( t.tail() == '(' ) {
-      u.ascii(t); t.app(op); v.ascii(t) }
-    else {
+    if( t.tail() != '(' || t.len == 0 ) {
       t.app('('); u.ascii(t); t.app(op); v.ascii(t); t.app(')') }
+    else {
+      u.ascii(t); t.app(op); v.ascii(t) }
   }
 
   // Function
@@ -102,7 +102,7 @@ trait Ascii
      t.app( ']' )
    }
 
-    def asciLlist( t:Text, op:Char, exps:List[Exp] ): Unit = {
+    def asciIlist( t:Text, op:Char, exps:List[Exp] ): Unit = {
       for( exp <- exps )
         { exp.ascii(t); t.app(op) }
       t.delTail()

@@ -105,7 +105,7 @@ class Suite //extends Suite
     Test.test( "pow.a", t )
 
     val strq = "(x+y)^3"
-    Test.init( "pow.b", "(x+y)^3 | Pow(Add(Var(x),Var(y)),Num(3))" )
+    Test.init( "pow.b", "(x+y)^3 | Pow(Adds(Var(x),Var(y)),Num(3))" )
     val powb:Exp = AsciiParse(strq)
     t.clear()
     powb.ascii(t)
@@ -115,7 +115,8 @@ class Suite //extends Suite
 
     // Fail::add.a:x+x+7+y       | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
     //     ::add.a:(x+x+(7+y))   | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    Test.init( "add.a", "x+x+7+y | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))" )
+    //                             Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
+    Test.init( "add.a", "((x+x)+(7+y)) | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))" )
     val expa:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
     t.clear()
     expa.ascii(t)
