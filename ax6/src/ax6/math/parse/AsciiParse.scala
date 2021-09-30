@@ -37,17 +37,23 @@ object AsciiParse extends StdTokenParsers
     else
       Var(s)
   }
-  
-  // ... Binary pass through parsers from high to low precedence
 
   def beg : Parser[Exp] = base | oper
   
-  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
-  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
-  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
-  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
-  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
-  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
+  // ... Binary pass through parsers from high to low precedence
+  def repm : Parser[List[Exp]] = repsep(beg,"*")
+  def repa : Parser[List[Exp]] = repsep(beg,"+")
+  def muls : Parser[Exp] = "(" ~> repm <~ ")" ^^ { (u:List[Exp]) => Muls(u) }
+  def adds : Parser[Exp] = "(" ~> repa <~ ")" ^^ { (u:List[Exp]) => Adds(u) }
+  
+  def pow  : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
+//def mul  : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
+  def mul  : Parser[Exp] = pow | muls    // u * v ... Muls(timelist)
+  def div  : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
+//def add  : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
+  def add  : Parser[Exp] = div | adds   // u + v ... Adds(plusList)
+  def sub  : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
+  def equ  : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
 
   def end : Parser[Exp] = equ   
   
@@ -63,14 +69,9 @@ object AsciiParse extends StdTokenParsers
    { case u ~ "," ~ v => new Cex(u,v) }
 
   def vel : Parser[List[Exp]] = repsep(end, ",")
-  
-  def vex : Parser[Exp] = "[" ~> vel <~ "]" ^^ 
-    { (u:List[Exp]) => new Vex(u) }
-  
   def ves : Parser[List[Exp]] = rep(vex)
-  
-  def mex : Parser[Exp] = "[" ~> ves <~ "]" ^^ 
-    { (u:List[Exp]) => new Mex(u) }
+  def vex : Parser[Exp] = "[" ~> vel <~ "]" ^^ { (u:List[Exp]) => new Vex(u) }
+  def mex : Parser[Exp] = "[" ~> ves <~ "]" ^^ { (u:List[Exp]) => new Mex(u) }
   
   // ... func(arg) ln, logb root ...
 
