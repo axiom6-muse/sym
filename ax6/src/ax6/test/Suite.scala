@@ -10,27 +10,26 @@ import ax6.util.Text
 object Suite
 {
   def main( args: Array[String] ): Unit = {
-    val tst = new Suite()
-    runTests(tst) }
+    val suite = new Suite()
+    runTests(suite) }
 
-   def runTests(tst:Suite) : Unit =
+   def runTests(suite:Suite) : Unit =
    {
-       tst.testFal()
-       tst.testSim()
-    // tst.testExp()
-    // tst.testEee()
-    // tst.testCex()
-    // tst.testVex()
-    // tst.testMex()
-    // tst.testRun()
-    // tst.testDif()
-    // tst.testItg()
-    // tst.testFun()
-    // tst.testSum()
-    // tst.testEqu()
-    // tst.testSim()
-    // tst.testSus
-    // tst.testErr
+       suite.testFail()
+    // suite.testSimp()
+    // suite.testCalc()
+    // suite.testEee()
+    // suite.testCex()
+    // suite.testVex()
+    // suite.testMex()
+    // suite.testRun()
+    // suite.testDif()
+    // suite.testItg()
+    // suite.testFun()
+    // suite.testSum()
+    // suite.testEqu()
+    // suite.testSus
+    // suite.testErr
 
    } 
 }
@@ -39,388 +38,278 @@ class Suite //extends Suite
 {
   type CS     = Text.CS
   type Assign = String => Double
+  val  iText  = new Text(200)    // init Text
+  val  tText  = new Text(200)    // test Text
+  
+  def clear() : Unit = { iText.clear(); tText.clear() }
 
-  def pars( name:String, txt:Text, seq:String* ) : Unit =
+  def pars( name:String, seq:String* ) : Unit =
   {
-    txt.clear()
+    clear()
     for( str <- seq )
-      txt.all(str, ' ')
-    Test.init( name, txt )
-    txt.clear()
+      iText.all(str, ' ')
+    Test.init( name, iText )
     for( str <- seq )
     {
-      AsciiParse(str).ascii(txt)
-      txt.app(' ')
+      AsciiParse(str).ascii(tText)
+      tText.app(' ')
     }
-    Test.test( name, txt )
+    Test.test( name, tText )
   }
   
-  def par( name:String, txt:Text, str:String ): Unit = {
-    txt.clear()
+  def par( name:String, str:String ): Unit = {
+    clear()
     Test.init( name, str )
-    AsciiParse(str).ascii(txt)
-    Test.test( name, txt )  
+    AsciiParse(str).ascii(tText)
+    Test.test( name, tText )  
   }
 
-  def sim( name:String, txt:Text, enter:String, bench:String ): Unit = {
-    txt.clear()
-    Test.init( name, bench )
-    val exp1:Exp = AsciiParse(enter)
-    val exp2:Exp = exp1.sim
-    exp1.ascii(txt)
-    txt.app(" | ")
-    exp2.ascii(txt)
-    Test.test( name, txt )  
+  def asc( name:String, enter:String, expect:String ): Unit = {
+    clear()
+    val exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect )
+    Test.test( name, enter, exp.ascii(tText) )
+  }
+
+  def sim( name:String, enter:String, expect:String ): Unit = {
+    clear()
+    val exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect,               exp.lambda(iText) )
+    Test.test( name, enter, exp.sim.ascii(tText), exp.lambda(tText) )
   }  
 
-  def lam( name:String, txt:Text, str:String, lam:String ): Unit = {
-    txt.clear()
-    Test.init( name, str, " | ", lam )
-    val exp:Exp = AsciiParse(str)
-    exp.ascii(txt)
-    txt.app(" | ")
-    exp.lambda(txt)
-    Test.test( name, txt )  
+  def lam( name:String, enter:String, expect:String ): Unit = {
+    clear()
+    var exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect )
+    exp = exp.sim
+    exp.ascii(iText)
+    exp.lambda(tText)
+    Test.test( name, iText, tText )
   }  
   
-  def itg( name:String, txt:Text, es:String, is:String ): Unit = {
-    txt.clear()    
-    Test.init( name, es, "::", is )
-      val exp = AsciiParse(es)
-          exp.ascii(txt)
-          txt.app( "::" )
-      val Ixp = exp.itg.sim
-          Ixp.ascii(txt)
-    Test.test( name, txt )  
+  def itg( name:String, enter:String, expect:String ): Unit = {
+    clear()
+    val exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect  )
+    Test.test( name, enter, exp.itg.ascii(tText) )
   }
 
-  def testFal(): Unit = {
-    val t = new Text(200)
-    
-    val strp = "(x+y)^3"
-    Test.init( "pow.a", strp )
-    val powa:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
-    t.clear()
-    powa.ascii(t)
-    Test.test( "pow.a", t )
-
-    val strq = "(x+y)^3"
-    Test.init( "pow.b", "(x+y)^3 | Pow(Adds(Var(x),Var(y)),Num(3))" )
-    val powb:Exp = AsciiParse(strq)
-    t.clear()
-    powb.ascii(t)
-    t.app(" | ")
-    powb.sim.lambda(t)
-    Test.test( "pow.b", t )
-
-    // Fail::add.a:x+x+7+y       | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    //     ::add.a:(x+x+(7+y))   | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    //                             Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    Test.init( "add.a", "((x+x)+(7+y)) | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))" )
-    val expa:Exp = Add(Add(Var("x"),Var("x")),Add(Num(7),Var("y")))
-    t.clear()
-    expa.ascii(t)
-    t.app(" | ")
-    expa.lambda(t)
-    Test.test( "add.a", t )
-
-    // Fail::add.a:x+x+7+y     | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    //     ::add.a:(x+x+(7+y)) | Add(Add(Var(x),Var(x)),Add(Num(7),Var(y)))
-    // Fail::add.b:x+x+7+y     | Adds(Var(x),Var(x),Num(7),Var(y))
-    //     ::add.b:(x+x+7+y)   | Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))
-    val strb = "x+x+7+y"
-    Test.init( "add.b", "x+x+7+y | Adds(Var(x),Var(x),Num(7),Var(y))" )
-    val expb:Exp = AsciiParse(strb).sim
-    t.clear()
-    expb.ascii(t)
-    t.app(" | ")
-    expb.lambda(t)
-    Test.test( "add.b", t )
-
-    // Fail::sub.a:x-x-7-z       | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
-    //     ::sub.a:(x-x-(7-z))   | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
-    // Fail::sub.a:x-x-7-z       | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
-    //     ::sub.a:(x-y-(7-z))   | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))
-    Test.init( "sub.a", "x-x-7-z | Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))" )
-    val exps:Exp = Sub(Sub(Var("x"),Var("y")),Sub(Num(7),Var("z")))
-    t.clear()
-    exps.ascii(t)
-    t.app(" | ")
-    exps.lambda(t)
-    Test.test( "sub.a", t )
+  def dif( name:String, enter:String, expect:String ): Unit = {
+    clear()
+    val exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect  )
+    Test.test( name, enter, exp.dif.sim.ascii(tText) )
   }
 
-  def testExp(): Unit = {
-    val t = new Text(200)
-    
-    val powc:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
+  def testFail(): Unit = {
+    lam( "pow.a", "(x+y)^3", "Pow(Adds(Var(x),Var(y)),Num(3))" )
+    lam( "add.a", "x+x+7+y", "Adds(Var(x),Var(x),Num(7),Var(y))"   )
+    lam( "sub.a", "x-x-7-z", "Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))"   ) // "Sub(Sub(Var(x),Var(y)),Adds(Num(7),Var
+  }
+
+  def testCalc(): Unit = {
+    val powc:Exp = Pow(Adds(List(Var("x"),Var("y"))),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
-    Test.init( "calc.b", "<x=2 y=1> ", t, " = ", 27.0 )
-    Test.test( "calc.b", "<x=2 y=1> ", t, " = ", powc.calc(ppp) )
-
-    Test.init( "pow.dif.x", "3*(x+y)^2*(dx+dy)" )
-    powc.dif.ascii(t)
-    Test.test( "pow.dif.x", t )
+    Test.init( "calc.b", "<x=2 y=1> ", powc.ascii(iText), " = ", 27.0 )
+    Test.test( "calc.b", "<x=2 y=1> ", powc.ascii(iText)," = ", powc.calc(ppp) )
 
     val env:Assign = { case "x" => 5 case "y" => 7 }
-    Test.init( "calc.a", "<x=5 y=7> ", t, " = ", "24.0" )
-    Test.test( "calc.a", "<x=5 y=7> ", t, " = ", powc.calc(env) )
+    Test.init( "calc.a", "<x=5 y=7> ", powc.ascii(iText), " = ", "24.0" )
+    Test.test( "calc.a", "<x=5 y=7> ", powc.ascii(iText), " = ", powc.calc(env) )
    }
  
    def testCex(): Unit = {
-     val t = new Text(200)
-     lam( "cex.a", t, "[a,b.i]",       "Cex(Var(a),Var(b))" )
-     lam( "cex.b", t, "[a+b,(c+d).i]", "Cex(Add(Var(a),Var(b)),Par(Add(Var(c),Var(d))))" )
-     lam( "cex.c", t, "i*a*i", "Mul(Mul(Var(i),Var(a)),Var(i))" )
+     lam( "cex.a", "[a,b.i]",       "Cex(Var(a),Var(b))" )
+     lam( "cex.b", "[a+b,(c+d).i]", "Cex(Adds(Var(a),Var(b)),Par(Adds(Var(c),Var(d))))" )
+     lam( "cex.c", "i*a*i", "Mul(Mul(Var(i),Var(a)),Var(i))" )
    }
    
    def testVex(): Unit = {
-     val t = new Text(200)
-     
-     par( "vex.a", t, "[a,b]" )
-     par( "vex.b", t, "[x^2,y^3,z^4]" ) 
-    
+     par( "vex.a", "[a,b]" )
+     par( "vex.b", "[x^2,y^3,z^4]" )
    }   
 
    def testMex(): Unit = {
-     val t = new Text(200)
      
-     par( "mex.parse.ma", t, "[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]" )
-     
+     clear()
+     par( "mex.parse.ma", "[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]" )
      val sb = "[[dx,2*x*dx,3*x^2*dx][dy,2*y*dy,3*y^2*dy][dz,2*z*dz,3*z^2*dz]]"
      Test.init( "mex.dif.mb", sb )
      val eb:Exp = AsciiParse( sb )
      val mb:Mex = Mex(eb)
      mb.dif
-     mb.ascii(t)
-     Test.test( "mex.dif.mb", t )  
-   
+     mb.ascii(tText)
+     Test.test( "mex.dif.mb", tText )
+
+     clear()
      val rc:Assign = { case "x"=>1 case "y"=>2 case "z"=>3 }
      val nc = "[[1,1,1][2,4,8][3,9,27]]"
      Test.init( "mex.eval.mc", nc ) 
        val ea:Exp = AsciiParse("[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]")
        val ma:Mex = Mex(ea)
        val mc:Mat = ma.calcMex(rc)
-     Test.test( "mex.eval.mc", mc.text(t) )
+     Test.test( "mex.eval.mc", mc.text(tText) )
 
-     par( "mex.d.var.a", t, "[[a,b,c][d,e,f][g,h,i]]" )    
-     par( "mex.d.var.b", t, "[[a,b^2][c,d^2]]" ) 
-     
+     par( "mex.d.var.a", "[[a,b,c][d,e,f][g,h,i]]" )    
+     par( "mex.d.var.b", "[[a,b^2][c,d^2]]" )
+
+     clear()
      val sf = "[[a,b][c,d]]"
      Test.init( "mex.f.inv2x2.a", "[[1/(a*d-b*c)*d,-1/(a*d-b*c)*b][-1/(a*d-b*c)*c,1/(a*d-b*c)*a]]" ) 
-       val ef:Exp = AsciiParse( sf )
-       val mf:Mex = Mex(ef)
-       val fm:Exp = mf.inv2x2
-         fm.ascii(t)
-     Test.test( "mex.f.inv2x2.a", t ) 
-     
+     val ef:Exp = AsciiParse( sf )
+     val mf:Mex = Mex(ef)
+     val fm:Exp = mf.inv2x2
+     fm.ascii(tText)
+     Test.test( "mex.f.inv2x2.a", tText )
+
+     clear()
      val sg = "[[x,x^2,x^3][y,y^2][z]]"
      Test.init( "mex.g", "[[x,x^2,x^3][y,y^2,0][z,0,0]]" ) 
      val mg:Exp = AsciiParse( sg )
-         mg.ascii(t)
-     Test.test( "mex.g", t )    
+     mg.ascii(tText)
+     Test.test( "mex.g", tText )    
    
-     par(  "mex.h", t, "[[x^2,y^3,z^4][x^2,y^3,z^4][x^2,y^3,z^4]]" ) 
+     par(  "mex.h", "[[x^2,y^3,z^4][x^2,y^3,z^4][x^2,y^3,z^4]]" )
     
    }
 
   def testRun(): Unit = {
-    val t = new Text(200)
+
     // -------------- x ------------------" )
-    pars( "x.y.a...", t, "5", "dx", "x^y", "x*y", "x/y", "x+y", "x-y", "(x+y)", "-x" )
-    pars( "tran.fun", t, "exp^x", "ln(x)", "sqrt(x)", "log_10(x)", "log_2(x)" )
-    pars( "trig.sin", t, "sin(x)", "cos(x)", "tan(x)", "cot(x)", "sec(x)", "csc(x)" )
- // pars( "trig.ltx", t, "\\sin(x)", "\\cos(x)", "\\tan(x)", "\\cot(x)", "\\sec(x)", "\\csc(x)" )
-    pars( "trig.arc", t, "arcsin(x)", "arccos(x)", "arctan(x)", "arccot(x)", "arcsec(x)", "arccsc(x)" )
+    pars( "x.y.a...", "5", "dx", "x^y", "x*y", "x/y", "x+y", "x-y", "(x+y)", "-x" )
+    pars( "tran.fun", "exp^x", "ln(x)", "sqrt(x)", "log_10(x)", "log_2(x)" )
+    pars( "trig.sin", "sin(x)", "cos(x)", "tan(x)", "cot(x)", "sec(x)", "csc(x)" )
+ // pars( "trig.ltx", "\\sin(x)", "\\cos(x)", "\\tan(x)", "\\cot(x)", "\\sec(x)", "\\csc(x)" )
+    pars( "trig.arc", "arcsin(x)", "arccos(x)", "arctan(x)", "arccot(x)", "arcsec(x)", "arccsc(x)" )
     // -------------- ops ------------------" )
-    pars( "x,y,z.a", t, "x*y*z", "x*y/z", "x*y+z", "x*y-z"  )    
-    pars( "x,y,z.b", t, "x*y*z", "x/y*x", "x+y*x", "x-y*x" )
+    pars( "x,y,z.a", "x*y*z", "x*y/z", "x*y+z", "x*y-z"  )    
+    pars( "x,y,z.b", "x*y*z", "x/y*x", "x+y*x", "x-y*x" )
     // -------------- par ------------------" )
-    pars( "paren.a", t, "x*(y+z)", "x/(y+z)", "x+(y+z)", "x-(y+z)" )
-    pars( "paren.b", t, "x*(y*z)", "x*(y/z)", "x*(y+z)", "x*(y-z)" )    
-    pars( "paren.c", t, "(x*y)*z", "(x/y)*x", "(x+y)*x", "(x-y)*x" )
+    pars( "paren.a", "x*(y+z)", "x/(y+z)", "x+(y+z)", "x-(y+z)" )
+    pars( "paren.b", "x*(y*z)", "x*(y/z)", "x*(y+z)", "x*(y-z)" )    
+    pars( "paren.c", "(x*y)*z", "(x/y)*x", "(x+y)*x", "(x-y)*x" )
     // -------------- par op ------------------" )
-    pars( "paren.d", t,  "w*(x+y)*z",   "x/(y+z)/x",   "x+(y*z)+x",   "x-(y*z)-x"  )
-    pars( "paren.e", t, "(x*(y+z))*x", "(x/(y+z))/x", "(x+(y*z))+x", "(x-(y*z))-x" )
-    pars( "paren.f", t, "x*((y+z)*x)", "x/((y+z)/x)", "x+((y*z)+x)", "x-((y*z)-x)" )
+    pars( "paren.d",  "w*(x+y)*z",   "x/(y+z)/x",   "x+(y*z)+x",   "x-(y*z)-x"  )
+    pars( "paren.e", "(x*(y+z))*x", "(x/(y+z))/x", "(x+(y*z))+x", "(x-(y*z))-x" )
+    pars( "paren.f", "x*((y+z)*x)", "x/((y+z)/x)", "x+((y*z)+x)", "x-((y*z)-x)" )
     // -------------- pow ------------------" )
-    pars( "power.a", t, "(x+y)^3", "ln(x^2)", "ln(x^2)", "log_2(x^3)", "ln(x^2)", "sqrt(x^4)" )  
+    pars( "power.a", "(x+y)^3", "ln(x^2)", "ln(x^2)", "log_2(x^3)", "ln(x^2)", "sqrt(x^4)" )  
     // -------------- secondary ------------------" )
-    pars( "exp.d.a", t, "exp^x", "-x", "dx", "exp^(x+y)", "(x+y)*dx", "-(x+y)"  )
+    pars( "exp.d.a", "exp^x", "-x", "dx", "exp^(x+y)", "(x+y)*dx", "-(x+y)"  )
     // -------------- vex mex ------------------" )
-    pars( "vex...a", t,  "[x,x^2,x^3]" )
-    pars( "a+mex.a", t, "a+[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]" ) 
+    pars( "vex...a",  "[x,x^2,x^3]" )
+    pars( "a+mex.a", "a+[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]" ) 
     // -------------- Root ------------------" )
-    pars( "root..a", t, "root_3(x)", "root_3(x+2)", "sqrt(x+2)" ) // "sqrt_3(x+2)" "sqrt[3](x+2)" 
+    pars( "root..a", "root_3(x)", "root_3(x+2)", "sqrt(x+2)" ) // "sqrt_3(x+2)" "sqrt[3](x+2)" 
     
-    lam( "Lam.sin.a", t, "sin(x)", "Sin(Var(x))" )
+    lam( "Lam.sin.a", "sin(x)", "Sin(Var(x))" )
     
   } 
 
   def testEee(): Unit = {
-    val t = new Text(200)
-    lam(  "eee.a", t, "e^x", "Eee(Var(x))")
-    lam(  "eee.b", t, "e^(x+2)", "Eee(Add(Var(x),Num(2)))")
-    lam(  "eee.c", t, "e", "Var(e)")
-    lam(  "eee.d", t, "ln(e)",   "Lnn(Var(e))")
-    lam(  "eee.e", t, "ln(e^1)", "Lnn(Eee(Num(1)))")
-    lam(  "eee.f", t, "e*x", "Mul(Var(e),Var(x))" )
-    lam(  "eee.g", t, "a-e", "Sub(Var(a),Var(e))" )
-    lam(  "eee.h", t, "e^e^x", "Eee(Eee(Var(x)))" )
-    lam(  "eee.i", t, "d+e", "Add(Var(d),Var(e))")
+    lam(  "eee.a", "e^x", "Eee(Var(x))")
+    lam(  "eee.b", "e^(x+2)", "Eee(Add(Var(x),Num(2)))")
+    lam(  "eee.c", "e", "Var(e)")
+    lam(  "eee.d", "ln(e)",   "Lnn(Var(e))")
+    lam(  "eee.e", "ln(e^1)", "Lnn(Eee(Num(1)))")
+    lam(  "eee.f", "e*x", "Mul(Var(e),Var(x))" )
+    lam(  "eee.g", "a-e", "Sub(Var(a),Var(e))" )
+    lam(  "eee.h", "e^e^x", "Eee(Eee(Var(x)))" )
+    lam(  "eee.i", "d+e", "Add(Var(d),Var(e))")
    }
   
-   def testDif(): Unit = {
-     val t = new Text(200)
-     
-     val sa = "x*y*z"
-     Test.init( "dif.a", "z*y*dx+z*x*dy+x*y*dz" )
-       val ea:Exp = AsciiParse( sa )
-       val da:Exp = ea.dif.sim
-           da.ascii(t)
-     Test.test( "dif.a", t )
-     
-      val sb = "x^2*y^3*z^4"
-     lam( "lam.sb", t, sb, "Mul(Mul(Pow(Var(x),Num(2)),Pow(Var(y),Num(3))),Pow(Var(z),Num(4)))")
-     Test.init( "dif.sb", "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )
-       val eb:Exp = AsciiParse( sb )
-       val db:Exp = eb.dif.sim
-           db.ascii(t)
-     Test.test( "dif.sb", t )   
-   
-     val sc = "w*x^2*y^3*z^4"
-     Test.init( "dif.c", "z^4*y^3*x^2*dw+z^4*y^3*w*2*x*dx+z^4*w*x^2*3*y^2*dy+w*x^2*y^3*4*z^3*dz" )
-       val ec:Exp = AsciiParse( sc )
-       val dc:Exp = ec.dif.sim
-           dc.ascii(t)
-     Test.test( "dif.c", t )       
-   
-     val sd = "sin(x)+cos(x)+tan(x)"
-     Test.init( "dif.d", "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
-       val ed:Exp = AsciiParse( sd )
-       val dd:Exp = ed.dif.sim
-           dd.ascii(t)
-     Test.test( "dif.d", t ) 
-   
-     val se = "csc(x)+sec(x)+cot(x)"
-     Test.init( "dif.e", "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
-       val ee:Exp = AsciiParse( se )
-       val de:Exp = ee.dif.sim
-           de.ascii(t)
-     Test.test( "dif.e", t ) 
-   
-      val sf = "arcsin(x)+arccos(x)+arctan(x)"
-     Test.init( "dif.f", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )
-       val ef:Exp = AsciiParse( sf )
-       val df:Exp = ef.dif.sim
-           df.ascii(t)
-     Test.test( "dif.f", t ) 
-   
-     val sg = "arccsc(x)+arcsec(x)+arccot(x)"
-     Test.init( "dif.g", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
-       val eg:Exp = AsciiParse( sg )
-       val dg:Exp = eg.dif.sim
-           dg.ascii(t)
-     Test.test( "dif.g", t ) 
-   
-     lam( "dx.a",     t, "dx", "Dif(Var(x))" ) 
-     lam( "Var(d).a", t, "d",  "Var(d)" ) 
-     lam( "d(u).a", t, "d(x+y^2)", "Dif(Add(Var(x),Pow(Var(y),Num(2))))" )    
-     par( "dif.h", t, "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )    
-     lam( "dif.i",   t, "y*dx+x*dy", "Add(Mul(Var(y),Dif(Var(x))),Mul(Var(x),Dif(Var(y))))" ) 
+   def testDiff(): Unit = {
+
+     dif( "dif.a", "x*y*z",                         "z*y*dx+z*x*dy+x*y*dz" )
+     dif( "dif.b", "x^2*y^3*z^4",                   "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )
+     dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
+     dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
+     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )
+     dif( "dif.e", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
+
+     lam( "dx.a",     "dx", "Dif(Var(x))" ) 
+     lam( "Var(d).a", "d",  "Var(d)" ) 
+     lam( "d(u).a",   "d(x+y^2)", "Dif(Add(Var(x),Pow(Var(y),Num(2))))" )    
+     par( "dif.h",    "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )    
+     lam( "dif.i",    "y*dx+x*dy", "Add(Mul(Var(y),Dif(Var(x))),Mul(Var(x),Dif(Var(y))))" ) 
  
    }
  
   def testItg(): Unit = {
-    val t = new Text(200)
-    
-    itg( "itg.a", t, "dx",      "x"       ) 
-    itg( "itg.b", t,  "x",      "x^2/2"   ) 
-    itg( "itg.c", t,  "x^2",    "x^3/3"   )
-    itg( "itg.d", t,  "sin(x)", "-cos(x)" )
-    itg( "itg.e", t, "1/x",     "ln(x)"   ) 
+    itg( "itg.a", "dx",     "x"       ) 
+    itg( "itg.b", "x",      "x^2/2"   ) 
+    itg( "itg.c", "x^2",    "x^3/3"   )
+    itg( "itg.d", "sin(x)", "-cos(x)" )
+    itg( "itg.e", "1/x",    "ln(x)"   ) 
   }
    
    def testFun(): Unit = {
-     val t = new Text(200)
-
-     par(  "num.a", t, "(1+2)*3*(7-1)" ) 
-     par(  "exp.a", t, "x^2+y^3*z^(a+4)" )  
-     par(  "Ln.a",  t, "ln(x)" )   
+     par(  "num.a", "(1+2)*3*(7-1)" ) 
+     par(  "exp.a", "x^2+y^3*z^(a+4)" )  
+     par(  "Lnn.a",  "ln(x)" )
      
-     val sc = "ln(x)"
-     Test.init( "Lnn.b", "Lnn(Var(x))" )
-       val ac:Exp = AsciiParse(sc)
-           ac.lambda(t)
-     Test.test( "Lnn.b", t )  
-     
-     lam(  "Lnn.c",   t, "ln(x)", "Lnn(Var(x))" )     
-     par(  "Fun.a",  t, "sin(x)" )
-     pars( "Fun.b",  t, "sin(x)", "cos(x)", "tan(x)", "cot(x)", "sec(x)", "csc(x)")          
-     lam(  "Log.a",  t,  "log_10(x)", "Log(Var(x),Dbl(10.0))" )  // x*3-y^2
-     lam(  "Root.a", t, "root_10(y)", "Roo(Var(y),Dbl(10.0))" )  // (y^5-z+1)       
-     lam(  "Eee.a",  t, "e^x", "Eee(Var(x))" )      
-     lam(  "Abs.a",  t, "|x-y|", "Abs(Sub(Var(x),Var(y)))" )      
-     lam(  "Neg.a",  t, "-(x-y)", "Neg(Sub(Var(x),Var(y)))" )
-     par(  "Big.a",  t, "[a^3,b*i]+sin(x^2)*sqrt(y)-20*ln(z)" )
+     lam(  "Lnn.c",  "ln(x)", "Lnn(Var(x))" )     
+     par(  "Fun.a",  "sin(x)" )
+     pars( "Fun.b",  "sin(x)", "cos(x)", "tan(x)", "cot(x)", "sec(x)", "csc(x)")          
+     lam(  "Log.a",  "log_10(x)", "Log(Var(x),Dbl(10.0))" )  // x*3-y^2
+     lam(  "Root.a", "root_10(y)", "Roo(Var(y),Dbl(10.0))" )  // (y^5-z+1)       
+     lam(  "Eee.a",  "e^x", "Eee(Var(x))" )      
+     lam(  "Abs.a",  "|x-y|", "Abs(Sub(Var(x),Var(y)))" )      
+     lam(  "Neg.a",  "-(x-y)", "Neg(Sub(Var(x),Var(y)))" )
+     par(  "Big.a",  "[a^3,b*i]+sin(x^2)*sqrt(y)-20*ln(z)" )
    }
   
   def testSum(): Unit = {
-     val t = new Text(200)
-     
-     par(  "Int.a", t, "Int_0^x(x)" ) // "Int sub(0)sup(x)(x)" 
-     par(  "sum.b", t, "sum_1^n(x^2)" )
-     pars( "Int.c", t, "Int_1^n(x)", "Int_1^x(x)" )    
-     pars( "sum.f", t, "sum_1^n(i)" )
-     pars( "Int,g", t, "Int_1^x(x)" )     
-     pars( "sum.h", t, "sum_{i=1}^n(x)", "sum_1^x(x)" )
+     par(  "Int.a", "Int_0^x(x)" ) // "Int sub(0)sup(x)(x)" 
+     par(  "sum.b", "sum_1^n(x^2)" )
+     pars( "Int.c", "Int_1^n(x)", "Int_1^x(x)" )    
+     pars( "sum.f", "sum_1^n(i)" )
+     pars( "Int,g", "Int_1^x(x)" )     
+     pars( "sum.h", "sum_{i=1}^n(x)", "sum_1^x(x)" )
   }
   
   def testEqu(): Unit = {
-    val t = new Text(200)
-     
-    lam( "Equ.a", t, "a+b=c+f", "Equ(Add(Var(a),Var(b)),Add(Var(c),Var(f)))" )
-    par( "Equ.b", t, "(x^2)=3*x" )    
-    lam( "Equ.c", t, "tan(x)=sin(x)/cos(x)", "Equ(Tan(Var(x)),Div(Sin(Var(x)),Cos(Var(x))))" )
-    lam( "Equ.d", t, "cot(x)=cos(x)/sin(x)", "Equ(Cot(Var(x)),Div(Cos(Var(x)),Sin(Var(x))))" )       
-    par( "Equ.e", t, "sin(x^2)=[a^3,b*i]" )
-    par( "Equ.f", t, "sin(x^2)=[[a^3,b*i][x,y]]" )  
+    lam( "Equ.a", "a+b=c+f", "Equ(Add(Var(a),Var(b)),Add(Var(c),Var(f)))" )
+    par( "Equ.b", "(x^2)=3*x" )    
+    lam( "Equ.c", "tan(x)=sin(x)/cos(x)", "Equ(Tan(Var(x)),Div(Sin(Var(x)),Cos(Var(x))))" )
+    lam( "Equ.d", "cot(x)=cos(x)/sin(x)", "Equ(Cot(Var(x)),Div(Cos(Var(x)),Sin(Var(x))))" )       
+    par( "Equ.e", "sin(x^2)=[a^3,b*i]" )
+    par( "Equ.f", "sin(x^2)=[[a^3,b*i][x,y]]" )  
   }
 
   def testErr(): Unit = {
-     val t = new Text(200)
-     val sa = "e&x$w~t@"
-     Test.init( "Err.a", "error", ' ', sa )
-       val ea:Exp = AsciiParse(sa)
-           ea.ascii(t)
-     Test.test( "Err.a", t,      ' ', sa  ) 
+    clear()
+    val sa = "e&x$w~t@"
+    Test.init( "Err.a", "error", ' ', sa )
+    val ea:Exp = AsciiParse(sa)
+    ea.ascii(tText)
+    Test.test( "Err.a", tText,    ' ', sa  )
    
-     par( "Err.b", t, "sin(x" )     
-     par( "Err.c", t, "haha(x)" )
+    par( "Err.b", "sin(x" )
+    par( "Err.c", "haha(x)" )
   }
 
   // sim.div is a problem
-  def testSim(): Unit = {
-    val t = new Text(200)
-    sim( "Sim.a", t, "(x+y)/(x+y)",          "1" )
-    sim( "Sim.b", t, "(x+y)^3/(x+y)^3",      "1" )
-    sim( "Sim.c", t, "(x+y)*(a+b)/(x+y)",    "a+b" )
-    sim( "Sim.d", t, "((x+y)*(a+b))/(x+y)",  "a+b" )
-    sim( "Sim.e", t, "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
-    sim( "Sim.f", t, "(w*x*y*z)/(x*y*z)",    "w" )    
-    sim( "Sim.g", t, "(x*y*z)/(x*y*z*w)",    "1/w" ) 
-    sim( "Sim.h", t, "(w*x*y*z)/(z*x*w)",    "y" ) 
-    sim( "Sim.i", t, "(w*x*y*x)/(z*x*w)",    "y*x/z" )
-    sim( "Sim.j", t, "((w-q)*x*y*x)/(z*x*w*(w-q))",     "y*x/(z*w)" )    
-    sim( "Sim.k", t, "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
+  def testSimp(): Unit = {
+    sim( "Sim.a", "(x+y)/(x+y)",          "1" )
+  //sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
+  //sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )
+    sim( "Sim.d", "((x+y)*(a+b))/(x+y)",  "a+b" )
+    sim( "Sim.e", "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
+    sim( "Sim.f", "(w*x*y*z)/(x*y*z)",    "w" )    
+    sim( "Sim.g", "(x*y*z)/(x*y*z*w)",    "1/w" ) 
+    sim( "Sim.h", "(w*x*y*z)/(z*x*w)",    "y" ) 
+    sim( "Sim.i", "(w*x*y*x)/(z*x*w)",    "y*x/z" )
+    sim( "Sim.j", "((w-q)*x*y*x)/(z*x*w*(w-q))",     "y*x/(z*w)" )    
+    sim( "Sim.k", "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
   }
   
   
 // Right now subscript and superscript are a problem with stack overflows  
    def testSus(): Unit = {
-     val t = new Text(200)
-     lam(  "sus.a", t, "x_1", "Sus(Var(x),Num(1))" )
-     lam(  "sus.b", t, "x_y", "Sus(Var(x),Var(y))" )
+     lam(  "sus.a", "x_1", "Sus(Var(x),Num(1))" )
+     lam(  "sus.b", "x_y", "Sus(Var(x),Var(y))" )
    }
      
  

@@ -94,7 +94,7 @@ class Text( _cap:Int )
   def tail()             : Char    = if(sb.nonEmpty ) sb.charAt(sb.size-1) else '\u0000'
   def has(     c:Char )  : Boolean = sb.contains( c )
   def hasTail( c:Char )  : Boolean = tail()==c
-  def delTail()          : Unit = { sb.setLength(sb.size-1) }
+  def delTail()          : Unit = { if( len > 0 ) sb.setLength(sb.size-1) }
   def delTail(c:Char)    : Unit = { if( hasTail(c)) delTail() }
 
   // ... appends ....
@@ -116,6 +116,12 @@ class Text( _cap:Int )
 
   def all( args:Any*     ) : Unit = { for( arg<-args ) app(arg) }
   def seq( args:Seq[Any] ) : Unit = { for( arg<-args ) app(arg) }
+  def sed( args:Seq[Any] ) : Unit = {
+    for(  i <- args.indices ) {
+      if( i <  args.length-1 ) { app( args(i) ); app(" | ") }
+      else                     { app( args(i) ) }
+    }
+  }
   
   def replace( a:Char, b:Char ) : Unit =
     { for( i <- sb.indices ) if( a == sb.charAt(i) ) sb.setCharAt(i,b) }

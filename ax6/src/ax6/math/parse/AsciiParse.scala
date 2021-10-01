@@ -3,6 +3,8 @@ package ax6.math.parse
 
 import  ax6.util.Text
 import  ax6.math.exp._
+//import  scala.util.parsing.util.parsing.input
+//import  scala.util.parsing.combinator.Parsers
 import  scala.util.parsing.combinator.lexical.StdLexical
 import  scala.util.parsing.combinator.syntactical.StdTokenParsers
 
@@ -38,24 +40,28 @@ object AsciiParse extends StdTokenParsers
       Var(s)
   }
 
-  def beg : Parser[Exp] = base | oper
-  
   // ... Binary pass through parsers from high to low precedence
-  def repm : Parser[List[Exp]] = repsep(beg,"*")
-  def repa : Parser[List[Exp]] = repsep(beg,"+")
-  def muls : Parser[Exp] = "(" ~> repm <~ ")" ^^ { (u:List[Exp]) => Muls(u) }
-  def adds : Parser[Exp] = "(" ~> repa <~ ")" ^^ { (u:List[Exp]) => Adds(u) }
-  
-  def pow  : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
-//def mul  : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
-  def mul  : Parser[Exp] = pow | muls    // u * v ... Muls(timelist)
-  def div  : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
-//def add  : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
-  def add  : Parser[Exp] = div | adds   // u + v ... Adds(plusList)
-  def sub  : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
-  def equ  : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
+  def beg : Parser[Exp] = base | oper
+  def rem : Parser[Exp] = repsep(beg,"*") ^^ { (u:List[Exp]) => Muls(u) }
+  def rea : Parser[Exp] = repsep(beg,"+") ^^ { (u:List[Exp]) => Adds(u) }
 
-  def end : Parser[Exp] = equ   
+  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
+  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
+  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
+  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
+  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
+  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
+
+  def end : Parser[Exp] = equ
+
+  //def rem : Parser[List[Exp]] = repsep(beg,"*")
+  //def rea : Parser[List[Exp]] = repsep(beg,"+")
+  //def muls : Parser[Exp] = "(" ~> rem <~ ")" ^^ { (u:List[Exp]) => Muls(u) }
+  //def adds : Parser[Exp] = "(" ~> rea <~ ")" ^^ { (u:List[Exp]) => Adds(u) }
+  //def add  : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
+  //def mul  : Parser[Exp] = rem        ^^  { (u:List[Exp]) => Muls(u) }
+  //def con  : Parser[Exp] = { (pow ~ mul) ^^ { case u ~ v => Add(u,v) } }
+  //def seq  : Parser[Exp] = { (pow | mul) ^^ { case u * v => Add(u,v) } }
   
   // ... Grouping ...
                     
@@ -77,7 +83,7 @@ object AsciiParse extends StdTokenParsers
 
   def arg : Parser[Exp] = "(" ~> end <~ ")" // consumes (u) for functions
   
-  def fun : Parser[Exp] = farg  ~ arg ^^  { case f ~ u  => func(f,u) }
+  def fun : Parser[Exp] = farg ~ arg ^^  { case f ~ u  => func(f,u) }
 
   //def fer : Parser[Exp] = stringLit ~ arg ^^  { case f ~ u  => func(f,u) }
   
