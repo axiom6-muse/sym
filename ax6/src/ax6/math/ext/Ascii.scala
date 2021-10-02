@@ -23,12 +23,12 @@ trait Ascii
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
-      case Add(u)    => asciilist( t, "+", u )
-      case Sub(u,v)  => asciiBin( t, "-", u, v )
-      case Mul(u)    => asciilist( t, "+", u )
-      case Div(u,v)  => asciiBin( t, "/", u, v )
-      case Pow(u,v)  => asciiBin( t, "^", u, v )
-      case Equ(u,v)  => asciiBin( t, "=", u, v )
+      case Add(u)    => asciilist( t, "+", u    )
+      case Sub(u,v)  => asciiBin(  t, "-", u, v )
+      case Mul(u)    => asciilist( t, "*", u    )
+      case Div(u,v)  => asciiBin(  t, "/", u, v )
+      case Pow(u,v)  => asciiBin(  t, "^", u, v )
+      case Equ(u,v)  => asciiBin(  t, "=", u, v )
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
       case Neg(u)    => t.app('-');  u.ascii(t)
       case Abs(u)    => t.app('|');  u.ascii(t); t.app('|')
@@ -76,7 +76,7 @@ trait Ascii
   }
 
   def asciilist( t:Text, op:String, exps:List[Exp] ): Unit = {
-    val enc = t.len!=0 && ( op=="+" || op=="-" )
+    val enc = t.len!=0 && op=="+"  // t.len!=0 && ( op=="+" || op=="-" )
     if( enc ) t.app('(')
     for( exp <- exps )
       { exp.ascii(t); t.app(op) }

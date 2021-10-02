@@ -3,12 +3,8 @@ package ax6.math.parse
 
 import ax6.util.Text
 import ax6.math.exp._
-
-import scala.collection.mutable.ListBuffer
-//import  scala.util.parsing.util.parsing.input
-//import  scala.util.parsing.combinator.Parsers
-import  scala.util.parsing.combinator.lexical.StdLexical
-import  scala.util.parsing.combinator.syntactical.StdTokenParsers
+import scala.util.parsing.combinator.lexical.StdLexical
+import scala.util.parsing.combinator.syntactical.StdTokenParsers
 
 // Need to consider match not exhaustive warning
 
@@ -42,54 +38,18 @@ object AsciiParse extends StdTokenParsers
       Var(s)
   }
 
-  def toAdd( u:Exp, v:Exp ) : Exp = { (u,v) match {
-    case ( Par(Add(a)), _ ) => Add(a)
-    case ( Add(a), b: Exp ) => toList("Add",a,b)
-    case ( a: Exp, b: Exp ) => toMake("Add",a,b)
-  } }
-
-  def toMul( u:Exp, v:Exp ) : Exp = { (u,v) match {
-    case ( Mul(a), b: Exp ) => toList("Mul",a,b)
-    case ( a: Exp, b: Exp ) => toMake("Mul",a,b)
-  } }
-
-  def toList( adt:String, a:List[Exp], b:Exp ) : Exp = {
-    val list = new ListBuffer[Exp]()
-    for( e <- a ) list += e
-    list += b
-    if( adt=="Add" ) Add(list.toList) else Mul(list.toList)
-  }
-
-  def toMake( adt:String, a:Exp, b:Exp ) : Exp = {
-    val list = new ListBuffer[Exp]()
-    list += a
-    list += b
-    if( adt=="Add" ) Add(list.toList) else Mul(list.toList)
-  }
-
   // ... Binary pass through parsers from high to low precedence
   def beg : Parser[Exp] = base | oper
-  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v)   } )  // u ^ v   Pow(u,v)
-  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => toMul(u,v) } )  // u * ... Mul(u...)
-  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v)   } )  // u / v   Div(u,v)
-  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => toAdd(u,v) } )  // u + ... Add(u...)
-  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v)   } )  // u - v   Sub(u,v)
-  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v)   } )  // u = v   Equ(u,v)
+  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
+  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v) u,v can be List[Exp]
+  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
+  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v) u,v can be List[Exp]
+  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
+  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
   def end : Parser[Exp] = equ
 
-  //  def rem : Parser[Exp] = repsep(beg,"*") ^^ { (u:List[Exp]) => Muls(u) }
-  //  def rea : Parser[Exp] = repsep(beg,"+") ^^ { (u:List[Exp]) => Adds(u) }
-  //def rem : Parser[List[Exp]] = repsep(beg,"*")
-  //def rea : Parser[List[Exp]] = repsep(beg,"+")
-  //def muls : Parser[Exp] = "(" ~> rem <~ ")" ^^ { (u:List[Exp]) => Muls(u) }
-  //def adds : Parser[Exp] = "(" ~> rea <~ ")" ^^ { (u:List[Exp]) => Adds(u) }
-  //def add  : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
-  //def mul  : Parser[Exp] = rem        ^^  { (u:List[Exp]) => Muls(u) }
-  //def con  : Parser[Exp] = { (pow ~ mul) ^^ { case u ~ v => Add(u,v) } }
-  //def seq  : Parser[Exp] = { (pow | mul) ^^ { case u * v => Add(u,v) } }
   
   // ... Grouping ...
-                    
   def par : Parser[Exp] = "(" ~> end <~ ")"  ^^ { (u:Exp) => Par(u) }    
   def brc : Parser[Exp] = "{" ~> end <~ "}"  ^^ { (u:Exp) => Brc(u) }    
   def abs : Parser[Exp] = "|" ~> end <~ "|"  ^^ { (u:Exp) => Abs(u) }    
@@ -118,22 +78,10 @@ object AsciiParse extends StdTokenParsers
 
   // Check case where "log" => Lnn(u)
   def func( f:String, u:Exp ) : Exp = f match {
-    case "sqrt"   => Sqt(u)
-    case "ln"     => Lnn(u)
-    case "log"    => Lnn(u)
-    case "sin"    => Sin(u)
-    case "cos"    => Cos(u)
-    case "tan"    => Tan(u)
-    case "cot"    => Cot(u)
-    case "sec"    => Sec(u)
-    case "csc"    => Csc(u)
-    case "arcsin" => ASin(u)
-    case "arccos" => ACos(u)
-    case "arctan" => ATan(u)
-    case "arccot" => ACot(u)
-    case "arcsec" => ASec(u)
-    case "arccsc" => ACsc(u)
-    case "d"      => Dif(u)
+    case "sqrt"   => Sqt(u)  case "ln"     => Lnn(u)  case "log"    => Lnn(u)  case "sin"    => Sin(u)
+    case "cos"    => Cos(u)  case "tan"    => Tan(u)  case "cot"    => Cot(u)  case "sec"    => Sec(u)
+    case "csc"    => Csc(u)  case "arcsin" => ASin(u) case "arccos" => ACos(u) case "arctan" => ATan(u)
+    case "arccot" => ACot(u) case "arcsec" => ASec(u) case "arccsc" => ACsc(u) case "d"      => Dif(u)
     case _ => Msg(Text(50).text("Ascii.func::", f, '(', u.text, ')', " :: is an unknown function"))
   }
   

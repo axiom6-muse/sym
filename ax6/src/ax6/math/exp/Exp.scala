@@ -97,23 +97,87 @@ case class Not( u:Exp )        extends Exp // not an expression or can not be In
 case class Sim( u:Exp )        extends Exp // sim(u) Simplify - just used for errors
 case class Msg( m:Text )       extends Exp // error message from Parse
 
+// Here we have Par remove uneeded parentheses
+object Par {
+
+  // Looks like a noop
+  def apply( u:Exp ) : Exp = u match {
+    case Add(a)   => Add(a)
+    case Sub(a,b) => Sub(a,b)
+    case a:Exp    => new Par(a)
+  }
+}
+
+// Here we have Add take care of all its simplifications that can occur
+//   with its binary apply constructors in AsciiParse
 object Add {
-  def apply( u:Exp, v:Exp ) : Exp = {
+  
+  def binOp( u:Exp, v:Exp ) : Exp = {
     val list = new ListBuffer[Exp]()
     list += u
     list += v
-    Add(list.toList)
-  }
+    Add(list.toList) }
+
+  def apply( u:Exp, v:Exp ) : Exp = (u,v) match {
+    case ( Add(a),    Add(b)  ) => Add(a,b)
+    case ( Par(Add(a)), b:Exp ) => Add(a,b)
+    case ( Add(a),      b:Exp ) => Add(a,b)
+    case ( a:Exp, Par(Add(b)) ) => Add(a,b)
+    case ( a:Exp,     Add(b)  ) => Add(a,b)
+    case ( a:Exp,       b:Exp ) => Add.binOp(a,b) }
+
+  def apply( u:List[Exp], v:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    for( e <- u ) list += e
+    list += v
+    Add(list.toList) }
+
+  def apply( u:Exp, v:List[Exp] ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    list += u
+    for( e <- v ) list += e
+    Add(list.toList) }
+
+  def apply( u:List[Exp], v:List[Exp] ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    for( a <- u ) list += a
+    for( b <- v ) list += b
+    Add(list.toList) }
 }
 
+// Here we have Mul take care of all its simplifications that can occur
+//   with it binary apply conscructors in AsciiParse
 object Mul {
-  def apply( u:Exp, v:Exp ) : Exp = {
+
+  def binOp( u:Exp, v:Exp ) : Exp = {
     val list = new ListBuffer[Exp]()
     list += u
     list += v
-    Mul(list.toList)
-  }
+    Mul(list.toList) }
+
+  def apply( u:Exp, v:Exp ) : Exp = (u,v) match {
+    case ( Mul(a),    Mul(b)  ) => Mul(a,b)
+    case ( Par(Mul(a)), b:Exp ) => Mul(a,b)
+    case ( Mul(a),      b:Exp ) => Mul(a,b)
+    case ( a:Exp, Par(Mul(b)) ) => Mul(a,b)
+    case ( a:Exp,     Mul(b)  ) => Mul(a,b)
+    case ( a:Exp,       b:Exp ) => Mul.binOp(a,b) }
+
+  def apply( u:List[Exp], v:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    for( e <- u ) list += e
+    list += v
+    Mul(list.toList) }
+
+  def apply( u:Exp, v:List[Exp] ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    list += u
+    for( e <- v ) list += e
+    Mul(list.toList) }
+
+  def apply( u:List[Exp], v:List[Exp] ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    for( a <- u ) list += a
+    for( b <- v ) list += b
+    Mul(list.toList) }
 }
-
-
-
