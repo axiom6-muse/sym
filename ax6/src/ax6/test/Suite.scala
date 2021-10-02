@@ -38,14 +38,11 @@ class Suite //extends Suite
 {
   type CS     = Text.CS
   type Assign = String => Double
-  val  iText  = new Text(200)    // init Text
-  val  tText  = new Text(200)    // test Text
-  
-  def clear() : Unit = { iText.clear(); tText.clear() }
 
   def pars( name:String, seq:String* ) : Unit =
   {
-    clear()
+    val iText:Text  = new Text(100)
+    val tText:Text  = new Text(100)
     for( str <- seq )
       iText.all(str, ' ')
     Test.init( name, iText )
@@ -58,65 +55,61 @@ class Suite //extends Suite
   }
   
   def par( name:String, str:String ): Unit = {
-    clear()
     Test.init( name, str )
-    AsciiParse(str).ascii(tText)
-    Test.test( name, tText )  
+    val exp:Exp = AsciiParse(str)
+    Test.test( name, exp.toAscii )
   }
 
   def asc( name:String, enter:String, expect:String ): Unit = {
-    clear()
     val exp:Exp = AsciiParse(enter)
     Test.init( name, enter, expect )
-    Test.test( name, enter, exp.ascii(tText) )
+    Test.test( name, enter, exp.toAscii )
   }
 
   def sim( name:String, enter:String, expect:String ): Unit = {
-    clear()
-    val exp:Exp = AsciiParse(enter)
-    Test.init( name, enter, expect,               exp.lambda(iText) )
-    Test.test( name, enter, exp.sim.ascii(tText), exp.lambda(tText) )
+    var exp:Exp = AsciiParse(enter)
+    exp = exp.sim
+    Test.init( name, enter, expect,      exp.toLambda )
+    Test.test( name, enter, exp.toAscii, exp.toLambda )
   }  
 
   def lam( name:String, enter:String, expect:String ): Unit = {
-    clear()
     var exp:Exp = AsciiParse(enter)
-    Test.init( name, enter, expect )
     exp = exp.sim
-    exp.ascii(iText)
-    exp.lambda(tText)
-    Test.test( name, iText, tText )
+    Test.init( name, enter,       expect )
+    Test.test( name, exp.toAscii, exp.toLambda )
   }  
   
   def itg( name:String, enter:String, expect:String ): Unit = {
-    clear()
     val exp:Exp = AsciiParse(enter)
     Test.init( name, enter, expect  )
-    Test.test( name, enter, exp.itg.ascii(tText) )
+    Test.test( name, enter, exp.itg.toAscii )
   }
 
   def dif( name:String, enter:String, expect:String ): Unit = {
-    clear()
     val exp:Exp = AsciiParse(enter)
     Test.init( name, enter, expect  )
-    Test.test( name, enter, exp.dif.sim.ascii(tText) )
+    Test.test( name, enter, exp.dif.sim.toAscii )
   }
 
+  // Sub(Sub(Var(x),Var(y)),Adds(Num(7),,Var(z)))
+  // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
+
   def testFail(): Unit = {
-    lam( "pow.a", "(x+y)^3", "Pow(Adds(Var(x),Var(y)),Num(3))" )
-    lam( "add.a", "x+x+7+y", "Adds(Var(x),Var(x),Num(7),Var(y))"   )
-    lam( "sub.a", "x-x-7-z", "Sub(Sub(Var(x),Var(y)),Sub(Num(7),Var(z)))"   ) // "Sub(Sub(Var(x),Var(y)),Adds(Num(7),Var
+    lam( "pow.a", "(x+y)^3",       "Pow(Adds(Var(x),Var(y)),Num(3))" )
+    lam( "add.a", "(x+x+7+y)",     "Adds(Var(x),Var(x),Num(7),Var(y))"   )
+    lam( "sub.a", "(((x-x)-7)-z)", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
   }
 
   def testCalc(): Unit = {
     val powc:Exp = Pow(Adds(List(Var("x"),Var("y"))),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
-    Test.init( "calc.b", "<x=2 y=1> ", powc.ascii(iText), " = ", 27.0 )
-    Test.test( "calc.b", "<x=2 y=1> ", powc.ascii(iText)," = ", powc.calc(ppp) )
+    Test.init( "calc.b", "<x=2 y=1> ", powc.toAscii, " = ", 27.0 )
+    Test.test( "calc.b", "<x=2 y=1> ", powc.toAscii," = ", powc.calc(ppp) )
 
     val env:Assign = { case "x" => 5 case "y" => 7 }
-    Test.init( "calc.a", "<x=5 y=7> ", powc.ascii(iText), " = ", "24.0" )
-    Test.test( "calc.a", "<x=5 y=7> ", powc.ascii(iText), " = ", powc.calc(env) )
+    Test.init( "calc.a", "<x=5 y=7> ", powc.toAscii, " = ", "24.0" )
+    Test.test( "calc.a", "<x=5 y=7> ", powc.toAscii, " = ", powc.calc(env) )
    }
  
    def testCex(): Unit = {
@@ -131,44 +124,36 @@ class Suite //extends Suite
    }   
 
    def testMex(): Unit = {
-     
-     clear()
      par( "mex.parse.ma", "[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]" )
      val sb = "[[dx,2*x*dx,3*x^2*dx][dy,2*y*dy,3*y^2*dy][dz,2*z*dz,3*z^2*dz]]"
      Test.init( "mex.dif.mb", sb )
      val eb:Exp = AsciiParse( sb )
      val mb:Mex = Mex(eb)
      mb.dif
-     mb.ascii(tText)
-     Test.test( "mex.dif.mb", tText )
+     Test.test( "mex.dif.mb", mb.toAscii )
 
-     clear()
      val rc:Assign = { case "x"=>1 case "y"=>2 case "z"=>3 }
-     val nc = "[[1,1,1][2,4,8][3,9,27]]"
-     Test.init( "mex.eval.mc", nc ) 
-       val ea:Exp = AsciiParse("[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]")
-       val ma:Mex = Mex(ea)
-       val mc:Mat = ma.calcMex(rc)
-     Test.test( "mex.eval.mc", mc.text(tText) )
+     val ea:Exp    = AsciiParse("[[x,x^2,x^3][y,y^2,y^3][z,z^2,z^3]]")
+     val nc        = "[[1,1,1][2,4,8][3,9,27]]"
+     Test.init( "mex.eval.mc", ea.toAscii, nc )
+     val ma:Mex = Mex(ea)
+     val mc:Mat = ma.calcMex(rc)
+     Test.test( "mex.eval.mc", ma.toAscii, mc.toStr )
 
      par( "mex.d.var.a", "[[a,b,c][d,e,f][g,h,i]]" )    
      par( "mex.d.var.b", "[[a,b^2][c,d^2]]" )
 
-     clear()
      val sf = "[[a,b][c,d]]"
      Test.init( "mex.f.inv2x2.a", "[[1/(a*d-b*c)*d,-1/(a*d-b*c)*b][-1/(a*d-b*c)*c,1/(a*d-b*c)*a]]" ) 
      val ef:Exp = AsciiParse( sf )
      val mf:Mex = Mex(ef)
      val fm:Exp = mf.inv2x2
-     fm.ascii(tText)
-     Test.test( "mex.f.inv2x2.a", tText )
+     Test.test( "mex.f.inv2x2.a", fm.toAscii )
 
-     clear()
      val sg = "[[x,x^2,x^3][y,y^2][z]]"
      Test.init( "mex.g", "[[x,x^2,x^3][y,y^2,0][z,0,0]]" ) 
      val mg:Exp = AsciiParse( sg )
-     mg.ascii(tText)
-     Test.test( "mex.g", tText )    
+     Test.test( "mex.g", mg.toAscii )
    
      par(  "mex.h", "[[x^2,y^3,z^4][x^2,y^3,z^4][x^2,y^3,z^4]]" )
     
@@ -279,12 +264,10 @@ class Suite //extends Suite
   }
 
   def testErr(): Unit = {
-    clear()
     val sa = "e&x$w~t@"
     Test.init( "Err.a", "error", ' ', sa )
     val ea:Exp = AsciiParse(sa)
-    ea.ascii(tText)
-    Test.test( "Err.a", tText,    ' ', sa  )
+    Test.test( "Err.a", ea.toAscii,    ' ', sa  )
    
     par( "Err.b", "sin(x" )
     par( "Err.c", "haha(x)" )

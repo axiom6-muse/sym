@@ -7,6 +7,12 @@ import  ax6.util.Text
 trait Lambda
 {
   self:Exp =>
+
+  def toLambda : String = {
+    val t:Text = new Text(100)
+    lambda( t )
+    t.toStr
+  }
     
   def lambda( t:Text ): Unit = { lambda(t,this) }
   

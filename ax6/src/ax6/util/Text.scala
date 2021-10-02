@@ -70,13 +70,15 @@ class Text( _cap:Int )
 
   override def toString  : String  = { sb.toString() }
 
-  def charAt(i:Int)           : Char = { sb.charAt(i) }
-  def setCharAt(i:Int,c:Char) : Unit = { sb.setCharAt(i,c) }
-  def len                     : Int  = { sb.size }
-  def cap                     : Int  = { sb.capacity }
-  def indexOf( c:Char )       : Int  = { sb.indexOf(c) }
-  def indexOf( s:String )     : Int  = { sb.indexOf(s) }
-  def toCS                    : CS   = { sb.asInstanceOf[CS] }
+  def charAt(i:Int)           : Char   = { sb.charAt(i) }
+  def setCharAt(i:Int,c:Char) : Unit   = { sb.setCharAt(i,c) }
+  def len                     : Int    = { sb.size }
+  def cap                     : Int    = { sb.capacity }
+  def indexOf( c:Char )       : Int    = { sb.indexOf(c) }
+  def indexOf( s:String )     : Int    = { sb.indexOf(s) }
+  def toCS                    : CS     = { sb.asInstanceOf[CS] }
+  def toStr                   : String = { sb.toString() }
+  def noop( str:String )      : Unit   = { if( len < 0 ) app(str) } // A dumb noop()
   def toText( a:Array[Text] ) : Text = {
     val tx:Text = new Text()
     for( e <- a ) {

@@ -20,41 +20,41 @@ trait Latex
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
       case Add(u,v)  => u.latex(t); t.app('+'); v.latex(t)
       case Sub(u,v)  => u.latex(t); t.app('-'); v.latex(t)
-      case Mul(u,v)  => group(t,u); t.app('*'); group(t,v)
-      case Div(u,v)  => group(t,u); t.app('/'); denom(t,v)
-      case Rec(u)  => t.app("1"); t.app('/'); group(t,u)
-      case Pow(u,v)  => group(t,u); t.app('^'); group(t,v)
+      case Mul(u,v)  => asciiGroup(t,u); t.app('*'); asciiGroup(t,v)
+      case Div(u,v)  => asciiGroup(t,u); t.app('/'); asciiDenom(t,v)
+      case Rec(u)  => t.app("1"); t.app('/'); asciiGroup(t,u)
+      case Pow(u,v)  => asciiGroup(t,u); t.app('^'); asciiGroup(t,v)
       case Neg(u)    => t.app('-'); u.latex(t)
-      case Adds(list)    => latexList(t,'+',list)
-      case Muls(list)    => latexList(t,'*',list)
+      case Adds(list)    => latexList(t,"+",list)
+      case Muls(list)    => latexList(t,"*",list)
       case Abs(u)    => t.app('|'); u.latex(t); t.app('|')
-      case Par(u)    => paren(t,u)
+      case Par(u)    => asciiParen(t,u)
       case Brc(u)    => t.app('{'); u.latex(t); t.app('}')
-      case Lnn(u)    => latex( t, "ln", u )
-      case Log(u,b)  => latex( t, "log", b.r, u )
-      case Roo(u,r)  => latex( t, "root",r.r, u )
-      case Eee(u)    => t.app("e^"); group(t,u)
-      case Sqt(u)    => latex( t, "sqrt",   u )
-      case Sin(u)    => latex( t, "sin",    u )
-      case Cos(u)    => latex( t, "cos",    u )
-      case Tan(u)    => latex( t, "tan",    u )
-      case Csc(u)    => latex( t, "csc",    u )
-      case Sec(u)    => latex( t, "sec",    u )
-      case Cot(u)    => latex( t, "cot",    u )
-      case ASin(u)   => latex( t, "arcsin", u )
-      case ACos(u)   => latex( t, "arccos", u )
-      case ATan(u)   => latex( t, "arctan", u )
-      case ACsc(u)   => latex( t, "arccsc", u )
-      case ASec(u)   => latex( t, "arcsec", u )
-      case ACot(u)   => latex( t, "arccot", u )
+      case Lnn(u)    => latexFun( t, "ln", u )
+      case Log(u,b)  => latexRoot( t, "log", b.r, u )
+      case Roo(u,r)  => latexRoot( t, "root",r.r, u )
+      case Eee(u)    => t.app("e^"); asciiGroup(t,u)
+      case Sqt(u)    => latexFun( t, "sqrt",   u )
+      case Sin(u)    => latexFun( t, "sin",    u )
+      case Cos(u)    => latexFun( t, "cos",    u )
+      case Tan(u)    => latexFun( t, "tan",    u )
+      case Csc(u)    => latexFun( t, "csc",    u )
+      case Sec(u)    => latexFun( t, "sec",    u )
+      case Cot(u)    => latexFun( t, "cot",    u )
+      case ASin(u)   => latexFun( t, "arcsin", u )
+      case ACos(u)   => latexFun( t, "arccos", u )
+      case ATan(u)   => latexFun( t, "arctan", u )
+      case ACsc(u)   => latexFun( t, "arccsc", u )
+      case ASec(u)   => latexFun( t, "arcsec", u )
+      case ACot(u)   => latexFun( t, "arccot", u )
       case Equ(u,v)  => u.latex(t); t.app('='); v.latex(t)
       case Dif(u)    => latexDif(t,u)
       case Sus(u,v)  => u.latex(t); t.app('_'); v.latex(t)
       case Sup(u,v)  => u.latex(t); t.app('^'); v.latex(t)
       case Lim(u,v)  => t.app('_'); u.latex(t); t.app('^'); v.latex(t)
-      case Itg(u)    => latex( t, "Int", u )
-      case Itl(a,b,u)=> latex( t, "Int", a, b, u )
-      case Sum(a,b,u)=> latex( t, "sum", a, b, u )
+      case Itg(u)    => latexFun( t, "Int", u )
+      case Itl(a,b,u)=> latexSum( t, "Int", a, b, u )
+      case Sum(a,b,u)=> latexSum( t, "sum", a, b, u )
       case Cex(r,i)  => latexCex(t,r,i)
       case Vex(a)    => latexVex(t,a)
       case Mex(mat)  => latexMex(t,mat)
@@ -62,17 +62,17 @@ trait Latex
     }
    }
   
-// Function
-  def latex( t:Text, func:String, u:Exp ): Unit =
-     { t.app(func); paren(t,u) }
+  // Function
+  def latexFun( t:Text, func:String, u:Exp ): Unit =
+     { t.app(func); asciiParen(t,u) }
 
-// Function subscript
-   def latex( t:Text, func:String, r:Double, u:Exp ): Unit =
-     { t.all(func,'_',r); paren(t,u) }
+  // Log and Root base
+   def latexRoot( t:Text, func:String, r:Double, u:Exp ): Unit =
+     { t.all(func,'_',r); asciiParen(t,u) }
    
-// Function subscript superscript
-  def latex( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
-     { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); paren(t,u) }
+  // Function subscript superscript
+  def latexSum( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
+     { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); asciiParen(t,u) }
   
   def latexDif( t:Text, u:Exp ): Unit = {
      u match
@@ -110,8 +110,9 @@ trait Latex
   }
 
   // ??? Need Latex exp for List
-  def latexList( t:Text, op:Char,exps:List[Exp] ): Unit = {
+  def latexList( t:Text, op:String, exps:List[Exp] ): Unit = {
     t.app( "\\begin{bmatrix}" )
+    t.noop( op )
     for( exp <- exps )
       { t.app(" & "); exp.latex(t) }
     t.app( "\\end{bmatrix}" )

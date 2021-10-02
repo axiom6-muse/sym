@@ -37,24 +37,19 @@ class Mat( _n:Int, _m:Int )
     new Vec(d)
   }
 
-  def text() : Text = {
-    new Text( n * ( m*6+4 ) )
-  }
-
-  def text( t:Text ) : Text = text( t:Text, "", "" )
-  def text( t:Text, sp:String, eol:String ) : Text =
+  def toStr : String =
   {
-    //val t:Text = new Text( n*(m*6+4) )
-    t.all(eol, '[', sp)
+    val t:Text = new Text( n*(m*6+4) )
+    t.all( '[' )
     for( i <- 0 until n )
     {
-      t.all(eol, '[', sp, a(i, 0))
+      t.all('[', a(i, 0))
       for( j <- 1 until m )
-        t.all(',', sp, a(i, j))
-      t.all(sp, ']')
+        t.all(',', a(i, j))
+      t.all(']')
     }
-    t.all(eol, sp, ']')
-    t
+    t.app(']')
+    t.toStr
   }
 
 }
