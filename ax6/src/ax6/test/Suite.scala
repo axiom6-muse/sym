@@ -74,8 +74,8 @@ class Suite //extends Suite
   }  
 
   def lam( name:String, enter:String, expect:String ): Unit = {
-    var exp:Exp = AsciiParse(enter)
-    exp = exp.sim
+    val exp:Exp = AsciiParse(enter)
+    //exp = exp.sim
     Test.init( name, enter,       expect )
     Test.test( name, exp.toAscii, exp.toLambda )
   }  
@@ -96,13 +96,13 @@ class Suite //extends Suite
   // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
 
   def testFail(): Unit = {
-    lam( "pow.a", "(x+y)^3",       "Pow(Adds(Var(x),Var(y)),Num(3))" )
-    lam( "add.a", "(x+x+7+y)",     "Adds(Var(x),Var(x),Num(7),Var(y))"   )
-    lam( "sub.a", "(((x-x)-7)-z)", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
+    lam( "pow.a", "(x+y)^3", "Pow(Add(Var(x),Var(y)),Num(3))" )
+    lam( "add.a", "x+x+7+y", "Add(Var(x),Var(x),Num(7),Var(y))"   )
+    lam( "sub.a", "x-x-7-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
   }
 
   def testCalc(): Unit = {
-    val powc:Exp = Pow(Adds(List(Var("x"),Var("y"))),Num(3))
+    val powc:Exp = Pow(Add(List(Var("x"),Var("y"))),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
     Test.init( "calc.b", "<x=2 y=1> ", powc.toAscii, " = ", 27.0 )
     Test.test( "calc.b", "<x=2 y=1> ", powc.toAscii," = ", powc.calc(ppp) )

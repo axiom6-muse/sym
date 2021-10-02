@@ -16,15 +16,13 @@ trait Integrate
     case Dbl(r)    => r 
     case Rat(n,d)  => n / d
     case Var(s)    => Var(s)~^2 / 2
-    case Add(u,v)  => I(u) + I(v)
+    case Add(u)    => listItg('+',u )
     case Sub(u,v)  => I(u) - I(v)
-    case Mul(u,v)  => IMul(noparen(u),noparen(v))
-    case Div(u,v)  => IDiv(noparen(u),noparen(v))
-    case Pow(u,v)  => IPow(noparen(u),noparen(v))
+    case Mul(u)    => listItg('*',u )
+    case Div(u,v)  => IDiv(u,v)
+    case Pow(u,v)  => IPow(u,v)
     case Rec(u)    => Lnn(u)
     case Neg(u)    => -I(u)
-    case Adds(list) => listItg('+',list)
-    case Muls(list) => listItg('*',list)
     case Abs(u)    => Abs(I(u))
     case Par(u)    => I(u)
     case Brc(u)    => I(u)
@@ -95,7 +93,7 @@ trait Integrate
     val list = new LB()
     for( exp <- exps )
       list += exp
-    if( op=='+') Adds(list.toList) else Muls(list.toList)
+    if( op=='+') Add(list.toList) else Mul(list.toList)
   }
 
 }

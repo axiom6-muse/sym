@@ -23,11 +23,9 @@ trait Ascii
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
-      case Add(u,v)  => asciiBin( t, "+", u, v )
-      case Adds(u)   => asciilist( t, "+", u )
+      case Add(u)    => asciilist( t, "+", u )
       case Sub(u,v)  => asciiBin( t, "-", u, v )
-      case Mul(u,v)  => asciiBin( t, "*", u, v )
-      case Muls(u)   => asciilist( t, "+", u )
+      case Mul(u)    => asciilist( t, "+", u )
       case Div(u,v)  => asciiBin( t, "/", u, v )
       case Pow(u,v)  => asciiBin( t, "^", u, v )
       case Equ(u,v)  => asciiBin( t, "=", u, v )
@@ -71,18 +69,19 @@ trait Ascii
     t.app('('); u.ascii(t); t.app(')') }
 
   def asciiBin( t:Text, op:String, u:Exp, v:Exp ) : Unit = {
-    if( op=="+" || op=="-" ) {
+    if( t.len!=0 && ( op=="+" || op=="-" ) ) {
       t.app('('); u.ascii(t); t.app(op); v.ascii(t); t.app(')') }
     else {
       u.ascii(t); t.app(op); v.ascii(t) }
   }
 
   def asciilist( t:Text, op:String, exps:List[Exp] ): Unit = {
-    if( op=="+" || op=="-" ) t.app('(')
+    val enc = t.len!=0 && ( op=="+" || op=="-" )
+    if( enc ) t.app('(')
     for( exp <- exps )
       { exp.ascii(t); t.app(op) }
     t.delTail()
-    if( op=="+" || op=="-" ) t.app(')')
+    if( enc ) t.app(')')
   }
 
   // Function
@@ -124,14 +123,14 @@ trait Ascii
 
   // Optional paren for Add Sub to compensate for Simplify which strips Paren
   def asciiGroup( t:Text, q:Exp ): Unit = q match {
-    case Add(u,v) => u.ascii(t); t.app('+'); v.ascii(t)
+    case Add(u)   => asciilist( t, "+", u )
     case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
     //case _        => q.ascii(t)
   }
 
   // Optional paren for denominator to compensate for Simplify which strips Paren
   def asciiDenom( t:Text, q:Exp ): Unit = q match {
-    case Mul(u, v) => u.ascii(t); t.app('*'); v.ascii(t)
+    case Mul(u) => asciilist( t, "*", u )
     case _ => asciiGroup(t, q)
   }
 

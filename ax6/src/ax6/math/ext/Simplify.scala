@@ -16,19 +16,17 @@ trait Simplify
     case Dbl(d)    => dbl(d)
     case Rat(n,d)  => rat(n,d)
     case Var(_)    => exp
-    case Add(u,v)  => add(u,v)
+    case Add(u)    => simAdd(u)
     case Sub(u,v)  => sub(u,v)
-    case Mul(u,v)  => mul(u,v)
+    case Mul(u)    => simMul(u)
     case Div(u,v)  => div(u,v)
     case Pow(u,v)  => pow(u,v)
-    case Par(Add(u,v))  => add(u,v)
+    case Par(Add(u))  => add(u)
     case Par(Sub(u,v))  => sub(u,v)
-    case Par(Mul(u,v))  => mul(u,v)
+    case Par(Mul(u))  => mul(u)
     case Par(Div(u,v))  => div(u,v)
     case Par(Pow(u,v))  => pow(u,v)
     case Neg(u)    => Neg(sim(u))
-    case Adds(u)   => simAdds(u)
-    case Muls(u)   => simMuls(u)
     case Par(u)    => par(sim(u))
     case Rec(u)    => rec(u)
     case Abs(u)    => Abs(sim(u))
@@ -68,7 +66,7 @@ trait Simplify
   def par( exp:Exp ) : Exp = exp match
   {
     case Pow(u,v) => Pow(u,v)
-    case Mul(u,v) => Mul(u,v)
+    case Mul(u) => Mul(u)
     case Div(u,v) => Div(u,v)
     case _        => exp
   }
@@ -82,19 +80,22 @@ trait Simplify
     case _       => if(n==d) 1 else Rat(n,d)
   }
 
-  def mul( u:Exp, v:Exp ) : Exp = (u,v) match
+  def mul( u:List[Exp] ) : Exp = // u match
   {
+    /*
     case( u1, Num(1)|Dbl(1.0) ) => sim(u1)
     case( Num(1)|Dbl(1.0), v1 ) => sim(v1)
     case( Num(a),   Num(b)    ) => Num(a*b)
     case( Num(a),   Dbl(b)    ) => Dbl(a*b)
     case( Dbl(a),   Num(b)    ) => Dbl(a*b)
     case( Dbl(a),   Dbl(b)    ) => Dbl(a*b)
-    case( q,        Add(a,b)  ) => sim( sim(q)*sim(a)+sim(q)*sim(b) )
-    case( Add(a,b), r         ) => sim( sim(a)*sim(r)+sim(b)*sim(b) )
+    case( a,        Add(b)    ) => sim( sim(a)+sim(b) ) // ??? review
+    case( Add(a),   b         ) => sim( sim(a)*sim(b) ) // ??? review
     case( q,        Sub(a,b)  ) => sim( sim(q)*sim(a)-sim(u)*sim(b) )
     case( Sub(a,b), r         ) => sim( sim(a)*sim(r)-sim(b)*sim(b) )
     case _                      => Mul(sim(u),sim(v))
+     */
+  Mul(u)
   }
 
   // Stack recursion needs to be reexamined
@@ -108,19 +109,19 @@ trait Simplify
     case( Dbl(a),   Dbl(b)   ) => Dbl(a/b) 
   //case( Mul(a,b), denom    ) => Div(mul(a,b),sim(denom))
   //case( numer, Mul(a,b)    ) => Div(sim(numer),mul(a,b))  // has Caused stack overflow
-    case( Mul(a,b), Mul(c,d) ) => factorMul( a, b, c, d )
-    case( a:Exp,    Mul(c,d) ) => factorTop( a,    c, d )
-    case( Mul(a,b), c:Exp    ) => factorBot( a, b, c    )
+    case( Mul(a),   Mul(b) ) => factorMul( a, b )
+  //case( a:Exp,    Mul(b) ) => factorTop( a, b )
+  //case( Mul(a), b:Exp    ) => factorBot( a, b )
     case _                     => Div(sim(u),sim(v))
   }
 
   // A good start while consider deeper factoring
-  def factorMul( a:Exp, b:Exp, c:Exp, d:Exp ) : Exp = {
-     if(      a == c ) Div(sim(b),sim(d))
-     else if( a == d ) Div(sim(b),sim(c))
-     else if( b == c ) Div(sim(a),sim(d))
-     else if( b == d ) Div(sim(a),sim(c))
-     else              Div(Mul(a,b),Mul(c,d))
+  def factorMul( a:List[Exp], b:List[Exp]  ) : Exp = {
+  //if(      a == b ) Div(sim(b),sim(d))
+  // else if( a == d ) Div(sim(b),sim(c))
+  // else if( b == c ) Div(sim(a),sim(d))
+  // else if( b == d ) Div(sim(a),sim(c))
+     Div(Mul(a),Mul(b))
   }
 
   // A good start while consider deeper factoring
@@ -131,37 +132,32 @@ trait Simplify
   }
 
   // A good start while consider deeper factoring
-  def factorBot( a:Exp, b:Exp, c:Exp ) : Exp = {
-    if(      a == c ) sim(b)
-    else if( b == c ) sim(a)
-    else              Div(Mul(sim(a),sim(b)),sim(c))
+  def factorBot( a:Exp, b:Exp ) : Exp = {
+    if(      a == b ) Num(1)
+  //else if( b == c ) sim(a)
+    else              Div(a,b)
   }
   
-  def simAdds( exps:List[Exp] ) : Exp = {
+  def simAdd( exps:List[Exp] ) : Exp = {
     val list = new LB()
     for( exp <- exps ) {
       exp match {
-        case Adds(es) => for( e <- es ) { list += e }
-        case Add(a,b) => list += a; list += b
+        case Add(es) => for( e <- es ) { list += e }
         case _        => list += exp
       }
     }
-    Adds(list.toList)
+    Add(list.toList)
   }
 
-  def simMuls( exps:List[Exp] ) : Exp = {
+  def simMul( exps:List[Exp] ) : Exp = {
     val list = new LB()
-    for( exp <- exps ) {
-      exp match {
-        case Mul(a,b) => list += a; list += b
-        case _        => list += exp
-      }
-    }
-    Muls(list.toList)
+    for( exp <- exps ) list += exp
+    Mul(list.toList)
   }
 
-  def add( u:Exp, v:Exp ) : Exp = (u,v) match
+  def add( u:List[Exp] ) : Exp = // u match
   {
+    /*
     case( q, Num(0)|Dbl(0.0) ) => sim(q)
     case( Num(0)|Dbl(0.0), r ) => sim(r)
     case( Num(a),   Num(b)   ) => Num(a+b)
@@ -169,9 +165,12 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a+b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a+b)     
     case( q,        Neg(b)   ) => sim( sim(q)-sim(b) )
-    case( Add(a,b), Add(c,d) ) => simAdds( List(sim(a),sim(b),sim(c),sim(d)) )
-    case( Add(a,b), c        ) => simAdds( List(sim(a),sim(b),sim(c)) )
-    case( a,        b        ) => simAdds( List(sim(a),sim(b)) )
+  //case( Add(a,b), Add(c,d) ) => simAdds( List(sim(a),sim(b),sim(c),sim(d)) )
+  //case( Add(a,b), c        ) => simAdds( List(sim(a),sim(b),sim(c)) )
+  //case( a,        b        ) => simAdd( List(sim(a),sim(b)) )
+  case a:List[Exp]  => Add(sim(a))
+    */
+    Add(u)
   }
 
   def sub( u:Exp, v:Exp ) : Exp = (u,v) match

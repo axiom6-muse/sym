@@ -16,15 +16,13 @@ trait Differentiate
     case Dbl(_)    => 0
     case Rat(_,_)  => 0
     case Var(s)    => Dif(Var(s))
-    case Add(u,v)  => d(u) + d(v)
+    case Add(u)    => difAdd(u)
     case Sub(u,v)  => d(u) - d(v)
-    case Mul(u,v)  =>  v*d(u)+u*d(v)
+    case Mul(u)    => difMul(u)                         // v*d(u)+u*d(v)
     case Div(u,v)  => (v*d(u)-u*d(v)) / v~^2
     case Rec(u)    => -d(u) / u~^2
     case Pow(u,v)  => dpow(u,v)
     case Neg(u)    => -d(u)
-    case Adds(list) => listDif('+',list)
-    case Muls(list) => listDif('*',list)
     case Abs(u)    => Abs(d(u))
     case Par(u)    => Par(d(u))
     case Brc(u)    => Brc(d(u))
@@ -71,11 +69,16 @@ trait Differentiate
     case _              => v * u~^(v-1)  * d(u) + Lnn(u) * u~^v * d(v)
   }
 
-  def listDif( op:Char, exps:List[Exp] ) : Exp = {
+  def difAdd( exps:List[Exp] ) : Exp = {
     val list: LB = new LB()
-     for( exp <- exps ) {
-       if( op=='+' ) list += d(exp) else list += d(exp) // ??? Muls is differeny
-     }
-     if( op=='+' ) Adds( list.toList ) else Muls( list.toList )
+    for( exp <- exps ) list += d(exp)
+    Add( list.toList )
+  }
+
+  // ??? A wrong placeholder
+  def difMul( exps:List[Exp] ) : Exp = {
+    val list: LB = new LB()
+    for( exp <- exps ) list += d(exp)
+    Mul( list.toList )
   }
 }

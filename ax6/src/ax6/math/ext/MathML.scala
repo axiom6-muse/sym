@@ -17,15 +17,13 @@ trait MathML
       case Dbl(d)    => mathML( t, "mn", d.toString )
       case Rat(n,d)  => mathML( t, "mfrac", Num(n), Num(d) )
       case Var(s)    => mathML( t, "mi", s ) // Syms.entity(t,s)
-      case Add(u,v)  => mathML( t, "mrow",   u, "+", v )
+      case Add(u)    => listML( t, "+", u )
       case Sub(u,v)  => mathML( t, "mrow",   u, "-", v )
-      case Mul(u,v)  => mathML( t, "mrow",   u, "*", v )
+      case Mul(u)    => listML( t, "*", u )
       case Div(u,v)  => mathML( t, "mfrac",  u, v )
       case Rec(u)    => mathML( t, "mfrac", Num(1), u )
       case Pow(u,v)  => mathML( t, "msup",   u, v )
       case Neg(u)    => mathML( t, "mo", "-" ); u.mathML(t)
-      case Adds(exps) => listML( t, '+', exps )
-      case Muls(exps) => listML( t, '*', exps )
       case Abs(u)    => mathML( t, "mo", "|" ); u.mathML(t)
       case Par(u)    => mathML( t, "mfence", u )
       case Brc(u)    => mathML( t, "mfence", u )
@@ -109,7 +107,8 @@ trait MathML
   }
 
   // ??? needs to deal with op
-  def listML( t:Text, op:Char, exps:List[Exp] ): Unit = {
+  def listML( t:Text, op:String, exps:List[Exp] ): Unit = {
+    t.noop( op )
     t.app( "<mfenced open='[' close=']'>" )
     for( exp <- exps )
       exp.mathML(t)            // MathML takes care of commas

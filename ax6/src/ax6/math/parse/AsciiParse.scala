@@ -1,8 +1,10 @@
 
 package ax6.math.parse
 
-import  ax6.util.Text
-import  ax6.math.exp._
+import ax6.util.Text
+import ax6.math.exp._
+
+import scala.collection.mutable.ListBuffer
 //import  scala.util.parsing.util.parsing.input
 //import  scala.util.parsing.combinator.Parsers
 import  scala.util.parsing.combinator.lexical.StdLexical
@@ -40,20 +42,43 @@ object AsciiParse extends StdTokenParsers
       Var(s)
   }
 
+  def toAdd( u:Exp, v:Exp ) : Exp = { (u,v) match {
+    case ( Par(Add(a)), _ ) => Add(a)
+    case ( Add(a), b: Exp ) => toList("Add",a,b)
+    case ( a: Exp, b: Exp ) => toMake("Add",a,b)
+  } }
+
+  def toMul( u:Exp, v:Exp ) : Exp = { (u,v) match {
+    case ( Mul(a), b: Exp ) => toList("Mul",a,b)
+    case ( a: Exp, b: Exp ) => toMake("Mul",a,b)
+  } }
+
+  def toList( adt:String, a:List[Exp], b:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    for( e <- a ) list += e
+    list += b
+    if( adt=="Add" ) Add(list.toList) else Mul(list.toList)
+  }
+
+  def toMake( adt:String, a:Exp, b:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    list += a
+    list += b
+    if( adt=="Add" ) Add(list.toList) else Mul(list.toList)
+  }
+
   // ... Binary pass through parsers from high to low precedence
   def beg : Parser[Exp] = base | oper
-  def rem : Parser[Exp] = repsep(beg,"*") ^^ { (u:List[Exp]) => Muls(u) }
-  def rea : Parser[Exp] = repsep(beg,"+") ^^ { (u:List[Exp]) => Adds(u) }
-
-  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
-  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
-  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
-  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
-  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
-  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
-
+  def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v)   } )  // u ^ v   Pow(u,v)
+  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => toMul(u,v) } )  // u * ... Mul(u...)
+  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v)   } )  // u / v   Div(u,v)
+  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => toAdd(u,v) } )  // u + ... Add(u...)
+  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v)   } )  // u - v   Sub(u,v)
+  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v)   } )  // u = v   Equ(u,v)
   def end : Parser[Exp] = equ
 
+  //  def rem : Parser[Exp] = repsep(beg,"*") ^^ { (u:List[Exp]) => Muls(u) }
+  //  def rea : Parser[Exp] = repsep(beg,"+") ^^ { (u:List[Exp]) => Adds(u) }
   //def rem : Parser[List[Exp]] = repsep(beg,"*")
   //def rea : Parser[List[Exp]] = repsep(beg,"+")
   //def muls : Parser[Exp] = "(" ~> rem <~ ")" ^^ { (u:List[Exp]) => Muls(u) }
@@ -140,8 +165,8 @@ object AsciiParse extends StdTokenParsers
   //   since we have to split a variable string the call by VAR to variable() is needed
   // d(exp) or differentiation of an expression is handled by dif1
   // d standalone variable is handled by dif2
-  def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u.noparen)   }
-  def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d")         }
+  def dif1 : Parser[Exp] = "d" ~ end ^^ { case "d" ~ u => Dif(u)   }  // ??? need noparen
+  def dif2 : Parser[Exp] = "d"       ^^ { case "d"     => Var("d") }
   def dif  : Parser[Exp] =  dif1 | dif2
 
   // Right now subscript and superscript are a problem with stack overflows

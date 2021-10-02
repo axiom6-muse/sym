@@ -28,20 +28,8 @@ abstract class Exp extends Ascii
   def ~^  ( v:Exp ) : Exp = Pow(this,v) // ~^is used instead of ^ for highest precedence
   def unary_-       : Exp = Neg(this)
 
-  def noparen( e:Exp ) : Exp = e match
-  {
-    case Par(u)   => noparen(u)
-    case Brc(u)   => noparen(u)
-    case Mul(u,v) => Mul(noparen(u),noparen(v))
-    case Div(u,v) => Div(noparen(u),noparen(v))
-    case _        => e
-  }
-
-  def noparen : Exp = noparen(this)
-
   def text:Text = { val t = Text(50); ascii(t,this); t }
   override def toString : String = text.toString
-
 }
 
 // Numbers and Variables
@@ -52,15 +40,15 @@ case class Var( s:String )       extends Exp // s String
 
 // Binary Operators from lowest to highest precedence
 case class Equ( u:Exp, v:Exp ) extends Exp // u = v  Equation
-case class Add( u:Exp, v:Exp ) extends Exp // u + v
+case class Add( u:List[Exp]  ) extends Exp // u + ...
 case class Sub( u:Exp, v:Exp ) extends Exp // u - v
-case class Mul( u:Exp, v:Exp ) extends Exp // u * v
+case class Mul( u:List[Exp]  ) extends Exp // u * ...
 case class Div( u:Exp, v:Exp ) extends Exp // u / v
 case class Pow( u:Exp, v:Exp ) extends Exp // u ^ v
 
 // Lists of Add and Muliply sequences
-case class Adds( exps:List[Exp] ) extends Exp
-case class Muls( exps:List[Exp] ) extends Exp
+//case class Adds( exps:List[Exp] ) extends Exp
+//case class Muls( exps:List[Exp] ) extends Exp
 
 // Unary operator high precendence
 case class Rec( u:Exp )          extends Exp // 1 / u
@@ -108,5 +96,24 @@ case class Sup( u:Exp, v:Exp ) extends Exp // x^1    Superscript x1 -- not used 
 case class Not( u:Exp )        extends Exp // not an expression or can not be Intergrated
 case class Sim( u:Exp )        extends Exp // sim(u) Simplify - just used for errors
 case class Msg( m:Text )       extends Exp // error message from Parse
+
+object Add {
+  def apply( u:Exp, v:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    list += u
+    list += v
+    Add(list.toList)
+  }
+}
+
+object Mul {
+  def apply( u:Exp, v:Exp ) : Exp = {
+    val list = new ListBuffer[Exp]()
+    list += u
+    list += v
+    Mul(list.toList)
+  }
+}
+
 
 
