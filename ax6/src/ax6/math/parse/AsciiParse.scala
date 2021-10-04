@@ -61,8 +61,8 @@ object AsciiParse extends StdTokenParsers
 
   def vel : Parser[List[Exp]] = repsep(end, ",")
   def ves : Parser[List[Exp]] = rep(vex)
-  def vex : Parser[Exp] = "[" ~> vel <~ "]" ^^ { (u:List[Exp]) => new Vex(u) }
-  def mex : Parser[Exp] = "[" ~> ves <~ "]" ^^ { (u:List[Exp]) => new Mex(u) }
+  def vex : Parser[Exp] = "[" ~> vel <~ "]" ^^ { (u:List[Exp]) => Vex(u) }
+  def mex : Parser[Exp] = "[" ~> ves <~ "]" ^^ { (u:List[Exp]) => Mex(u) }
   
   // ... func(arg) ln, logb root ...
 

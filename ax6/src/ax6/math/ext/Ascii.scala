@@ -59,30 +59,39 @@ trait Ascii
       case Itl(a,b,u)=> asciiLim( t, "Int", a, b, u )
       case Sum(a,b,u)=> asciiLim( t, "sum", a, b, u )
       case Cex(r,i)  => asciiCex(t,r,i)
-      case Vex(a)    => asciiVex(t,a)
+      case Vex(array)    => asciiVex(t,array)
       case Mex(mat)  => asciiMex(t,mat)
       case Msg(txt)  => t.app(txt)
     }
   }
-
-  def asciiParen( t:Text, u:Exp ): Unit = {
-    t.app('('); u.ascii(t); t.app(')') }
-
+  
   def asciiBin( t:Text, op:String, u:Exp, v:Exp ) : Unit = {
-    if( t.len!=0 && ( op=="+" || op=="-" ) ) {
-      t.app('('); u.ascii(t); t.app(op); v.ascii(t); t.app(')') }
-    else {
-      u.ascii(t); t.app(op); v.ascii(t) }
+      parAdd(t,u); t.app(op); parAdd(t,v)
   }
 
+  def parAdd( t:Text, u:Exp ) : Unit = u match {
+    case Add(a) => t.app('('); asciilist(t,"+",a); t.app(')')
+    case a:Exp  => a.ascii(t)
+  }
+
+  // No enclose, instead we asciiBin enclose Add(List[Exp])
   def asciilist( t:Text, op:String, exps:List[Exp] ): Unit = {
+    for( exp <- exps )
+       { exp.ascii(t); t.app(op) }
+    t.delTail()
+  }
+
+  def asciilistEnc( t:Text, op:String, exps:List[Exp] ): Unit = {
     val enc = t.len!=0 && op=="+"  // t.len!=0 && ( op=="+" || op=="-" )
     if( enc ) t.app('(')
     for( exp <- exps )
-      { exp.ascii(t); t.app(op) }
+    { exp.ascii(t); t.app(op) }
     t.delTail()
     if( enc ) t.app(')')
   }
+
+  def asciiParen( t:Text, u:Exp ): Unit = {
+    t.app('('); u.ascii(t); t.app(')') }
 
   // Function
   def asciiFun( t:Text, func:String, u:Exp ): Unit = { t.app(func); asciiParen(t,u);  }

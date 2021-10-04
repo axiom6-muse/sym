@@ -52,9 +52,9 @@ trait Calculate {
     case Itl(_,_,_)=> NaN
     case Sum(_,_,_)=> NaN
     case Cex(_,_)  => NaN
-    case Vex(_)  => NaN
-    case Mex(_)  => NaN
-    case Msg(_)  => NaN
+    case Vex(_)    => NaN // for( e <- v ) e.calc(a)
+    case Mex(_)    => NaN
+    case Msg(_)    => NaN
   }
 
   def div( a:Assign, u:Exp, v:Exp ) : Double =

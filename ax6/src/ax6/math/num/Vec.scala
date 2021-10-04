@@ -4,43 +4,18 @@ package ax6.math.num
 import  ax6.util.Text
 
 class Vec( _n:Int ) {
-  var a   = new Array[Double](_n)
-  def n:Int = a.length
+  var array = new Array[Double](_n)
+  val n:Int = array.length
 
-  def this( args : Double* ) =
-    this( args.length)
-    var i=0
-    for( arg<-args )
-      a(i) = arg; i+=1
-  
-  def this( arg:Array[Double] ) =
-    this( arg.length )
-    for( i <- this )
-      a(i) = arg(i)
-
-  def this( arg:Array[Int]    ) =
-    this( arg.length)
-    for( i <- this )
-      a(i) = arg(i)
-
-  def this( arg:List[Double]  ) =
-    this( arg.length )
-    for( i <- this )
-      a(i) = arg(i)
-
-  def this( arg:Vec ) =
-    this( arg.n )
-    for( i <- this )
-      a(i) = arg(i)
-
-  def apply(  i:Int )           : Double = a(i)
-  def update( i:Int, b:Double ): Unit = { a(i) = b }
+  def a(      i:Int )           : Double = array(i)
+  def apply(  i:Int )           : Double = array(i)
+  def update( i:Int, b:Double ) : Unit = { array(i) = b }
 
   def ^ ( a:Double, n:Int ):Double = Math.pow(a,n)
   def + ( v:Vec    ) : Vec =
-    { val u = new Vec(n); for( i <- this ) { u(i) = a(i) + v(i) }; u; }
+    { val u = Vec(n); for( i <- this ) { u(i) = a(i) + v(i) }; u; }
   def - ( v:Vec    ) : Vec =
-    { val u = new Vec(n); for( i <- this ) { u(i) = a(i) - v(i) }; u; }
+    { val u = Vec(n); for( i <- this ) { u(i) = a(i) - v(i) }; u; }
   def dot ( v:Vec    ) : Double =
     { var dot:Double = 0.0; for( i <- this ) { dot = dot + a(i) * v(i) }; dot; } // Dot   product
   def *   ( v:Vec    ) : Double = dot(v)
@@ -49,7 +24,7 @@ class Vec( _n:Int ) {
   def *   ( b:Mat    ) : Vec =
   {
       if( n != b.n ) throw new Error()
-      val c = new Vec(b.m)
+      val c = Vec(b.m)
       for( j <- c )
       {
         c(j) = 0.0
@@ -63,7 +38,7 @@ class Vec( _n:Int ) {
 
   def cross( b:Vec ) : Vec =
   {
-      val u = new Vec(n)
+      val u = Vec(n)
       n match
       {
           case 3 => u(0) = a(1)*b(2)-a(2)*b(1)
@@ -108,4 +83,34 @@ class Vec( _n:Int ) {
     }
 
 
+}
+
+object Vec {
+
+  def apply( n:Int )            : Vec = new Vec(n)
+
+  def apply( _array:Array[Double] ) : Vec = {
+    val vec:Vec = Vec( _array.length)
+    for( i <- 0 until vec.n ) vec(i) = _array(i)
+    vec
+  }
+  def apply( list:List[Double] ) : Vec = {
+    val vec:Vec = Vec( list.size )
+    var i = 0
+    for( e <- list ) { vec(i) = e; i = i + 1 }
+    vec
+  }
+
+  def apply( args:Double* ) : Vec = {
+    val vec:Vec = Vec( args.length )
+    var i = 0
+    for( arg <- args ) { vec(i) = arg; i = i + 1 }
+    vec
+  }
+
+  def apply( _vec:Vec ) : Vec = {
+    val vec:Vec = Vec( _vec.n )
+    for( i <- 0 until vec.n ) vec(i) = _vec(i)
+    vec
+  }
 }

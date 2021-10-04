@@ -11,15 +11,17 @@ class Mat( _n:Int, _m:Int )
   for( k <- 0 until n*m )
     array(k) = 0.0
 
-  def apply( i:Int, j:Int ) : Double = array.apply(i+n+j)
-  def a(     i:Int, j:Int ) : Double = array.apply(i+n+j)
+  def a(      i:Int, j:Int ) : Double = array.apply(i*n+j)
+  def apply(  i:Int, j:Int ) : Double = array.apply(i*n+j)
+  def update( i:Int, j:Int, b:Double ) : Unit = { this(i,j) = b }
+
 
   def row( i:Int ) : Vec =
   {
     val r = new Array[Double](m)
      for( j <- 0 until m )
       r(j) = a(i,j)
-    new Vec(r)
+    Vec(r)
   }
 
   def col( j:Int ) : Vec =
@@ -27,14 +29,14 @@ class Mat( _n:Int, _m:Int )
     val c = new Array[Double](n)
     for( i <- 0 until n )
       c(i) = a(i,j)
-    new Vec(c)
+    Vec(c)
   }
   def diag : Vec =
   {
     val d = new Array[Double](n)
     for( i <- 0 until n )
       d(i) = a(i,i)
-    new Vec(d)
+    Vec(d)
   }
 
   def toStr : String =
@@ -54,13 +56,15 @@ class Mat( _n:Int, _m:Int )
 
 }
 
-object Mat
-{
-  def zeroValues( n:Int, m:Int ) : Array[Double] = {
-    val a: Array[Double] = new Array[Double]( n * m )
-    for (i <- 0 until n)
-      for (j <- 0 until m)
-        a(i*n+j) = 0.0
-    a
+object Mat {
+
+  def apply( n: Int, m: Int ): Mat = new Mat(n,m)
+
+  def apply( _mat:Mat ) : Mat = {
+    val mat:Mat = Mat( _mat.n, _mat.m )
+    for (   i <- 0 until mat.n )
+      for ( j <- 1 until mat.m )
+        mat(i,j) = _mat(i,j)
+    mat
   }
 }
