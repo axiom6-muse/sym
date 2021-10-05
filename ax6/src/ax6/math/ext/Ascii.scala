@@ -23,14 +23,14 @@ trait Ascii
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
-      case Add(u)    => asciilist( t, "+", u    )
+      case Add(u)    => asciiAdd(  t, u )
       case Sub(u,v)  => asciiBin(  t, "-", u, v )
-      case Mul(u)    => asciilist( t, "*", u    )
+      case Mul(u)    => asciiMul(  t, u )
       case Div(u,v)  => asciiBin(  t, "/", u, v )
       case Pow(u,v)  => asciiBin(  t, "^", u, v )
       case Equ(u,v)  => asciiBin(  t, "=", u, v )
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
-      case Neg(u)    => t.app('-');  u.ascii(t)
+      case Neg(u)    => asciiMeg( t, u )
       case Abs(u)    => t.app('|');  u.ascii(t); t.app('|')
       case Par(u)    => t.app('(');  u.ascii(t); t.app(')')
       case Brc(u)    => t.app('{');  u.ascii(t); t.app('}')
@@ -70,14 +70,26 @@ trait Ascii
   }
 
   def parAdd( t:Text, u:Exp ) : Unit = u match {
-    case Add(a) => t.app('('); asciilist(t,"+",a); t.app(')')
+    case Add(a) => t.app('('); asciiAdd(t,a); t.app(')')
     case a:Exp  => a.ascii(t)
   }
 
   // No enclose, instead we asciiBin enclose Add(List[Exp])
-  def asciilist( t:Text, op:String, exps:List[Exp] ): Unit = {
-    for( exp <- exps )
-       { exp.ascii(t); t.app(op) }
+  def asciiAdd( t:Text, exps:List[Exp] ): Unit = {
+    for( exp <- exps ) {
+      // if( exp != exps.head && !exp.isInstanceOf[Neg] ) { t.app("+") }
+      exp.ascii(t)
+      t.app("+")
+    }
+    t.delTail()
+  }
+
+  def asciiMul( t:Text, exps:List[Exp] ): Unit = {
+    for(  exp <- exps ) {
+      // if( exp != exps.head ) { t.app("*") }
+      parAdd( t, exp )
+      t.app("*")
+    }
     t.delTail()
   }
 
@@ -85,13 +97,18 @@ trait Ascii
     val enc = t.len!=0 && op=="+"  // t.len!=0 && ( op=="+" || op=="-" )
     if( enc ) t.app('(')
     for( exp <- exps )
-    { exp.ascii(t); t.app(op) }
+      { exp.ascii(t); t.app(op) }
     t.delTail()
     if( enc ) t.app(')')
   }
 
   def asciiParen( t:Text, u:Exp ): Unit = {
     t.app('('); u.ascii(t); t.app(')') }
+
+  def asciiMeg( t:Text, u:Exp ): Unit = {
+    if( t.tail() == '+' ) t.delTail()
+    t.app('-')
+    u.ascii(t) }
 
   // Function
   def asciiFun( t:Text, func:String, u:Exp ): Unit = { t.app(func); asciiParen(t,u);  }
@@ -132,14 +149,14 @@ trait Ascii
 
   // Optional paren for Add Sub to compensate for Simplify which strips Paren
   def asciiGroup( t:Text, q:Exp ): Unit = q match {
-    case Add(u)   => asciilist( t, "+", u )
+    case Add(u)   => asciiAdd( t, u )
     case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
     //case _        => q.ascii(t)
   }
 
   // Optional paren for denominator to compensate for Simplify which strips Paren
   def asciiDenom( t:Text, q:Exp ): Unit = q match {
-    case Mul(u) => asciilist( t, "*", u )
+    case Mul(u) => asciiMul( t, u )
     case _ => asciiGroup(t, q)
   }
 

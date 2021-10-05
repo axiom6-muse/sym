@@ -3,6 +3,7 @@ package ax6.math.ext
 
 import  ax6.math.exp._
 import  ax6.util.Text
+import  ax6.util.{ Log => Logg }
 
 trait Simplify
 {
@@ -128,26 +129,35 @@ trait Simplify
     case _                      => Mul(sim(u),sim(v))
   }
 
-  // Stack recursion needs to be reexamined
+  def simDig( u:Exp, v:Exp ) : Exp = {
+    Logg.log( "simDig beg", u.toAscii, v.toAscii )
+    val exp:Exp = simDiv( u:Exp, v:Exp )
+    Logg.log( "simDig end", exp.toAscii )
+    exp
+  }
+
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( q:Exp, Num(1)|Dbl(1.0) ) => sim(q)
+/*  case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
     case( _, Num(0)|Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
     case( Num(a), Num(b) ) => Rat(a,b)
     case( Num(a), Dbl(b) ) => Dbl(a/b)
     case( Dbl(a), Num(b) ) => Dbl(a/b)
-    case( Dbl(a), Dbl(b) ) => Dbl(a/b)
+    case( Dbl(a), Dbl(b) ) => Dbl(a/b) */
     case( Mul(a), Mul(b) ) => facMul( a, b )
     case( a:Exp,  Mul(b) ) => facTop( a, b )
     case( Mul(a), b:Exp  ) => facBot( a, b )
-    case _                 => if( u==v ) Num(1) else Div(sim(u),sim(v))
+    case( a:Exp,  b:Exp  ) =>
+      Logg.log( "simDiv end", a,toAscii, b,toAscii )
+      if( u==v ) Num(1) else Div(sim(a),sim(b))
   }
 
-  def copy[Exp](src: List[Exp]): List[Exp] = src map {x => x}
+  def copy[Exp] ( src:List[Exp]): List[Exp] = src map {x => x}
   def toAdd( add:Add ) : Exp = if( add.list.isEmpty ) Num(0) else sim(add)
   def toMul( mul:Mul ) : Exp = if( mul.list.isEmpty ) Num(1) else sim(mul)
 
   def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {
+    // Logg.log( "facMul beg", listu, listv )
     var lista = copy( listu )
     var listb = copy( listv )
     for(   u <- listu ) {
@@ -158,24 +168,31 @@ trait Simplify
         }
       }
     }
+    // Logg.log( "facMul end", lista, listb )
     Div( toMul(Mul(lista)), toMul(Mul(listb)) )
   }
 
   def facTop( u:Exp, listv:List[Exp] ) : Exp = {
+    // Logg.log( "facTop beg", u.toAscii, listv )
     var listb = copy(listv)
     if( listb.contains( u ) ) {
       listb = listb.filter(e => e == u)
+      // Logg.log( "facTop rec", u.toAscii, listb )
       Rec(Mul(listb)) }
     else
-      Div( sim(u), toMul(Mul(listv)) )
+      // Logg.log( "facTop div", u.toAscii, listb )
+      Div( sim(u), toMul(Mul(listb)) )
   }
   def facBot( listu:List[Exp], v:Exp ) : Exp = {
+    // Logg.log( "facBot beg", listu, v.toAscii )
     var lista = copy(listu)
     if( lista.contains( v ) ) {
       lista = lista.filter(e => e == v)
+      // Logg.log( "facBot mul", lista )
       Mul(lista) }
     else
-      Div( toMul(Mul(listu)), sim(v) )
+      // Logg.log( "facBot div", lista )
+      Div( toMul(Mul(lista)), sim(v) )
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match

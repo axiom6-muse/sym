@@ -178,9 +178,9 @@ object Mul {
 
   def apply( u:Exp, v:Exp ) : Mul = (u,v) match {
     case ( Mul(a),    Mul(b)  ) => Mul(a,b)
-    case ( Par(Mul(a)), b:Exp ) => Mul(a,b)
+  //case ( Par(Mul(a)), b:Exp ) => Mul(a,b)
     case ( Mul(a),      b:Exp ) => Mul(a,b)
-    case ( a:Exp, Par(Mul(b)) ) => Mul(a,b)
+  //case ( a:Exp, Par(Mul(b)) ) => Mul(a,b)
     case ( a:Exp,     Mul(b)  ) => Mul(a,b)
     case ( a:Exp,       b:Exp ) => Mul.binOp(a,b) }
 

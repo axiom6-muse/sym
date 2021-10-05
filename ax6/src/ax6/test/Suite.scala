@@ -16,8 +16,8 @@ object Suite
    def runTests(suite:Suite) : Unit =
    {
        suite.testDbg()
-       suite.testEqs()
-       suite.testSim()
+       suite.testDif()
+    // suite.testSim()
     // suite.testCal()
     // suite.testEee()
     // suite.testCex()
@@ -31,7 +31,7 @@ object Suite
     // suite.testEqu()
     // suite.testSus
     // suite.testErr
-
+    // suite.testEqs()
    } 
 }
   
@@ -107,6 +107,9 @@ class Suite //extends Suite
   def testDbg(): Unit = {
     lam( "pow.a", "(x+y)^3", "Pow(Add(Var(x),Var(y)),Num(3))" )
     lam( "add.a", "x+x+7+y", "Add(Var(x),Var(x),Num(7),Var(y))"   )
+    lam( "add.b", "x+x-7+y", "Add(Var(x),Sub(Var(x),Num(7)),Var(y))" )
+    lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Var(x),Var(y),Var(z)),Add(Var(x),Var(y),Var(z)))" )
+    lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Var(x),Var(y),Var(z))),Par(Mul(Var(x),Var(y),Var(z))))" )
     lam( "sub.a", "x-x-7-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
   }
 
@@ -213,14 +216,14 @@ class Suite //extends Suite
     lam(  "eee.i", "d+e", "Add(Var(d),Var(e))")
    }
   
-   def testDiff(): Unit = {
+   def testDif(): Unit = {
 
-     dif( "dif.a", "x*y*z",                         "z*y*dx+z*x*dy+x*y*dz" )
-     dif( "dif.b", "x^2*y^3*z^4",                   "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )
+     dif( "dif.a", "x*y*z",                         "y*z*dx+x*z*dy+x*y*dz" )
+     dif( "dif.b", "x^2*y^3*z^4",                   "y^3*z^4*2*x*dx+x^2*z^4*3*y^2*dy+x^2*y^3*4*z^3*dz" )
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
-     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )
-     dif( "dif.e", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
+     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )       
+     dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/x*sqrt(x^2-1)+dx/x*sqrt(x^2-1)-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 
      lam( "Var(d).a", "d",  "Var(d)" ) 
@@ -290,6 +293,7 @@ class Suite //extends Suite
   }
   
   def testSim(): Unit = {
+    sim( "Sim.a", "(3*5)/(2+3)",          "1.5" )
     sim( "Sim.a", "(x+y)/(x+y)",          "1" )
   //sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
   //sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )

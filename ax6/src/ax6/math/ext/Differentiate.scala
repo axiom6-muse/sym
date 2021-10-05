@@ -1,8 +1,7 @@
 
 package ax6.math.ext
 
-import  ax6.math.exp._
-
+import ax6.math.exp.{Exp, _}
 
 trait Differentiate
 {
@@ -21,7 +20,7 @@ trait Differentiate
     case Mul(u)    => difMul(u)                         // v*d(u)+u*d(v)
     case Div(u,v)  => (v*d(u)-u*d(v)) / v~^2
     case Rec(u)    => -d(u) / u~^2
-    case Pow(u,v)  => dpow(u,v)
+    case Pow(u,v)  => difPow(u,v)
     case Neg(u)    => -d(u)
     case Abs(u)    => Abs(d(u))
     case Par(u)    => Par(d(u))
@@ -57,7 +56,7 @@ trait Differentiate
  // case Lim(u,v)  => Dif(Lim(u,v))
   }
 
-  def dpow( u:Exp, v:Exp ) : Exp = (u,v) match
+  def difPow( u:Exp, v:Exp ) : Exp = (u,v) match
   {
     case ( _,  Num(0) ) => 0
     case ( u1, Num(1) ) => d(u1)
@@ -75,10 +74,13 @@ trait Differentiate
     Add( list.toList )
   }
 
-  // ??? A wrong placeholder
-  def difMul( exps:List[Exp] ) : Exp = {
-    val list: LB = new LB()
-    for( exp <- exps ) list += d(exp)
-    Mul( list.toList )
+  def difMul( srcList:List[Exp] ) : Exp = {
+    var  mul = Mul(List[Exp]())
+    var  add = Add(List[Exp]())
+    for( exp  <- srcList ) {
+      mul = Mul( srcList.filter( e => e != exp ), d(exp) )
+      add = Add( add, mul )
+    }
+    add
   }
 }

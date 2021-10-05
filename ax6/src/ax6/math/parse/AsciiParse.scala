@@ -24,7 +24,6 @@ object AsciiParse extends StdTokenParsers
     "sqrt","ln","log","sin","cos","tan","cot","sec","csc",  
     "arcsin","arccos","arctan","arccot","arcsec","arccsc")
 
- 
   // Need to lex Double
   def NUM : Parser[Num] = numericLit ^^ { (s:String) => Num(s.toInt)    }
   def DBL : Parser[Dbl] = numericLit ^^ { (s:String) => Dbl(s.toDouble) }
@@ -41,16 +40,16 @@ object AsciiParse extends StdTokenParsers
   // ... Binary pass through parsers from high to low precedence
   def beg : Parser[Exp] = base | oper
   def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
-  def mul : Parser[Exp] = pow * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v) u,v can be List[Exp]
-  def div : Parser[Exp] = mul * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
-  def add : Parser[Exp] = div * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v) u,v can be List[Exp]
-  def sub : Parser[Exp] = add * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
-  def equ : Parser[Exp] = sub * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
+  def div : Parser[Exp] = pow * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
+  def mul : Parser[Exp] = div * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v) u,v can be List[Exp]
+  def sub : Parser[Exp] = mul * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
+  def add : Parser[Exp] = sub * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v) u,v can be List[Exp]
+
+  def equ : Parser[Exp] = add * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
   def end : Parser[Exp] = equ
 
-  
   // ... Grouping ...
-  def par : Parser[Exp] = "(" ~> end <~ ")"  ^^ { (u:Exp) => Par(u) }    
+  def par : Parser[Exp] = "(" ~> end <~ ")"  ^^ { (u:Exp) => Par(u) }
   def brc : Parser[Exp] = "{" ~> end <~ "}"  ^^ { (u:Exp) => Brc(u) }    
   def abs : Parser[Exp] = "|" ~> end <~ "|"  ^^ { (u:Exp) => Abs(u) }    
   
