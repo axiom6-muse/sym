@@ -140,10 +140,12 @@ trait Simplify
     case( Mul(a), Mul(b) ) => facMul( a, b )
     case( a:Exp,  Mul(b) ) => facTop( a, b )
     case( Mul(a), b:Exp  ) => facBot( a, b )
-    case _                 => Div(sim(u),sim(v))
+    case _                 => if( u==v ) Num(1) else Div(sim(u),sim(v))
   }
 
   def copy[Exp](src: List[Exp]): List[Exp] = src map {x => x}
+  def toAdd( add:Add ) : Exp = if( add.list.isEmpty ) Num(0) else sim(add)
+  def toMul( mul:Mul ) : Exp = if( mul.list.isEmpty ) Num(1) else sim(mul)
 
   def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {
     var lista = copy( listu )
@@ -156,7 +158,7 @@ trait Simplify
         }
       }
     }
-    Div( sim(Mul(lista)), sim(Mul(listb)) )
+    Div( toMul(Mul(lista)), toMul(Mul(listb)) )
   }
 
   def facTop( u:Exp, listv:List[Exp] ) : Exp = {
@@ -165,7 +167,7 @@ trait Simplify
       listb = listb.filter(e => e == u)
       Rec(Mul(listb)) }
     else
-      Div( sim(u), sim(Mul(listv)) )
+      Div( sim(u), toMul(Mul(listv)) )
   }
   def facBot( listu:List[Exp], v:Exp ) : Exp = {
     var lista = copy(listu)
@@ -173,7 +175,7 @@ trait Simplify
       lista = lista.filter(e => e == v)
       Mul(lista) }
     else
-      Div( sim(Mul(listu)), sim(v) )
+      Div( toMul(Mul(listu)), sim(v) )
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match

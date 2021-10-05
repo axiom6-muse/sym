@@ -127,6 +127,8 @@ object Par {
 //   with its binary apply constructors in AsciiParse
 object Add {
 
+//def apply( list:List[Exp] ) : Add = if( list.isEmpty ) Num(0) else new Add(list)
+
   def apply( list:List[Exp] ) : Add = new Add(list)
   
   def binOp( u:Exp, v:Exp ) : Add = {

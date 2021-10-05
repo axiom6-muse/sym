@@ -15,9 +15,10 @@ object Suite
 
    def runTests(suite:Suite) : Unit =
    {
-       suite.testFail()
-    // suite.testSimp()
-    // suite.testCalc()
+       suite.testDbg()
+       suite.testEqs()
+       suite.testSim()
+    // suite.testCal()
     // suite.testEee()
     // suite.testCex()
     // suite.testVex()
@@ -66,6 +67,14 @@ class Suite //extends Suite
     Test.test( name, enter, exp.toAscii )
   }
 
+  def eqs( name:String, expect:String, result:String ): Unit = {
+    val exp:Exp = AsciiParse(expect)
+    val res:Exp = AsciiParse(result)
+    val isEq    = if( exp == res ) "Pass" else "Fail"
+    Test.init( name, expect, exp.toLambda, "Pass" )
+    Test.test( name, result, res.toLambda,  isEq  )
+  }
+
   def sim( name:String, enter:String, expect:String ): Unit = {
     var exp:Exp = AsciiParse(enter)
     exp = exp.sim
@@ -95,13 +104,13 @@ class Suite //extends Suite
   // Sub(Sub(Var(x),Var(y)),Adds(Num(7),,Var(z)))
   // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
 
-  def testFail(): Unit = {
+  def testDbg(): Unit = {
     lam( "pow.a", "(x+y)^3", "Pow(Add(Var(x),Var(y)),Num(3))" )
     lam( "add.a", "x+x+7+y", "Add(Var(x),Var(x),Num(7),Var(y))"   )
     lam( "sub.a", "x-x-7-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
   }
 
-  def testCalc(): Unit = {
+  def testCal(): Unit = {
     val powc:Exp = Pow(Add(List(Var("x"),Var("y"))),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
     Test.init( "calc.b", "<x=2 y=1> ", powc.toAscii, " = ", 27.0 )
@@ -272,9 +281,15 @@ class Suite //extends Suite
     par( "Err.b", "sin(x" )
     par( "Err.c", "haha(x)" )
   }
-
-  // sim.div is a problem
-  def testSimp(): Unit = {
+  def testEqs(): Unit = {
+    eqs( "Eqs.one", "1",              "1" )
+    eqs( "Eqs.var", "x",              "x" )
+    eqs( "Eqs.add", "(x+y)",          "(x+y)" )
+    eqs( "Eqs.div", "(x+y)/(x+y)",    "(x+y)/(x+y)" )
+    eqs( "Eqs.mul", "(x+y)*(x+y)",    "(x+y)*(x+y)" )
+  }
+  
+  def testSim(): Unit = {
     sim( "Sim.a", "(x+y)/(x+y)",          "1" )
   //sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
   //sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )
