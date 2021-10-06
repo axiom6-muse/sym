@@ -112,7 +112,10 @@ trait Simplify
     case _                     => Sub(sim(u),sim(v))
   }
 
-  def simMul( list:List[Exp] ) : Mul = Mul(list).map( exp => sim(exp) )
+  def simMul( list:List[Exp] ) : Mul = {
+    //Logg.log( "simMul beg", list )
+    Mul(list).map( exp => sim(exp) )
+  }
 
   def binMul( u:Exp, v:Exp ) : Exp = (u,v) match
   {
@@ -129,35 +132,33 @@ trait Simplify
     case _                      => Mul(sim(u),sim(v))
   }
 
-  def simDig( u:Exp, v:Exp ) : Exp = {
-    Logg.log( "simDig beg", u.toAscii, v.toAscii )
-    val exp:Exp = simDiv( u:Exp, v:Exp )
-    Logg.log( "simDig end", exp.toAscii )
-    exp
-  }
-
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-/*  case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
+    case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
     case( _, Num(0)|Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
     case( Num(a), Num(b) ) => Rat(a,b)
     case( Num(a), Dbl(b) ) => Dbl(a/b)
     case( Dbl(a), Num(b) ) => Dbl(a/b)
-    case( Dbl(a), Dbl(b) ) => Dbl(a/b) */
+    case( Dbl(a), Dbl(b) ) => Dbl(a/b)
     case( Mul(a), Mul(b) ) => facMul( a, b )
     case( a:Exp,  Mul(b) ) => facTop( a, b )
     case( Mul(a), b:Exp  ) => facBot( a, b )
     case( a:Exp,  b:Exp  ) =>
-      Logg.log( "simDiv end", a,toAscii, b,toAscii )
-      if( u==v ) Num(1) else Div(sim(a),sim(b))
+      if( u==v ) Num(1)
+      else if( isMul(u) && isMul(v) ) facMul(toMul(u).list,toMul(v).list)
+      else Div(sim(a),sim(b))
   }
 
   def copy[Exp] ( src:List[Exp]): List[Exp] = src map {x => x}
-  def toAdd( add:Add ) : Exp = if( add.list.isEmpty ) Num(0) else sim(add)
-  def toMul( mul:Mul ) : Exp = if( mul.list.isEmpty ) Num(1) else sim(mul)
+  def toAdd( add:Add ) : Exp     = if( add.list.isEmpty ) Num(0) else sim(add)
+  def ckMul( mul:Mul ) : Exp     = if( mul.list.isEmpty ) Num(1) else sim(mul)
+  def isMul( exp:Exp ) : Boolean = exp.isInstanceOf[Mul]
+  def toMul( exp:Exp ) : Mul = exp match {
+    case Mul(list) => Mul(list)
+  }
 
   def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {
-    // Logg.log( "facMul beg", listu, listv )
+    Logg.log( "facMul beg", listu, listv )
     var lista = copy( listu )
     var listb = copy( listv )
     for(   u <- listu ) {
@@ -169,7 +170,7 @@ trait Simplify
       }
     }
     // Logg.log( "facMul end", lista, listb )
-    Div( toMul(Mul(lista)), toMul(Mul(listb)) )
+    Div( ckMul(Mul(lista)), ckMul(Mul(listb)) )
   }
 
   def facTop( u:Exp, listv:List[Exp] ) : Exp = {
@@ -181,8 +182,9 @@ trait Simplify
       Rec(Mul(listb)) }
     else
       // Logg.log( "facTop div", u.toAscii, listb )
-      Div( sim(u), toMul(Mul(listb)) )
+      Div( sim(u), ckMul(Mul(listb)) )
   }
+
   def facBot( listu:List[Exp], v:Exp ) : Exp = {
     // Logg.log( "facBot beg", listu, v.toAscii )
     var lista = copy(listu)
@@ -192,7 +194,7 @@ trait Simplify
       Mul(lista) }
     else
       // Logg.log( "facBot div", lista )
-      Div( toMul(Mul(lista)), sim(v) )
+      Div( ckMul(Mul(lista)), sim(v) )
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match

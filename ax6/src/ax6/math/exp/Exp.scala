@@ -42,7 +42,8 @@ case class Var( s:String )       extends Exp // s String
 
 // Binary Operators from lowest to highest precedence
 case class Equ( u:Exp, v:Exp ) extends Exp   // u = v  Equation
-case class Add( list:List[Exp]  ) extends Exp { // u + ...
+case class Add( _list:List[Exp]  ) extends Exp { // u + ...
+  val list:List[Exp] = _list
   def map( func:Exp => Exp ) : Add =
   {
     val listBuf = new ListBuffer[Exp]()
@@ -51,7 +52,8 @@ case class Add( list:List[Exp]  ) extends Exp { // u + ...
   }
 }
 case class Sub( u:Exp, v:Exp ) extends Exp // u - v
-case class Mul( list:List[Exp] ) extends Exp { // u * ...
+class Mul(  _list:List[Exp] ) extends Exp { // u * ...
+  val list:List[Exp] = _list
   def map(func: Exp => Exp): Mul = {
     val listBuf = new ListBuffer[Exp]()
     for (exp <- list) listBuf += func(exp)
@@ -60,10 +62,6 @@ case class Mul( list:List[Exp] ) extends Exp { // u * ...
 }
 case class Div( u:Exp, v:Exp ) extends Exp // u / v
 case class Pow( u:Exp, v:Exp ) extends Exp // u ^ v
-
-// Lists of Add and Muliply sequences
-//case class Adds( exps:List[Exp] ) extends Exp
-//case class Muls( exps:List[Exp] ) extends Exp
 
 // Unary operator high precendence
 case class Rec( u:Exp )          extends Exp // 1 / u
@@ -130,6 +128,9 @@ object Add {
 //def apply( list:List[Exp] ) : Add = if( list.isEmpty ) Num(0) else new Add(list)
 
   def apply( list:List[Exp] ) : Add = new Add(list)
+
+  def unapply( add:Add ) : Option[List[Exp]] = Option(add.list)
+
   
   def binOp( u:Exp, v:Exp ) : Add = {
     val list = new ListBuffer[Exp]()
@@ -169,6 +170,7 @@ object Add {
 object Mul {
 
   def apply( list:List[Exp] ) : Mul = new Mul(list)
+  def unapply( mul:Mul ) : Option[List[Exp]] = Option(mul.list)
 
   def binOp( u:Exp, v:Exp ) : Mul = {
     val list = new ListBuffer[Exp]()

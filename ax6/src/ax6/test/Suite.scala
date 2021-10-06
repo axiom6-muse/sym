@@ -17,7 +17,7 @@ object Suite
    {
        suite.testDbg()
        suite.testDif()
-    // suite.testSim()
+       suite.testSim()
     // suite.testCal()
     // suite.testEee()
     // suite.testCex()
