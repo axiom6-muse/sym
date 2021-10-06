@@ -134,27 +134,39 @@ trait Simplify
 
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
-    case( _, Num(0)|Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
+    case( a:Exp,  Num(1) | Dbl(1.0) ) => sim(a)
+    case( _:Exp,  Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
     case( Num(a), Num(b) ) => Rat(a,b)
     case( Num(a), Dbl(b) ) => Dbl(a/b)
     case( Dbl(a), Num(b) ) => Dbl(a/b)
     case( Dbl(a), Dbl(b) ) => Dbl(a/b)
+    case( Pow(a,b), Pow(c,d) ) => facPow( a, b, c, d )
+    case( Add(a), Add(b) ) => facAdd( a, b )
     case( Mul(a), Mul(b) ) => facMul( a, b )
     case( a:Exp,  Mul(b) ) => facTop( a, b )
     case( Mul(a), b:Exp  ) => facBot( a, b )
     case( a:Exp,  b:Exp  ) =>
-      if( u==v ) Num(1)
-      else if( isMul(u) && isMul(v) ) facMul(toMul(u).list,toMul(v).list)
+      if( u==v )  Num(1)
+    //else if( isMul(u) && isMul(v) ) facMul(toMul(u).list,toMul(v).list)
       else Div(sim(a),sim(b))
   }
 
   def copy[Exp] ( src:List[Exp]): List[Exp] = src map {x => x}
   def toAdd( add:Add ) : Exp     = if( add.list.isEmpty ) Num(0) else sim(add)
   def ckMul( mul:Mul ) : Exp     = if( mul.list.isEmpty ) Num(1) else sim(mul)
-  def isMul( exp:Exp ) : Boolean = exp.isInstanceOf[Mul]
-  def toMul( exp:Exp ) : Mul = exp match {
-    case Mul(list) => Mul(list)
+//def isMul( exp:Exp ) : Boolean = exp.isInstanceOf[Mul]
+//def toMul( exp:Exp ) : Mul = exp match { case Mul(list) => Mul(list) }
+
+  def facPow( b1:Exp, p1:Exp, b2:Exp, p2:Exp ) : Exp =
+  {
+    Logg.log( "facPow beg", b1, p1, b2, p2 )
+    if( b1==b2 ) Pow( sim(b1), Sub(sim(p1),sim(p2)) )
+    else Div( Pow(sim(b1),sim(p1)), Pow(sim(b2),sim(p2)) )
+  }
+
+  def facAdd( listu:List[Exp], listv:List[Exp]  ) : Exp = {
+    Logg.log( "facAdd beg", listu, listv )
+    Div( Add(listu), Add(listv) )
   }
 
   def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {

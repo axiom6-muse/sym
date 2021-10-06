@@ -70,8 +70,9 @@ trait Ascii
   }
 
   def parAdd( t:Text, u:Exp ) : Unit = u match {
-    case Add(a) => t.app('('); asciiAdd(t,a); t.app(')')
-    case a:Exp  => a.ascii(t)
+    case Add(a)   => t.app('('); asciiAdd(t,a); t.app(')')
+    case Sub(a,b) => t.app('('); t.app('('); a.ascii(t); t.app('-'); b.ascii(t); t.app(')')
+    case a:Exp    => a.ascii(t)
   }
 
   // No enclose, instead we asciiBin enclose Add(List[Exp])
@@ -91,15 +92,6 @@ trait Ascii
       t.app("*")
     }
     t.delTail()
-  }
-
-  def asciilistEnc( t:Text, op:String, exps:List[Exp] ): Unit = {
-    val enc = t.len!=0 && op=="+"  // t.len!=0 && ( op=="+" || op=="-" )
-    if( enc ) t.app('(')
-    for( exp <- exps )
-      { exp.ascii(t); t.app(op) }
-    t.delTail()
-    if( enc ) t.app(')')
   }
 
   def asciiParen( t:Text, u:Exp ): Unit = {

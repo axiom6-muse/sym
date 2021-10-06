@@ -41,9 +41,8 @@ case class Rat( n:Int, r:Int )   extends Exp // n / r
 case class Var( s:String )       extends Exp // s String
 
 // Binary Operators from lowest to highest precedence
-case class Equ( u:Exp, v:Exp ) extends Exp   // u = v  Equation
-case class Add( _list:List[Exp]  ) extends Exp { // u + ...
-  val list:List[Exp] = _list
+case class Equ( u:Exp, v:Exp  ) extends Exp   // u = v  Equation
+class Add( val list:List[Exp] ) extends Exp { // u + ...
   def map( func:Exp => Exp ) : Add =
   {
     val listBuf = new ListBuffer[Exp]()
@@ -51,9 +50,8 @@ case class Add( _list:List[Exp]  ) extends Exp { // u + ...
     Add(listBuf.toList)
   }
 }
-case class Sub( u:Exp, v:Exp ) extends Exp // u - v
-class Mul(  _list:List[Exp] ) extends Exp { // u * ...
-  val list:List[Exp] = _list
+case class Sub( u:Exp, v:Exp  ) extends Exp // u - v
+class Mul( val list:List[Exp] ) extends Exp { // u * ...
   def map(func: Exp => Exp): Mul = {
     val listBuf = new ListBuffer[Exp]()
     for (exp <- list) listBuf += func(exp)
@@ -125,13 +123,14 @@ object Par {
 //   with its binary apply constructors in AsciiParse
 object Add {
 
-//def apply( list:List[Exp] ) : Add = if( list.isEmpty ) Num(0) else new Add(list)
-
   def apply( list:List[Exp] ) : Add = new Add(list)
+//def unapply( add:Add ) :   Some[(List[Exp])] = Some((add.list))
+  def unapply( add:Add ) : Option[List[Exp]]   = Option(add.list)
+//def unapply( add:Add ) : Option[(List[Exp])] = add match {
+//  case Add(_) => Some(add.list)
+//  case _      => None
+//}
 
-  def unapply( add:Add ) : Option[List[Exp]] = Option(add.list)
-
-  
   def binOp( u:Exp, v:Exp ) : Add = {
     val list = new ListBuffer[Exp]()
     list += u
@@ -170,7 +169,12 @@ object Add {
 object Mul {
 
   def apply( list:List[Exp] ) : Mul = new Mul(list)
-  def unapply( mul:Mul ) : Option[List[Exp]] = Option(mul.list)
+//def unapply( mul:Mul ) :   Some[(List[Exp])] = Some((mul.list))
+  def unapply( mul:Mul ) : Option[List[Exp]]   = Option(mul.list)
+//def unapply( mul:Mul ) : Option[(List[Exp])] = mul match {
+// case Mul(_) => Some(mul.list)
+// case _      => None
+//}
 
   def binOp( u:Exp, v:Exp ) : Mul = {
     val list = new ListBuffer[Exp]()

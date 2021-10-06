@@ -293,10 +293,10 @@ class Suite //extends Suite
   }
   
   def testSim(): Unit = {
-    sim( "Sim.a", "(3*5)/(2+3)",          "1.5" )
+    sim( "Sim.q", "(3*5)/(2+3)",          "1.5" )
     sim( "Sim.a", "(x+y)/(x+y)",          "1" )
-  //sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
-  //sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )
+    sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
+    sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )
     sim( "Sim.d", "((x+y)*(a+b))/(x+y)",  "a+b" )
     sim( "Sim.e", "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
     sim( "Sim.f", "(w*x*y*z)/(x*y*z)",    "w" )    
