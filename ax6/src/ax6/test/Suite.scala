@@ -110,7 +110,7 @@ class Suite //extends Suite
     lam( "add.b", "x+x-7+y", "Add(Var(x),Sub(Var(x),Num(7)),Var(y))" )
     lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Var(x),Var(y),Var(z)),Add(Var(x),Var(y),Var(z)))" )
     lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Var(x),Var(y),Var(z))),Par(Mul(Var(x),Var(y),Var(z))))" )
-    lam( "sub.a", "x-x-7-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // (x-x-7-z)
+    lam( "sub.a", "(x-x-7)-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
   }
 
   def testCal(): Unit = {
@@ -223,7 +223,7 @@ class Suite //extends Suite
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
      dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )       
-     dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/x*sqrt(x^2-1)+dx/x*sqrt(x^2-1)-dx/(1+x^2)" )
+     dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 
      lam( "Var(d).a", "d",  "Var(d)" ) 

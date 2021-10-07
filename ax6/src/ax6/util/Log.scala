@@ -20,7 +20,10 @@ object Log
   def seq(   args:Seq[Any] ): Unit = { text.seq(args)  }
   def delim( args:Seq[Any] ): Unit = { text.delim(" ",args)  }
 
-// ... log error trace stack output ...
+  def typ( msg:String, arg:Any ) : Unit = log( msg, "Type:", arg.getClass, arg )
+
+
+  // ... log error trace stack output ...
 
 // Delimit with spaces and output args
 

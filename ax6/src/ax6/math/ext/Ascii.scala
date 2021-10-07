@@ -71,7 +71,7 @@ trait Ascii
 
   def parAdd( t:Text, u:Exp ) : Unit = u match {
     case Add(a)   => t.app('('); asciiAdd(t,a); t.app(')')
-    case Sub(a,b) => t.app('('); t.app('('); a.ascii(t); t.app('-'); b.ascii(t); t.app(')')
+    case Sub(a,b) => t.app('('); a.ascii(t); t.app('-'); b.ascii(t); t.app(')')
     case a:Exp    => a.ascii(t)
   }
 

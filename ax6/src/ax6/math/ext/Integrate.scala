@@ -90,7 +90,7 @@ trait Integrate
    def IPart( u:Exp, v:Exp ) : Exp = Not(Itg(Mul(u,v)))
 
   def listItg( op:Char, exps:List[Exp] ) : Exp = {
-    val list = new LB()
+    val list = makeBuff()
     for( exp <- exps )
       list += exp
     if( op=='+') Add(list.toList) else Mul(list.toList)

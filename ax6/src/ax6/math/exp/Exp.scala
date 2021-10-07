@@ -12,11 +12,20 @@ abstract class Exp extends Ascii
   with Calculate with Differentiate with Integrate with Precedence with Simplify
 {
   type dbl = Double
-  type LB  = ListBuffer[Exp]
 
   implicit def Int2Num( n:Int    ) : Exp = Num(n)
   implicit def dbl2Dbl( r:Double ) : Exp = Dbl(r)
   //implicit def str2Var( s:String ) : Exp = Var(s)
+  
+  def makeBuff() : ListBuffer[Exp] = new ListBuffer[Exp]()
+  def makeList() : List[Exp]       = List[Exp]()
+  def copyList( src:List[Exp] ) : List[Exp] = src.map( e => e )
+  def copyBuff( src:List[Exp] ) : ListBuffer[Exp] = {
+    val listBuf = makeBuff()
+    for( elem <- src ) {
+      listBuf += elem }
+    listBuf
+  }
 
   // ... arithmetic operators from low to high precedence ....
 

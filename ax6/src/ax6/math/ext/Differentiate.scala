@@ -1,7 +1,7 @@
 
 package ax6.math.ext
 
-import ax6.math.exp.{Exp, _}
+import ax6.math.exp._
 
 trait Differentiate
 {
@@ -69,7 +69,7 @@ trait Differentiate
   }
 
   def difAdd( exps:List[Exp] ) : Exp = {
-    val list: LB = new LB()
+    val list = makeBuff()
     for( exp <- exps ) list += d(exp)
     Add( list.toList )
   }
