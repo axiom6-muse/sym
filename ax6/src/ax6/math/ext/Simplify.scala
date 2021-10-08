@@ -132,8 +132,8 @@ trait Simplify
     case( a:Exp,  b:Exp  ) =>
       if( a==b )  Num(1)
       else {
-        Logg.typ( "simDiv fail a", a )
-        Logg.typ( "simDiv fail b", a )
+        //Logg.typ( "simDiv fail a", a )
+        //Logg.typ( "simDiv fail b", a )
         Div(sim(a),sim(b)) }
   }
 
@@ -186,11 +186,11 @@ trait Simplify
   def toMul( mul:Mul ) : Exp = if( mul.list.isEmpty ) Num(1) else sim(mul)
 
   def delExp( exp:Exp, src:List[Exp] ) : List[Exp] = {
-    val list2 = makeBuff()
+    val list = makeBuff()
     for(  elem <- src ) {
       if( elem != exp  ) {
-        list2 += elem } }
-    list2.toList
+        list += elem } }
+    list.toList
   }
 
   def facPow( b1:Exp, p1:Exp, b2:Exp, p2:Exp ) : Exp =
@@ -204,21 +204,22 @@ trait Simplify
     if( u == v ) Num(1) else Div( Add(u), Add(v) ) }
 
   def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {
-    Logg.log( "facMul beg", listu, listv )
-    val lista = makeBuff()
-    val listb = makeBuff()
-    for( u <- listu ) { if( !listv.contains(u) ) { lista += u } }
-    for( v <- listv ) { if( !listu.contains(v) ) { listb += v } }
-    Div( toMul(Mul(lista.toList)), toMul(Mul(listb.toList)) )
+    var lista = copyList(listu)
+    var listb = copyList(listv)
+    for( u <- listu ) {
+      if( !listv.contains(u) ) {
+        lista = delExp( u, lista )
+        listb = delExp( u, listb ) } }
+    Div( toMul(Mul(lista)), toMul(Mul(listb)) )
   }
 
   def facTop( u:Exp, listv:List[Exp] ) : Exp = {
     val listb = delExp( u, listv )
-    if( listb.contains( u ) ) Rec(Mul(listb)) else Div( sim(u), toMul(Mul(listb)) )
+    if( listv.contains( u ) ) Rec(Mul(listb)) else Div( sim(u), toMul(Mul(listb)) )
   }
 
   def facBot( listu:List[Exp], v:Exp ) : Exp = {
     val lista = delExp( v, listu )
-    if( lista.contains( v ) ) Mul(lista) else Div( toMul(Mul(lista)), sim(v) )
+    if( listu.contains( v ) ) Mul(lista) else Div( toMul(Mul(lista)), sim(v) )
   }
 }

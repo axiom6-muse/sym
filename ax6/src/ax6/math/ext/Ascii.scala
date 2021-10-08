@@ -22,12 +22,12 @@ trait Ascii
       case Num(n)    => t.app( n.toString )
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
-      case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
+      case Var(s)    => t.app( s )
       case Add(u)    => asciiAdd(  t, u )
-      case Sub(u,v)  => asciiBin(  t, "-", u, v )
       case Mul(u)    => asciiMul(  t, u )
-      case Div(u,v)  => asciiBin(  t, "/", u, v )
-      case Pow(u,v)  => asciiBin(  t, "^", u, v )
+      case Sub(u,v)  => asciiBin(  t, "-", u, v )
+      case Div(u,v)  => asciiDiv(  t,      u, v )
+      case Pow(u,v)  => asciiPow(  t,      u, v )
       case Equ(u,v)  => asciiBin(  t, "=", u, v )
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
       case Neg(u)    => asciiMeg( t, u )
@@ -56,39 +56,51 @@ trait Ascii
       case Log(u,b)  => asciiBase( t, "Log",  b.r, u )
       case Roo(u,b)  => asciiBase( t, "root", b.r, u )
       case Lim(u,v)  => t.app('_'); u.ascii(t); t.app('^'); v.ascii(t)
-      case Itl(a,b,u)=> asciiLim( t, "Int", a, b, u )
-      case Sum(a,b,u)=> asciiLim( t, "sum", a, b, u )
-      case Cex(r,i)  => asciiCex(t,r,i)
-      case Vex(array)    => asciiVex(t,array)
-      case Mex(mat)  => asciiMex(t,mat)
-      case Msg(txt)  => t.app(txt)
+      case Itl(a,b,u) => asciiLim( t, "Int", a, b, u )
+      case Sum(a,b,u) => asciiLim( t, "sum", a, b, u )
+      case Cex(r,i)   => asciiCex(t,r,i)
+      case Vex(array) => asciiVex(t,array)
+      case Mex(mat)   => asciiMex(t,mat)
+      case Msg(txt)   => t.app(txt)
     }
   }
-  
-  def asciiBin( t:Text, op:String, u:Exp, v:Exp ) : Unit = {
-      parAdd(t,u); t.app(op); parAdd(t,v)
+
+  def asciiBin( t:Text, op:String, u:Exp, v:Exp ) : Unit = op match {
+    case "-" => t.app('('); u.ascii(t);             t.app(op);             v.ascii(t); t.app(')')
+    case "/" => t.app('('); u.ascii(t); t.app(')'); t.app(op); t.app('('); v.ascii(t); t.app(')')
+    case "^" => t.app('('); u.ascii(t); t.app(')'); t.app(op); t.app('('); v.ascii(t); t.app(')')
+    case "=" =>             u.ascii(t);             t.app(op);             v.ascii(t)
   }
 
-  def parAdd( t:Text, u:Exp ) : Unit = u match {
-    case Add(a)   => t.app('('); asciiAdd(t,a); t.app(')')
-    case Sub(a,b) => t.app('('); a.ascii(t); t.app('-'); b.ascii(t); t.app(')')
-    case a:Exp    => a.ascii(t)
+  def asciiPow( t:Text, u:Exp, v:Exp ) : Unit = (u,v) match {
+    case ( Add(a), Add(b) ) => asciiAdd(t,a); t.app("^"); asciiAdd(t,b)
+    case ( Add(a), b:Exp  ) => asciiAdd(t,a); t.app("^"); b.ascii(t)
+    case ( a:Exp,  Add(b) ) => a.ascii(t);    t.app("^"); asciiAdd(t,b)
+    case ( a:Exp,  b:Exp  ) => a.ascii(t);    t.app("^"); b.ascii(t)
+  }
+
+  def asciiDiv( t:Text, u:Exp, v:Exp ) : Unit = (u,v) match {
+    case ( Add(a), Add(b) ) => asciiAdd(t,a); t.app("/"); asciiAdd(t,b)
+    case ( Add(a), b:Exp  ) => asciiAdd(t,a); t.app("/"); b.ascii(t)
+    case ( a:Exp,  Add(b) ) => a.ascii(t);    t.app("/"); asciiAdd(t,b)
+    case ( a:Exp,  b:Exp  ) => a.ascii(t);    t.app("/"); b.ascii(t)
   }
 
   // No enclose, instead we asciiBin enclose Add(List[Exp])
   def asciiAdd( t:Text, exps:List[Exp] ): Unit = {
+    val enc = t.len != 0
+    if(enc) t.app('(')
     for( exp <- exps ) {
-      // if( exp != exps.head && !exp.isInstanceOf[Neg] ) { t.app("+") }
       exp.ascii(t)
       t.app("+")
     }
     t.delTail()
+    if(enc) t.app(')')
   }
 
   def asciiMul( t:Text, exps:List[Exp] ): Unit = {
     for(  exp <- exps ) {
-      // if( exp != exps.head ) { t.app("*") }
-      parAdd( t, exp )
+      exp.ascii(t)
       t.app("*")
     }
     t.delTail()
@@ -112,14 +124,23 @@ trait Ascii
   // Function subscript superscript
   def asciiLim( t:Text, func:String, low:Exp, up:Exp, u:Exp ): Unit =
      { t.all(func, '_'); low.ascii(t); t.app('^'); up.ascii(t); asciiParen(t,u)   }
-  
+
    def asciiDif( t:Text, u:Exp ): Unit = {
      u match
      {
-       case Var(s) if s.length==1 => t.all('d', s)
-       case _                     => asciiFun( t, "d", u )
+       case Var(s)  => t.all( 'd',  s  )
+       case _       => t.all( 'd', "(" ); u.ascii(t); t.app(')')
      }
    }
+
+  def asciiDif2( t:Text, u:Exp ): Unit = {
+    u match
+    {
+      case Neg(Var(s)) if s.length==1 => t.all('-','d', s )
+      case Var(s)      if s.length==1 => t.all(    'd', s )
+      case _                     => asciiFun(   t, "d", u )
+    }
+  }
    
    def asciiCex( t:Text, r:Exp, i:Exp ): Unit =
      { t.app('['); ascii(t,r); t.app(','); ascii(t,i); t.app(".i]") }

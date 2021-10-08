@@ -105,9 +105,9 @@ class Suite //extends Suite
   // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
 
   def testDbg(): Unit = {
-    lam( "pow.a", "(x+y)^3", "Pow(Add(Var(x),Var(y)),Num(3))" )
-    lam( "add.a", "x+x+7+y", "Add(Var(x),Var(x),Num(7),Var(y))"   )
-    lam( "add.b", "x+x-7+y", "Add(Var(x),Sub(Var(x),Num(7)),Var(y))" )
+    lam( "pow.a", "(x+y)^3",    "Pow(Add(Var(x),Var(y)),Num(3))" )
+    lam( "add.a", "x+x+7+y",    "Add(Var(x),Var(x),Num(7),Var(y))"   )
+    lam( "add.b", "x+(x-7)+y", "Add(Var(x),Sub(Var(x),Num(7)),Var(y))" )
     lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Var(x),Var(y),Var(z)),Add(Var(x),Var(y),Var(z)))" )
     lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Var(x),Var(y),Var(z))),Par(Mul(Var(x),Var(y),Var(z))))" )
     lam( "sub.a", "(x-x-7)-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
