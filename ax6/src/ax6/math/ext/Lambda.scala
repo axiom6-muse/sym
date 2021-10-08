@@ -23,9 +23,9 @@ trait Lambda
       case Dbl(r)    => lambdaStr2( t, "Dbl", r.toString )
       case Rat(n,d)  => lambdaStr3( t, "Rat", n.toString, d.toString )
       case Var(s)    => lambdaStr2( t, "Var", s )
-      case Add(u)    => lambdaList( t, "Add", u )
+      case Add(u,v)  => lambdaBins( t, "Add", u, v )
       case Sub(u,v)  => lambdaBins( t, "Sub", u, v )
-      case Mul(u)    => lambdaList( t, "Mul", u )
+      case Mul(u,v)  => lambdaBins( t, "Mul", u, v )
       case Div(u,v)  => lambdaBins( t, "Div", u, v )
       case Rec(u)    => lambdaBins( t, "Rec", Num(1), u )
       case Pow(u,v)  => lambdaBins( t, "Pow", u, v )
@@ -73,16 +73,6 @@ trait Lambda
 
   def lambdaUnay( t:Text, name:String, u:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(')') }
-
-  def lambdaList( t:Text, name:String, exps:List[Exp] ): Unit = {
-    t.all( name, '(' )
-    for( exp <- exps ) {
-      exp.lambda(t)
-      t.app(',')
-    }
-    t.delTail()
-    t.app(')')
-  }
 
   def lambdaBins( t:Text, name:String, u:Exp, v:Exp ): Unit =
     { t.all( name, '(' ); u.lambda(t); t.app(','); v.lambda(t); t.app(')') }

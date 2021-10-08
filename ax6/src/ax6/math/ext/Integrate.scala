@@ -16,9 +16,9 @@ trait Integrate
     case Dbl(r)    => r 
     case Rat(n,d)  => n / d
     case Var(s)    => Var(s)~^2 / 2
-    case Add(u)    => listItg('+',u )
+    case Add(u,v)  => I(u) + I(v)
     case Sub(u,v)  => I(u) - I(v)
-    case Mul(u)    => listItg('*',u )
+    case Mul(u,v)  => IMul(u,v)
     case Div(u,v)  => IDiv(u,v)
     case Pow(u,v)  => IPow(u,v)
     case Rec(u)    => Lnn(u)
@@ -88,12 +88,5 @@ trait Integrate
 // I(u*d(v)) = u*v - I(v*d(u))
 // I(v*d(u)) = u*v - I(u*d(v))
    def IPart( u:Exp, v:Exp ) : Exp = Not(Itg(Mul(u,v)))
-
-  def listItg( op:Char, exps:List[Exp] ) : Exp = {
-    val list = makeBuff()
-    for( exp <- exps )
-      list += exp
-    if( op=='+') Add(list.toList) else Mul(list.toList)
-  }
 
 }

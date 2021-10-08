@@ -19,9 +19,9 @@ trait Calculate {
     case Dbl(d)    => d
     case Rat(n,d)  => div(n,d)
     case Var(s)    => a(s)
-    case Add(u) => listCalc(a,'+',u)
+    case Add(u,v)  => u.calc(a) + v.calc(a)
     case Sub(u,v)  => u.calc(a) - v.calc(a)
-    case Mul(u) => listCalc(a,'*',u)
+    case Mul(u,v)  => u.calc(a) * v.calc(a)
     case Div(u,v)  => div(a,u,v)
     case Rec(u)    => div(a,1,u)
     case Pow(u,v)  => pow( u.calc(a), v.calc(a) )
@@ -84,15 +84,6 @@ trait Calculate {
   def acsc( d:Double ) : Double = Math.asin(1.0/d)
   def asec( d:Double ) : Double = Math.acos(1.0/d)
   def acot( d:Double ) : Double = Math.atan(1.0/d)
-
-  def listCalc( a:Assign, op:Char, exps:List[Exp] ) : Double = {
-    var sum : Double =  if(op == '+') 0.0 else 1.0
-    for( exp <- exps )
-      if(op == '+')
-        sum += calc( a, exp )
-      else
-        sum *= calc( a, exp )
-    sum
-  }
+  
   
 }

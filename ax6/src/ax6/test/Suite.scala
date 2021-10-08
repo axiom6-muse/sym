@@ -105,16 +105,16 @@ class Suite //extends Suite
   // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
 
   def testDbg(): Unit = {
-    lam( "pow.a", "(x+y)^3",    "Pow(Add(Var(x),Var(y)),Num(3))" )
-    lam( "add.a", "x+x+7+y",    "Add(Var(x),Var(x),Num(7),Var(y))"   )
-    lam( "add.b", "x+(x-7)+y", "Add(Var(x),Sub(Var(x),Num(7)),Var(y))" )
-    lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Var(x),Var(y),Var(z)),Add(Var(x),Var(y),Var(z)))" )
-    lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Var(x),Var(y),Var(z))),Par(Mul(Var(x),Var(y),Var(z))))" )
-    lam( "sub.a", "(x-x-7)-z", "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
+    lam( "pow.a", "(x+y)^3",         "Pow(Add(Var(x),Var(y)),Num(3))" )
+    lam( "add.a", "x+x+7+y",         "Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))"   )
+    lam( "add.b", "x+x-7+y",         "Add(Add(Var(x),Sub(Var(x),Num(7))),Var(y))" )
+    lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Add(Var(x),Var(y)),Var(z)),Add(Add(Var(x),Var(y)),Var(z)))" )
+    lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Mul(Var(x),Var(y)),Var(z))),Par(Mul(Mul(Var(x),Var(y)),Var(z))))" )
+    lam( "sub.a", "x-x-7-z",         "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
   }
 
   def testCal(): Unit = {
-    val powc:Exp = Pow(Add(List(Var("x"),Var("y"))),Num(3))
+    val powc:Exp = Pow(Add(Var("x"),Var("y")),Num(3))
     val ppp:Assign = { case "x" => 2 case "y" => 1 }
     Test.init( "calc.b", "<x=2 y=1> ", powc.toAscii, " = ", 27.0 )
     Test.test( "calc.b", "<x=2 y=1> ", powc.toAscii," = ", powc.calc(ppp) )
@@ -222,7 +222,7 @@ class Suite //extends Suite
      dif( "dif.b", "x^2*y^3*z^4",                   "y^3*z^4*2*x*dx+x^2*z^4*3*y^2*dy+x^2*y^3*4*z^3*dz" )
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
-     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-dx/sqrt(1-x^2)+dx/(1+x^2)" )       
+     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-(dx/sqrt(1-x^2))+(dx/(1+x^2))" )
      dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 

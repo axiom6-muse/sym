@@ -23,12 +23,12 @@ trait Ascii
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all(n.toString, '/', d.toString)
       case Var(s)    => t.app( s )
-      case Add(u)    => asciiAdd(  t, u )
-      case Mul(u)    => asciiMul(  t, u )
-      case Sub(u,v)  => asciiBin(  t, "-", u, v )
-      case Div(u,v)  => asciiDiv(  t,      u, v )
-      case Pow(u,v)  => asciiPow(  t,      u, v )
-      case Equ(u,v)  => asciiBin(  t, "=", u, v )
+      case Add(u,v)  => asciiAdd(  t, u, v, enc=false )
+      case Mul(u,v)  => asciiMul(  t, u, v )
+      case Sub(u,v)  => asciiSub(  t, u, v, enc=false )
+      case Div(u,v)  => asciiBin(  t, u, "/", v )
+      case Pow(u,v)  => asciiBin(  t, u, "^", v, enc=false )
+      case Equ(u,v)  => asciiEqu(  t, u, v )
       case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
       case Neg(u)    => asciiMeg( t, u )
       case Abs(u)    => t.app('|');  u.ascii(t); t.app('|')
@@ -63,48 +63,77 @@ trait Ascii
       case Mex(mat)   => asciiMex(t,mat)
       case Msg(txt)   => t.app(txt)
     }
-  }
-
-  def asciiBin( t:Text, op:String, u:Exp, v:Exp ) : Unit = op match {
-    case "-" => t.app('('); u.ascii(t);             t.app(op);             v.ascii(t); t.app(')')
-    case "/" => t.app('('); u.ascii(t); t.app(')'); t.app(op); t.app('('); v.ascii(t); t.app(')')
-    case "^" => t.app('('); u.ascii(t); t.app(')'); t.app(op); t.app('('); v.ascii(t); t.app(')')
-    case "=" =>             u.ascii(t);             t.app(op);             v.ascii(t)
-  }
-
-  def asciiPow( t:Text, u:Exp, v:Exp ) : Unit = (u,v) match {
-    case ( Add(a), Add(b) ) => asciiAdd(t,a); t.app("^"); asciiAdd(t,b)
-    case ( Add(a), b:Exp  ) => asciiAdd(t,a); t.app("^"); b.ascii(t)
-    case ( a:Exp,  Add(b) ) => a.ascii(t);    t.app("^"); asciiAdd(t,b)
-    case ( a:Exp,  b:Exp  ) => a.ascii(t);    t.app("^"); b.ascii(t)
-  }
-
-  def asciiDiv( t:Text, u:Exp, v:Exp ) : Unit = (u,v) match {
-    case ( Add(a), Add(b) ) => asciiAdd(t,a); t.app("/"); asciiAdd(t,b)
-    case ( Add(a), b:Exp  ) => asciiAdd(t,a); t.app("/"); b.ascii(t)
-    case ( a:Exp,  Add(b) ) => a.ascii(t);    t.app("/"); asciiAdd(t,b)
-    case ( a:Exp,  b:Exp  ) => a.ascii(t);    t.app("/"); b.ascii(t)
-  }
-
-  // No enclose, instead we asciiBin enclose Add(List[Exp])
-  def asciiAdd( t:Text, exps:List[Exp] ): Unit = {
-    val enc = t.len != 0
-    if(enc) t.app('(')
-    for( exp <- exps ) {
-      exp.ascii(t)
-      t.app("+")
+    if( t.head() == '(' && t.tail() == ')' ) {
+      t.delHead()
+      t.delTail()
     }
-    t.delTail()
-    if(enc) t.app(')')
   }
 
-  def asciiMul( t:Text, exps:List[Exp] ): Unit = {
-    for(  exp <- exps ) {
-      exp.ascii(t)
-      t.app("*")
+  def asciiBin( t:Text, u:Exp, op:String, v:Exp, enc:Boolean=true ) : Unit = {
+    if( enc ) t.app('(')
+    (u,v) match {
+      case ( Add(a,b), Add(c,d) ) =>
+        asciiAdd(t,a,b); t.app(op); asciiAdd(t,c,d);
+      case ( Add(a,b), c:Exp  ) =>
+        asciiAdd(t,a,b); t.app(op); c.ascii(t);
+      case ( a:Exp,  Add(b,c) ) =>
+        a.ascii(t); t.app(op);  asciiAdd(t,b,c);
+      case ( Sub(a,b), Sub(c,d) ) =>
+        asciiSub(t,a,b); t.app(op); asciiSub(t,c,d);
+      case ( Sub(a,b), c:Exp  ) =>
+        asciiSub(t,a,b); t.app(op); c.ascii(t);
+      case ( a:Exp,  Sub(b,c) ) =>
+        a.ascii(t); t.app(op);  asciiSub(t,b,c);  
+      case ( a:Exp,  b:Exp  ) =>
+        a.ascii(t); t.app(op); b.ascii(t);
     }
-    t.delTail()
+    if ( enc ) t.app(')')
   }
+
+  def asciiAdd( t:Text, u:Exp, v:Exp, enc:Boolean=true ) : Unit = {
+    if( enc ) t.app('(')
+    (u,v) match {
+      case ( Add(a,b), Add(c,d) ) =>
+        a.ascii(t); t.app('+'); b.ascii(t); t.app('+'); c.ascii(t); t.app('+'); d.ascii(t);
+      case ( Add(a,b), c:Exp  ) =>
+        a.ascii(t); t.app('+'); b.ascii(t); t.app('+'); c.ascii(t);
+      case ( a:Exp,  Add(b,c) ) =>
+        a.ascii(t); t.app('+'); b.ascii(t); t.app('+'); c.ascii(t);
+      case ( a:Exp,  b:Exp  ) =>
+        a.ascii(t); t.app('+'); b.ascii(t);
+    }
+    if ( enc ) t.app(')')
+  }
+
+  def asciiMul( t:Text, u:Exp, v:Exp ) : Unit = (u,v) match {
+
+    case ( Mul(a,b), Mul(c,d) ) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t); t.app('*'); d.ascii(t);
+    case ( Mul(a,b), c:Exp  ) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
+    case ( a:Exp,  Mul(b,c) ) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
+    case ( a:Exp,  b:Exp  ) =>
+      asciiBin(  t, u, "*", v )
+  }
+
+  def asciiSub( t:Text, u:Exp, v:Exp, enc:Boolean=true ) : Unit = {
+    if( enc ) t.app('(')
+    (u,v) match {
+      case ( Sub(a,b), Sub(c,d) ) =>
+        a.ascii(t); t.app('-'); b.ascii(t); t.app('-'); c.ascii(t); t.app("+"); d.ascii(t);
+      case ( Sub(a,b), c:Exp  ) =>
+        a.ascii(t); t.app('-'); b.ascii(t); t.app('-'); c.ascii(t);
+      case ( a:Exp,  Sub(b,c) ) =>
+        a.ascii(t); t.app('-'); b.ascii(t); t.app("+"); c.ascii(t);
+      case ( a:Exp,  b:Exp  ) =>
+        a.ascii(t); t.app('-'); b.ascii(t);
+    }
+    if ( enc ) t.app(')')
+  }
+
+  def asciiEqu( t:Text, u:Exp, v:Exp ) : Unit = {
+    u.ascii(t); t.app('='); v.ascii(t) }
 
   def asciiParen( t:Text, u:Exp ): Unit = {
     t.app('('); u.ascii(t); t.app(')') }
@@ -162,16 +191,14 @@ trait Ascii
 
   // Optional paren for Add Sub to compensate for Simplify which strips Paren
   def asciiGroup( t:Text, q:Exp ): Unit = q match {
-    case Add(u)   => asciiAdd( t, u )
+    case Add(u,v)   => asciiAdd( t, u,v )
     case Sub(u,v) => u.ascii(t); t.app('-'); v.ascii(t)
     //case _        => q.ascii(t)
   }
 
   // Optional paren for denominator to compensate for Simplify which strips Paren
   def asciiDenom( t:Text, q:Exp ): Unit = q match {
-    case Mul(u) => asciiMul( t, u )
+    case Mul(u,v) => asciiMul( t, u, v )
     case _ => asciiGroup(t, q)
   }
-
-
 }

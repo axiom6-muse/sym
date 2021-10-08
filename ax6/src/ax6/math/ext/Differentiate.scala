@@ -15,9 +15,9 @@ trait Differentiate
     case Dbl(_)    => 0
     case Rat(_,_)  => 0
     case Var(s)    => Dif(Var(s))
-    case Add(u)    => difAdd(u)
+    case Add(u,v)  => d(u) + d(v)
     case Sub(u,v)  => d(u) - d(v)
-    case Mul(u)    => difMul(u)                         // v*d(u)+u*d(v)
+    case Mul(u,v)  => v*d(u) + u*d(v)                        // v*d(u)+u*d(v)
     case Div(u,v)  => (v*d(u)-u*d(v)) / v~^2
     case Rec(u)    => -d(u) / u~^2
     case Pow(u,v)  => difPow(u,v)
@@ -68,19 +68,4 @@ trait Differentiate
     case _              => v * u~^(v-1)  * d(u) + Lnn(u) * u~^v * d(v)
   }
 
-  def difAdd( exps:List[Exp] ) : Exp = {
-    val list = makeBuff()
-    for( exp <- exps ) list += d(exp)
-    Add( list.toList )
-  }
-
-  def difMul( srcList:List[Exp] ) : Exp = {
-    var  mul = Mul(List[Exp]())
-    var  add = Add(List[Exp]())
-    for( exp  <- srcList ) {
-      mul = Mul( srcList.filter( e => e != exp ), d(exp) )
-      add = Add( add, mul )
-    }
-    add
-  }
 }

@@ -60,9 +60,9 @@ trait Precedence
     case Dbl(_)    => num
     case Rat(_,_)  => num
     case Var(_)    => num
-    case Add(_)    => add
+    case Add(_,_)    => add
     case Sub(_,_)  => sub
-    case Mul(_)    => mul
+    case Mul(_,_)    => mul
     case Div(_,_)  => div
     case Rec(_)    => div
     case Pow(_,_)  => pow
@@ -105,9 +105,9 @@ trait Precedence
 // ADT operators with spacing for the lower precendence
    def operator( exp:Exp ) : String = exp match {
      case Equ(_,_)  => " = "
-     case Add(_)    => "+"
+     case Add(_,_)  => "+"
      case Sub(_,_)  => "-"
-     case Mul(_)    => "*"
+     case Mul(_,_)  => "*"
      case Div(_,_)  => "/"
      case Pow(_,_)  => "^"
      case Eee(_)    => "^"

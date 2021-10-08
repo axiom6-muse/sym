@@ -98,6 +98,13 @@ class Text( _cap:Int )
   def hasTail( c:Char )  : Boolean = tail()==c
   def delTail()          : Unit = { if( len > 0 ) sb.setLength(sb.size-1) }
   def delTail(c:Char)    : Unit = { if( hasTail(c)) delTail() }
+  def delHead()          : Unit = {
+    for (i <- sb.indices) {
+      if( i < sb.size - 1 )
+        sb(i) = sb(i + 1)
+    }
+    sb.setLength(sb.size - 1)
+  }
 
   // ... appends ....
   def app( str:String    ) : Unit = { sb.append( str ) }

@@ -18,9 +18,9 @@ trait Latex
       case Dbl(r)    => t.app( r.toString )
       case Rat(n,d)  => t.all( n.toString, '/', d.toString )
       case Var(s)    => t.app( s ) // t.app( Syms.sym(s) )
-      case Add(u)    => latexList( t, "+", u )
+      case Add(u,v)  => u.latex(t); t.app('+'); v.latex(t)
       case Sub(u,v)  => u.latex(t); t.app('-'); v.latex(t)
-      case Mul(u)    => latexList( t, "*", u )
+      case Mul(u,v)  => u.latex(t); t.app('*'); v.latex(t)
       case Div(u,v)  => asciiGroup(t,u); t.app('/'); asciiDenom(t,v)
       case Rec(u)  => t.app("1"); t.app('/'); asciiGroup(t,u)
       case Pow(u,v)  => asciiGroup(t,u); t.app('^'); asciiGroup(t,v)
@@ -104,15 +104,6 @@ trait Latex
         { t.app(" & "); mat(i)(j).latex(t) }
       if( i < mat.length-1 ) t.app("\\\\")
     }
-    t.app( "\\end{bmatrix}" )
-  }
-
-  // ??? Need Latex exp for List
-  def latexList( t:Text, op:String, exps:List[Exp] ): Unit = {
-    t.app( "\\begin{bmatrix}" )
-    t.noop( op )
-    for( exp <- exps )
-      { t.app(" & "); exp.latex(t) }
     t.app( "\\end{bmatrix}" )
   }
 }

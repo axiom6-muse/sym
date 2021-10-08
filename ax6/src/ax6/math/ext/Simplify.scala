@@ -3,7 +3,7 @@ package ax6.math.ext
 
 import ax6.math.exp._
 import ax6.util.Text
-import ax6.util.{Log => Logg}
+//import ax6.util.{Log => Logg}
 
 trait Simplify
 {
@@ -25,8 +25,8 @@ trait Simplify
     case Dbl(d)    => simDbl(d)
     case Rat(n,d)  => simRat(n,d)
     case Rec(u)    => simRec(sim(u))
-    case Add(u)    => simAdd(u)
-    case Mul(u)    => simMul(u)
+    case Add(u,v)  => simAdd(sim(u),sim(v))
+    case Mul(u,v)  => simMul(sim(u),sim(v))
     case Sub(u,v)  => simSub(sim(u),sim(v))
     case Div(u,v)  => simDiv(sim(u),sim(v))
     case Pow(u,v)  => simPow(sim(u),sim(v))
@@ -81,28 +81,11 @@ trait Simplify
     case _      => Rec(sim(u))
   }
 
-  def simAdd(  list1:List[Exp] ) : Exp = Add(list1).map( exp => sim(exp) )
-  def simAdd2( list1:List[Exp] ) : Exp = {
-    val list2 = copyBuff(list1)
-    for(   u <- list1 ) {
-      for( v <- list2 ) {
-        binAdd( u, v ) match {
-          case Sub(a,b) => list2 :+ a; list2 :+ b;  // Sub is a binary Add here
-          case exp:Exp  => list2 :+ exp } } }
-    toAdd( Add( list2.toList ) )
-  }
+  def simAdd(  u:Exp, v:Exp ) : Exp = Add(u,v)
 
-  def simMul(  list1:List[Exp] ) : Exp = Mul(list1).map( exp => sim(exp) )
 
-  def simMul2( list1:List[Exp] ) : Exp = {
-    val list2 = makeBuff()
-    for(   u <- list1 ) {
-      for( v <- list2 ) {
-        binMul( u, v ) match {
-          case Sub(a,b) => list2 += a; list2 += b;  // Sub is a binary Mul here
-          case exp:Exp  => list2 += exp } } }
-    toMul( Mul( list2.toList ) )
-  }
+  def simMul(  u:Exp, v:Exp  ) : Exp = Mul(u,v)
+
 
   def simSub( u:Exp, v:Exp ) : Exp = (u,v) match
   {
@@ -118,10 +101,9 @@ trait Simplify
 
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( Mul(a), Mul(b) ) => facMul( a, b )
-    case( a:Exp,  Mul(b) ) => facTop( a, b )
-    case( Mul(a), b:Exp  ) => facBot( a, b )
-    case( Add(a), Add(b) ) => facAdd( a, b )
+    case( Mul(a,b), Mul(c,d) ) => facMul( a, b, c, d )
+    case( a:Exp,    Mul(b,c) ) => facTop( a, b, c )
+    case( Mul(a,b), c:Exp    ) => facBot( a, b, c )
     case( a:Exp,  Num(1) | Dbl(1.0) ) => sim(a)
     case( _:Exp,  Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
     case( Num(a), Num(b) ) => Rat(a,b)
@@ -175,22 +157,11 @@ trait Simplify
     case( Num(a),   Dbl(b)    ) => Dbl(a*b)
     case( Dbl(a),   Num(b)    ) => Dbl(a*b)
     case( Dbl(a),   Dbl(b)    ) => Dbl(a*b)
-    case( a:Exp,    Add(b)    ) => Add(b).map( e => Mul(sim(a),sim(e)) )
-    case( Add(a),   b:Exp     ) => Add(a).map( e => Mul(sim(e),sim(b)) )
+    case( a:Exp,    Add(b,c)  ) => Add( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
+    case( Add(a,b), c:Exp     ) => Add( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
     case( a:Exp,    Sub(b,c)  ) => Sub( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
     case( Sub(a,b), c:Exp     ) => Sub( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
     case _                      => Mul(sim(u),sim(v))
-  }
-
-  def toAdd( add:Add ) : Exp = if( add.list.isEmpty ) Num(0) else sim(add)
-  def toMul( mul:Mul ) : Exp = if( mul.list.isEmpty ) Num(1) else sim(mul)
-
-  def delExp( exp:Exp, src:List[Exp] ) : List[Exp] = {
-    val list = makeBuff()
-    for(  elem <- src ) {
-      if( elem != exp  ) {
-        list += elem } }
-    list.toList
   }
 
   def facPow( b1:Exp, p1:Exp, b2:Exp, p2:Exp ) : Exp =
@@ -200,26 +171,24 @@ trait Simplify
     else Div( Pow(sim(b1),sim(p1)), Pow(sim(b2),sim(p2)) )
   }
 
-  def facAdd( u:List[Exp], v:List[Exp]  ) : Exp = {
-    if( u == v ) Num(1) else Div( Add(u), Add(v) ) }
 
-  def facMul( listu:List[Exp], listv:List[Exp]  ) : Exp = {
-    var lista = copyList(listu)
-    var listb = copyList(listv)
-    for( u <- listu ) {
-      if( !listv.contains(u) ) {
-        lista = delExp( u, lista )
-        listb = delExp( u, listb ) } }
-    Div( toMul(Mul(lista)), toMul(Mul(listb)) )
+  def facMul( a:Exp, b:Exp, c:Exp, d:Exp  ) : Exp = {
+    if(      a == c ) b / d
+    else if( b == c ) a / d
+    else if( a == d ) b / c
+    else if( b == d ) a / c
+    else Div(Mul(a,b),Mul(c,d))
   }
 
-  def facTop( u:Exp, listv:List[Exp] ) : Exp = {
-    val listb = delExp( u, listv )
-    if( listv.contains( u ) ) Rec(Mul(listb)) else Div( sim(u), toMul(Mul(listb)) )
+  def facTop( a:Exp, b:Exp, c:Exp ) : Exp = {
+    if(      a == b ) Rec(c)
+    else if( a == c ) Rec(b)
+    else Div(a,Mul(b,c))
   }
 
-  def facBot( listu:List[Exp], v:Exp ) : Exp = {
-    val lista = delExp( v, listu )
-    if( listu.contains( v ) ) Mul(lista) else Div( toMul(Mul(lista)), sim(v) )
+  def facBot( a:Exp, b:Exp, c:Exp ) : Exp = {
+    if(      a == c ) b
+    else if( b == c ) a
+    else Div(Mul(a,b),c)
   }
 }

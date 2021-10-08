@@ -39,8 +39,6 @@ abstract class Exp extends Ascii
 
   def text:Text = { val t = Text(50); ascii(t,this); t }
   override def toString : String = text.toString
-  def expAdd( u:Add ) : Exp = { u.asInstanceOf[Exp] }
-  def expMul( u:Mul ) : Exp = { u.asInstanceOf[Exp] }
 }
 
 // Numbers and Variables
@@ -51,24 +49,11 @@ case class Var( s:String )       extends Exp // s String
 
 // Binary Operators from lowest to highest precedence
 case class Equ( u:Exp, v:Exp  ) extends Exp   // u = v  Equation
-class Add( val list:List[Exp] ) extends Exp { // u + ...
-  def map( func:Exp => Exp ) : Add =
-  {
-    val listBuf = new ListBuffer[Exp]()
-    for( exp <- list ) listBuf += func( exp )
-    Add(listBuf.toList)
-  }
-}
-case class Sub( u:Exp, v:Exp  ) extends Exp // u - v
-class Mul( val list:List[Exp] ) extends Exp { // u * ...
-  def map(func: Exp => Exp): Mul = {
-    val listBuf = new ListBuffer[Exp]()
-    for (exp <- list) listBuf += func(exp)
-    Mul(listBuf.toList)
-  }
-}
-case class Div( u:Exp, v:Exp ) extends Exp // u / v
-case class Pow( u:Exp, v:Exp ) extends Exp // u ^ v
+case class Add( u:Exp, v:Exp  ) extends Exp   // u + ...
+case class Sub( u:Exp, v:Exp  ) extends Exp   // u - v
+case class Mul( u:Exp, v:Exp  ) extends Exp   // u * ...
+case class Div( u:Exp, v:Exp ) extends Exp    // u / v
+case class Pow( u:Exp, v:Exp ) extends Exp    // u ^ v
 
 // Unary operator high precendence
 case class Rec( u:Exp )          extends Exp // 1 / u
@@ -122,98 +107,9 @@ object Par {
 
   // Looks like a noop
   def apply( u:Exp ) : Exp = u match {
-    case Add(a)   => Add(a)
+    case Add(a,b) => Add(a,b)
     case Sub(a,b) => Sub(a,b)
     case a:Exp    => new Par(a)
   }
 }
 
-// Here we have Add take care of all its simplifications that can occur
-//   with its binary apply constructors in AsciiParse
-object Add {
-
-  def apply( list:List[Exp] ) : Add = new Add(list)
-//def unapply( add:Add ) :   Some[(List[Exp])] = Some((add.list))
-  def unapply( add:Add ) : Option[List[Exp]]   = Option(add.list)
-//def unapply( add:Add ) : Option[(List[Exp])] = add match {
-//  case Add(_) => Some(add.list)
-//  case _      => None
-//}
-
-  def binOp( u:Exp, v:Exp ) : Add = {
-    val list = new ListBuffer[Exp]()
-    list += u
-    list += v
-    Add(list.toList) }
-
-  def apply( u:Exp, v:Exp ) : Add = (u,v) match {
-    case ( Add(a),    Add(b)  ) => Add(a,b)
-    case ( Par(Add(a)), b:Exp ) => Add(a,b)
-    case ( Add(a),      b:Exp ) => Add(a,b)
-    case ( a:Exp, Par(Add(b)) ) => Add(a,b)
-    case ( a:Exp,     Add(b)  ) => Add(a,b)
-    case ( a:Exp,       b:Exp ) => Add.binOp(a,b) }
-
-  def apply( u:List[Exp], v:Exp ) : Add = {
-    val list = new ListBuffer[Exp]()
-    for( e <- u ) list += e
-    list += v
-    Add(list.toList) }
-
-  def apply( u:Exp, v:List[Exp] ) : Add = {
-    val list = new ListBuffer[Exp]()
-    list += u
-    for( e <- v ) list += e
-    Add(list.toList) }
-
-  def apply( u:List[Exp], v:List[Exp] ) : Add = {
-    val list = new ListBuffer[Exp]()
-    for( a <- u ) list += a
-    for( b <- v ) list += b
-    Add(list.toList) }
-}
-
-// Here we have Mul take care of all its simplifications that can occur
-//   with it binary apply conscructors in AsciiParse
-object Mul {
-
-  def apply( list:List[Exp] ) : Mul = new Mul(list)
-//def unapply( mul:Mul ) :   Some[(List[Exp])] = Some((mul.list))
-  def unapply( mul:Mul ) : Option[List[Exp]]   = Option(mul.list)
-//def unapply( mul:Mul ) : Option[(List[Exp])] = mul match {
-// case Mul(_) => Some(mul.list)
-// case _      => None
-//}
-
-  def binOp( u:Exp, v:Exp ) : Mul = {
-    val list = new ListBuffer[Exp]()
-    list += u
-    list += v
-    Mul(list.toList) }
-
-  def apply( u:Exp, v:Exp ) : Mul = (u,v) match {
-    case ( Mul(a),    Mul(b)  ) => Mul(a,b)
-  //case ( Par(Mul(a)), b:Exp ) => Mul(a,b)
-    case ( Mul(a),      b:Exp ) => Mul(a,b)
-  //case ( a:Exp, Par(Mul(b)) ) => Mul(a,b)
-    case ( a:Exp,     Mul(b)  ) => Mul(a,b)
-    case ( a:Exp,       b:Exp ) => Mul.binOp(a,b) }
-
-  def apply( u:List[Exp], v:Exp ) : Mul = {
-    val list = new ListBuffer[Exp]()
-    for( e <- u ) list += e
-    list += v
-    Mul(list.toList) }
-
-  def apply( u:Exp, v:List[Exp] ) : Mul = {
-    val list = new ListBuffer[Exp]()
-    list += u
-    for( e <- v ) list += e
-    Mul(list.toList) }
-
-  def apply( u:List[Exp], v:List[Exp] ) : Mul = {
-    val list = new ListBuffer[Exp]()
-    for( a <- u ) list += a
-    for( b <- v ) list += b
-    Mul(list.toList) }
-}
