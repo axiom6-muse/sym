@@ -25,10 +25,10 @@ trait Latex
       case Rec(u)  => t.app("1"); t.app('/'); asciiGroup(t,u)
       case Pow(u,v)  => asciiGroup(t,u); t.app('^'); asciiGroup(t,v)
       case Neg(u)    => t.app('-'); u.latex(t)
-      case Abs(u)    => t.app('|'); u.latex(t); t.app('|')
-      case Par(u)    => asciiParen(t,u)
-      case Brc(u)    => t.app('{'); u.latex(t); t.app('}')
-      case Lnn(u)    => latexFun( t, "ln", u )
+      case Abs(u)    => asciiEnc(  t,"|",u,"|")
+      case Par(u)    => asciiEnc(  t,"(",u,")")
+      case Brc(u)    => asciiEnc(  t,"[",u,"]")
+      case Lnn(u)    => latexFun(  t, "ln", u )
       case Log(u,b)  => latexRoot( t, "log", b.r, u )
       case Roo(u,r)  => latexRoot( t, "root",r.r, u )
       case Eee(u)    => t.app("e^"); asciiGroup(t,u)
@@ -62,15 +62,15 @@ trait Latex
   
   // Function
   def latexFun( t:Text, func:String, u:Exp ): Unit =
-     { t.app(func); asciiParen(t,u) }
+     { t.app(func); asciiEnc(t,"(",u,")") }
 
   // Log and Root base
    def latexRoot( t:Text, func:String, r:Double, u:Exp ): Unit =
-     { t.all(func,'_',r); asciiParen(t,u) }
+     { t.all(func,'_',r); asciiEnc(t,"(",u,")") }
    
   // Function subscript superscript
   def latexSum( t:Text, func:String, a:Exp, b:Exp, u:Exp ): Unit =
-     { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); asciiParen(t,u) }
+     { t.all(func,'_'); a.latex(t); t.app('^'); b.latex(t); asciiEnc(t,"(",u,")") }
   
   def latexDif( t:Text, u:Exp ): Unit = {
      u match

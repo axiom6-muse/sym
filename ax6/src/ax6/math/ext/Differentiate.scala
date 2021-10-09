@@ -17,7 +17,7 @@ trait Differentiate
     case Var(s)    => Dif(Var(s))
     case Add(u,v)  => d(u) + d(v)
     case Sub(u,v)  => d(u) - d(v)
-    case Mul(u,v)  => v*d(u) + u*d(v)                        // v*d(u)+u*d(v)
+    case Mul(u,v)  => difMul(u,v)                       // v*d(u)+u*d(v)
     case Div(u,v)  => (v*d(u)-u*d(v)) / v~^2
     case Rec(u)    => -d(u) / u~^2
     case Pow(u,v)  => difPow(u,v)
@@ -54,6 +54,14 @@ trait Differentiate
  // case Sus(u,v)  => Dif(Sub(u,v))
  // case Sup(u,v)  => Dif(Sup(u,v))
  // case Lim(u,v)  => Dif(Lim(u,v))
+  }
+
+  def difMul( u:Exp, v:Exp ) : Exp = (u,v) match
+  {
+    case ( Mul(a,b), Mul(c,q) ) => b*c*q*d(a) + a*c*q*d(b)  + a*b*q*d(c) + a*b*c*d(q)
+    case ( Mul(a,b), c:Exp    ) => b*c*d(a)   + a*c*d(b)    + a*b*d(c)
+    case ( a:Exp,    Mul(b,c) ) => b*c*d(a)   + a*c*d(b)    + a*b*d(c)
+    case ( a:Exp,    b:Exp    ) => b*d(a)     + a*d(b)
   }
 
   def difPow( u:Exp, v:Exp ) : Exp = (u,v) match

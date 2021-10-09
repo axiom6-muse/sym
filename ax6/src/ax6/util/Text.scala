@@ -94,6 +94,7 @@ class Text( _cap:Int )
   def in( i:Int )        : Boolean = 0 <= i && i < len
   def head()             : Char    = sb.charAt(0)
   def tail()             : Char    = if(sb.nonEmpty ) sb.charAt(sb.size-1) else '\u0000'
+  def count(   c:Char )  : Int     = sb.count( e => e==c )
   def has(     c:Char )  : Boolean = sb.contains( c )
   def hasTail( c:Char )  : Boolean = tail()==c
   def delTail()          : Unit = { if( len > 0 ) sb.setLength(sb.size-1) }
@@ -105,6 +106,10 @@ class Text( _cap:Int )
     }
     sb.setLength(sb.size - 1)
   }
+
+  def delPar() : Unit = {
+    val enc = head()=='(' && tail()==')' && count('{')==1 && count{')'}==1
+    if( enc ) { delHead(); delTail(); } }
 
   // ... appends ....
   def app( str:String    ) : Unit = { sb.append( str ) }

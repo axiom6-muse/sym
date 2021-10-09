@@ -84,7 +84,6 @@ class Suite //extends Suite
 
   def lam( name:String, enter:String, expect:String ): Unit = {
     val exp:Exp = AsciiParse(enter)
-    //exp = exp.sim
     Test.init( name, enter,       expect )
     Test.test( name, exp.toAscii, exp.toLambda )
   }  
@@ -97,12 +96,9 @@ class Suite //extends Suite
 
   def dif( name:String, enter:String, expect:String ): Unit = {
     val exp:Exp = AsciiParse(enter)
-    Test.init( name, enter, expect  )
-    Test.test( name, enter, exp.dif.sim.toAscii )
+    Test.init( name, enter, expect              )  // , exp.dif.toLambda 
+    Test.test( name, enter, exp.dif.sim.toAscii )  // , exp.dif.toLambda
   }
-
-  // Sub(Sub(Var(x),Var(y)),Adds(Num(7),,Var(z)))
-  // Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))
 
   def testDbg(): Unit = {
     lam( "pow.a", "(x+y)^3",         "Pow(Add(Var(x),Var(y)),Num(3))" )
@@ -222,7 +218,7 @@ class Suite //extends Suite
      dif( "dif.b", "x^2*y^3*z^4",                   "y^3*z^4*2*x*dx+x^2*z^4*3*y^2*dy+x^2*y^3*4*z^3*dz" )
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
-     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/sqrt(1-x^2)-(dx/sqrt(1-x^2))+(dx/(1+x^2))" )
+     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/(sqrt(1-x^2))-dx/(sqrt(1-x^2))+dx/(1+x^2)" )
      dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 
