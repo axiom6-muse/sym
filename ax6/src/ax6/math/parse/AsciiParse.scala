@@ -41,9 +41,9 @@ object AsciiParse extends StdTokenParsers
   def beg : Parser[Exp] = base | oper
   def pow : Parser[Exp] = beg * ( "^" ^^^ { (u:Exp,v:Exp) => Pow(u,v) } )  // u ^ v  Pow(u,v)
   def div : Parser[Exp] = pow * ( "/" ^^^ { (u:Exp,v:Exp) => Div(u,v) } )  // u / v  Div(u,v)
-  def mul : Parser[Exp] = div * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v) u,v can be List[Exp]
+  def mul : Parser[Exp] = div * ( "*" ^^^ { (u:Exp,v:Exp) => Mul(u,v) } )  // u * v  Mul(u,v)
   def sub : Parser[Exp] = mul * ( "-" ^^^ { (u:Exp,v:Exp) => Sub(u,v) } )  // u - v  Sub(u,v)
-  def add : Parser[Exp] = sub * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v) u,v can be List[Exp]
+  def add : Parser[Exp] = sub * ( "+" ^^^ { (u:Exp,v:Exp) => Add(u,v) } )  // u + v  Add(u,v)
 
   def equ : Parser[Exp] = add * ( "=" ^^^ { (u:Exp,v:Exp) => Equ(u,v) } )  // u = v  Equ(u,v)
   def end : Parser[Exp] = equ

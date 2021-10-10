@@ -218,7 +218,7 @@ class Suite //extends Suite
      dif( "dif.b", "x^2*y^3*z^4",                   "y^3*z^4*2*x*dx+x^2*z^4*3*y^2*dy+x^2*y^3*4*z^3*dz" )
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
-     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/(sqrt(1-x^2))-dx/(sqrt(1-x^2))+dx/(1+x^2)" )
+     dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/(1+x^2)" )
      dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 
@@ -289,7 +289,7 @@ class Suite //extends Suite
   }
   
   def testSim(): Unit = {
-    sim( "Sim.q", "(3*5)/(2+3)",          "1.5" )
+    sim( "Sim.q", "(3*5)/(2+3)",          "15/5" )
     sim( "Sim.a", "(x+y)/(x+y)",          "1" )
     sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
     sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )

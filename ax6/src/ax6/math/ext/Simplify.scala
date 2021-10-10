@@ -5,6 +5,8 @@ import ax6.math.exp._
 import ax6.util.Text
 //import ax6.util.{Log => Logg}
 
+import scala.collection.mutable.ListBuffer
+
 trait Simplify
 {
   self:Exp =>
@@ -70,7 +72,7 @@ trait Simplify
   {
     case( 0, _ ) => Num(0)
     case( _, 0 ) => Msg( Text("Num(n1)/Num(0)") )
-    case _       => if(n==d) 1 else Rat(n,d)
+    case _       => if(n==d) Num(1) else Rat(n,d)
   }
 
   def simRec( u:Exp ) : Exp = u match
@@ -81,11 +83,35 @@ trait Simplify
     case _      => Rec(sim(u))
   }
 
-  def simAdd(  u:Exp, v:Exp ) : Exp = Add(u,v)
-
-
-  def simMul(  u:Exp, v:Exp  ) : Exp = Mul(u,v)
-
+  def simAdd( u:Exp, v:Exp ) : Exp = (u,v) match
+  {
+    case( q:Exp, Num(0)|Dbl(0.0) ) => sim(q)
+    case( Num(0)|Dbl(0.0), r )     => sim(r)
+    case( Num(a),   Num(b)   )     => Num(a+b)
+    case( Num(a),   Dbl(b)   )     => Dbl(a+b)
+    case( Dbl(a),   Num(b)   )     => Dbl(a+b)
+    case( Dbl(a),   Dbl(b)   )     => Dbl(a+b)
+    case( q:Exp,    Neg(b)   )     => sim( sim(q)-sim(b) )
+    case _                         => Add(sim(u),sim(v))
+  }
+  
+  def simMul( u:Exp, v:Exp ) : Exp = (u,v) match
+  {
+    case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
+    case( Num(1)|Dbl(1.0), v1 ) => sim(v1)
+    case( Num(a),   Num(b)    ) => Num(a*b)
+    case( Num(a),   Dbl(b)    ) => Dbl(a*b)
+    case( Dbl(a),   Num(b)    ) => Dbl(a*b)
+    case( Dbl(a),   Dbl(b)    ) => Dbl(a*b)
+    case( Div(a,b), Div(c,d)  ) => facMul( mulList2(a,c), mulList2(b,d) )
+    case( a:Exp,    Div(b,c)  ) => facBot( mulList2(a,b), c            )
+    case( Div(a,b), c:Exp     ) => facBot( mulList2(a,c), b            )
+  //case( a:Exp,    Add(b,c)  ) => Add( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
+  //case( Add(a,b), c:Exp     ) => Add( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
+  //case( a:Exp,    Sub(b,c)  ) => Sub( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
+  //case( Sub(a,b), c:Exp     ) => Sub( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
+    case _                      => Mul(sim(u),sim(v))
+  }
 
   def simSub( u:Exp, v:Exp ) : Exp = (u,v) match
   {
@@ -96,27 +122,26 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a-b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a-b)
     case( q:Exp,    Neg(b)   ) => Add(sim(q),sim(b))
-    case _                     => Sub(sim(u),sim(v))
+    case _                     =>
+      if( u==v ) Num(0) else Sub(sim(u),sim(v))
   }
 
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( Mul(a,b), Mul(c,d) ) => facMul( a, b, c, d )
-    case( a:Exp,    Mul(b,c) ) => facTop( a, b, c )
-    case( Mul(a,b), c:Exp    ) => facBot( a, b, c )
+    case( a:Mul, b:Mul ) => facMul( mulList1(a), mulList1(b) )
+    case( a:Exp, b:Mul ) => facTop( a,           mulList1(b) )
+    case( a:Mul, b:Exp ) => facBot( mulList1(a), b           )
     case( a:Exp,  Num(1) | Dbl(1.0) ) => sim(a)
     case( _:Exp,  Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
     case( Num(a), Num(b) ) => Rat(a,b)
     case( Num(a), Dbl(b) ) => Dbl(a/b)
     case( Dbl(a), Num(b) ) => Dbl(a/b)
     case( Dbl(a), Dbl(b) ) => Dbl(a/b)
-    case( Pow(a,b), Pow(c,d) ) => facPow( a, b, c, d )
+    case( Pow(a,b), Pow(c,d) ) =>
+      if( u==v ) Num(1) else facPow( a, b, c, d )
     case( a:Exp,  b:Exp  ) =>
       if( a==b )  Num(1)
-      else {
-        //Logg.typ( "simDiv fail a", a )
-        //Logg.typ( "simDiv fail b", a )
-        Div(sim(a),sim(b)) }
+      else        Div(sim(a),sim(b))
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -125,43 +150,17 @@ trait Simplify
     case( _, Num(0)|Dbl(0.0)     ) => 1
     case( Num(1)|Dbl(1.0), _     ) => 1
     case( Num(0)|Dbl(0.0), _     ) => 0
-    case( Num(a),     Num(b)     ) => Dbl(Math.pow(a,b))
-    case( Num(a),     Dbl(b)     ) => Dbl(Math.pow(a,b))
-    case( Dbl(a),     Num(b)     ) => Dbl(Math.pow(a,b))
-    case( Dbl(a),     Dbl(b)     ) => Dbl(Math.pow(a,b))
-    case _                         => Pow(sim(u),sim(v))
+    case( Num(a), Num(b)   ) => Dbl(Math.pow(a,b))
+    case( Num(a), Dbl(b)   ) => Dbl(Math.pow(a,b))
+    case( Dbl(a), Num(b)   ) => Dbl(Math.pow(a,b))
+    case( Dbl(a), Dbl(b)   ) => Dbl(Math.pow(a,b))
+    case( a:Exp,  Sub(b,c) ) => if( b==c ) Num(1) else Pow(sim(a),Sub(sim(a),sim(b)))
+    case _                   => Pow(sim(u),sim(v))
   }
 
   def simEqu( u:Exp, v:Exp ) : Exp = (u,v) match
   {
     case _ => Equ( sim(u), sim(v) )
-  }
-
-  def binAdd( u:Exp, v:Exp ) : Exp = (u,v) match
-  {
-    case( q:Exp, Num(0)|Dbl(0.0) ) => sim(q)
-    case( Num(0)|Dbl(0.0), r )     => sim(r)
-    case( Num(a),   Num(b)   )     => Num(a+b)
-    case( Num(a),   Dbl(b)   )     => Dbl(a+b)
-    case( Dbl(a),   Num(b)   )     => Dbl(a+b)
-    case( Dbl(a),   Dbl(b)   )     => Dbl(a+b)
-    case( q:Exp,    Neg(b)   )     => sim( sim(q)-sim(b) )
-    case _                         => Sub(sim(u),sim(v))    // Sub is a binary Add here
-  }
-
-  def binMul( u:Exp, v:Exp ) : Exp = (u,v) match
-  {
-    case( a:Exp, Num(1)|Dbl(1.0) ) => sim(a)
-    case( Num(1)|Dbl(1.0), v1 ) => sim(v1)
-    case( Num(a),   Num(b)    ) => Num(a*b)
-    case( Num(a),   Dbl(b)    ) => Dbl(a*b)
-    case( Dbl(a),   Num(b)    ) => Dbl(a*b)
-    case( Dbl(a),   Dbl(b)    ) => Dbl(a*b)
-    case( a:Exp,    Add(b,c)  ) => Add( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
-    case( Add(a,b), c:Exp     ) => Add( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
-    case( a:Exp,    Sub(b,c)  ) => Sub( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
-    case( Sub(a,b), c:Exp     ) => Sub( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
-    case _                      => Mul(sim(u),sim(v))
   }
 
   def facPow( b1:Exp, p1:Exp, b2:Exp, p2:Exp ) : Exp =
@@ -171,24 +170,63 @@ trait Simplify
     else Div( Pow(sim(b1),sim(p1)), Pow(sim(b2),sim(p2)) )
   }
 
-
-  def facMul( a:Exp, b:Exp, c:Exp, d:Exp  ) : Exp = {
-    if(      a == c ) b / d
-    else if( b == c ) a / d
-    else if( a == d ) b / c
-    else if( b == d ) a / c
-    else Div(Mul(a,b),Mul(c,d))
+  def facMul( listu:ListBuffer[Exp], listv:ListBuffer[Exp] ) : Exp = {
+    var lista = listu.clone()
+    var listb = listv.clone()
+    for( u <- listu ) {
+      if( listv.contains(u) ) {
+        lista = delExp( u, lista )
+        listb = delExp( u, listb )
+      }
+    }
+    Div( listMul(lista), listMul(listb) )
   }
 
-  def facTop( a:Exp, b:Exp, c:Exp ) : Exp = {
-    if(      a == b ) Rec(c)
-    else if( a == c ) Rec(b)
-    else Div(a,Mul(b,c))
+  def facTop( u:Exp, listv:ListBuffer[Exp]  ) : Exp = {
+    var listb = listv.clone()
+    if( listv.contains(u) ) {
+      listb = delExp( u, listb )
+      Rec( listMul(listb) ) }
+    else Div(u,listMul(listb))
   }
 
-  def facBot( a:Exp, b:Exp, c:Exp ) : Exp = {
-    if(      a == c ) b
-    else if( b == c ) a
-    else Div(Mul(a,b),c)
+  def facBot( listu:ListBuffer[Exp], v:Exp  ) : Exp = {
+    var lista = listu.clone()
+    if( listu.contains(v) ) {
+      lista = delExp( v, lista )
+      listMul(lista) }
+    else Div(listMul(lista),v)
+  }
+
+  def mulList1( u:Exp ) : ListBuffer[Exp] = {
+    val list: ListBuffer[Exp] = new ListBuffer[Exp]()
+    u match {
+      case Mul(a,b) => list ++ mulList2(a,b)
+      case a: Exp   => list += a
+    }
+    list
+  }
+
+  def mulList2( u:Exp, v:Exp ) : ListBuffer[Exp] = {
+    val list: ListBuffer[Exp] = new ListBuffer[Exp]()
+    u match {
+      case Mul(_,_) => list ++ mulList1(u)
+      case a: Exp   => list += a }
+    v match {
+      case Mul(_,_) => list ++ mulList1(v)
+      case b: Exp   => list += b }
+    list
+  }
+
+  def listMul( list:ListBuffer[Exp] ) : Exp = {
+    list.foldLeft[Exp]( list.head )( (a,b) => Mul(a,b) )
+  }
+
+  def delExp( exp:Exp, list1:ListBuffer[Exp] ) : ListBuffer[Exp] = {
+    var list2 = list1.clone()
+    for(  elem <- list1 ) {
+      if( elem == exp  ) {
+        list2 = list1.filter( e => e == exp ) } }
+    list2
   }
 }

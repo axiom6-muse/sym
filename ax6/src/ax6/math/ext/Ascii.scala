@@ -30,7 +30,7 @@ trait Ascii
       case Div(u,v)  => asciiDiv(  t, u, v )
       case Pow(u,v)  => asciiBin(  t, u, "^", v, enc=false )
       case Equ(u,v)  => asciiEqu(  t, u, v )
-      case Rec(u)    => t.app("1"); t.app('/'); u.ascii(t)
+      case Rec(u)    => asciiRec(  t, u )
       case Neg(u)    => asciiMeg( t, u )
       case Abs(u)    => asciiEnc( t, "|", u, "|" )
       case Par(u)    => asciiEnc( t, "(", u, ")" )
@@ -146,6 +146,12 @@ trait Ascii
   
   def asciiEqu( t:Text, u:Exp, v:Exp ) : Unit = {
     u.ascii(t); t.app('='); v.ascii(t) }
+
+  def asciiRec( t:Text, u:Exp ): Unit = u match {
+    case Add(a,b) => t.app('1'); t.app('/'); asciiAdd( t, a, b )
+    case Sub(a,b) => t.app('1'); t.app('/'); asciiSub( t, a, b )
+    case a:Exp    => t.app('1'); t.app('/'); a.ascii(t)
+  }
 
   def asciiEnc( t:Text, beg:String, u:Exp, end:String ) : Unit = {
     t.app(beg); u.ascii(t); t.app(end) }
