@@ -100,6 +100,12 @@ class Suite //extends Suite
     Test.test( name, enter, exp.dif.sim.toAscii )  // , exp.dif.toLambda
   }
 
+  def dns( name:String, enter:String, expect:String ): Unit = {
+    val exp:Exp = AsciiParse(enter)
+    Test.init( name, enter, expect          )  // , exp.dif.toLambda
+    Test.test( name, enter, exp.dif.toAscii )  // , exp.dif.toLambda
+  }
+
   def testDbg(): Unit = {
     lam( "pow.a", "(x+y)^3",         "Pow(Add(Var(x),Var(y)),Num(3))" )
     lam( "add.a", "x+x+7+y",         "Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))"   )
@@ -219,7 +225,7 @@ class Suite //extends Suite
      dif( "dif.c", "sin(x)+cos(x)+tan(x)",          "cos(x)*dx-sin(x)*dx-sec(x)^2*dx" )
      dif( "dif.d", "csc(x)+sec(x)+cot(x)",          "-csc(x)*cot(x)*dx+sec(x)*tan(x)*dx-csc(x)^2*dx" )
      dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/(1+x^2)" )
-     dif( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
+     dns( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
      lam( "dx.a",     "dx", "Dif(Var(x))" ) 
      lam( "Var(d).a", "d",  "Var(d)" ) 
@@ -295,7 +301,8 @@ class Suite //extends Suite
     sim( "Sim.c", "(x+y)*(a+b)/(x+y)",    "a+b" )
     sim( "Sim.d", "((x+y)*(a+b))/(x+y)",  "a+b" )
     sim( "Sim.e", "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
-    sim( "Sim.f", "(w*x*y*z)/(x*y*z)",    "w" )    
+    sim( "Sim.f", "(w*x*y*z)/(x*y*z)",    "w" )
+
     sim( "Sim.g", "(x*y*z)/(x*y*z*w)",    "1/w" ) 
     sim( "Sim.h", "(w*x*y*z)/(z*x*w)",    "y" ) 
     sim( "Sim.i", "(w*x*y*x)/(z*x*w)",    "y*x/z" )
@@ -312,3 +319,15 @@ class Suite //extends Suite
      
  
 }
+/*
+Fail::Sim.g:(x*y*z)/(x*y*z*w) | 1/w | Div(Mul(Mul(Var(x),Var(y)),Var(z)),Mul(Mul(Mul(Var(x),Var(y)),Var(z)),Var(w)))
+    ::Sim.g:(x*y*z)/(x*y*z*w) | (x*y*z)/(x*y*z*w) | Div(Mul(Mul(Var(x),Var(y)),Var(z)),Mul(Mul(Mul(Var(x),Var(y)),Var(z)),Var(w)))
+Fail::Sim.h:(w*x*y*z)/(z*x*w) | y | Div(Mul(Mul(Mul(Var(w),Var(x)),Var(y)),Var(z)),Mul(Mul(Var(z),Var(x)),Var(w)))
+    ::Sim.h:(w*x*y*z)/(z*x*w) | (w*x*y*z)/(z*x*w) | Div(Mul(Mul(Mul(Var(w),Var(x)),Var(y)),Var(z)),Mul(Mul(Var(z),Var(x)),Var(w)))
+Fail::Sim.i:(w*x*y*x)/(z*x*w) | y*x/z | Div(Mul(Mul(Mul(Var(w),Var(x)),Var(y)),Var(x)),Mul(Mul(Var(z),Var(x)),Var(w)))
+    ::Sim.i:(w*x*y*x)/(z*x*w) | (w*x*y*x)/(z*x*w) | Div(Mul(Mul(Mul(Var(w),Var(x)),Var(y)),Var(x)),Mul(Mul(Var(z),Var(x)),Var(w)))
+Fail::Sim.j:((w-q)*x*y*x)/(z*x*w*(w-q)) | y*x/(z*w) | Div(Mul(Mul(Mul(Sub(Var(w),Var(q)),Var(x)),Var(y)),Var(x)),Mul(Mul(Mul(Var(z),Var(x)),Var(w)),Sub(Var(w),Var(q))))
+    ::Sim.j:((w-q)*x*y*x)/(z*x*w*(w-q)) | ((w-q)*x*y*x)/(z*x*w*w-q) | Div(Mul(Mul(Mul(Sub(Var(w),Var(q)),Var(x)),Var(y)),Var(x)),Mul(Mul(Mul(Var(z),Var(x)),Var(w)),Sub(Var(w),Var(q))))
+Fail::Sim.k:((w-q)^3*x*y*x)/(z*x*w*(w-q)^2) | (w-q)*y*x/(z*w) | Div(Mul(Mul(Mul(Pow(Sub(Var(w),Var(q)),Num(3)),Var(x)),Var(y)),Var(x)),Mul(Mul(Mul(Var(z),Var(x)),Var(w)),Pow(Sub(Var(w),Var(q)),Num(2))))
+    ::Sim.k:((w-q)^3*x*y*x)/(z*x*w*(w-q)^2) | ((w-q)^3*x*y*x)/(z*x*w*(w-q)^2) | Div(Mul(Mul(Mul(Pow(Sub(Var(w),Var(q)),Num(3)),Var(x)),Var(y)),Var(x)),Mul(Mul(Mul(Var(z),Var(x)),Var(w)),Pow(Sub(Var(w),Var(q)),Num(2))))
+ */
