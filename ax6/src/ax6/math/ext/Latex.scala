@@ -56,7 +56,7 @@ trait Latex
       case Cex(r,i)  => latexCex(t,r,i)
       case Vex(a)    => latexVex(t,a)
       case Mex(mat)  => latexMex(t,mat)
-      case Msg(txt:Text) => t.app(txt)
+      case Msg(s) => t.app(s)
     }
    }
   

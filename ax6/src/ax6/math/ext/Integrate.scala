@@ -54,7 +54,7 @@ trait Integrate
     case Cex(r,i)  => Cex( r.itg, i.itg )
     case Vex(v)    => Vex(v).map( e => e.itg )
     case Mex(m)    => Mex(m).map( e => e.itg )
-    case Msg(txt:Text)  => Itg(Msg(txt))
+    case Msg(s)    => Itg(Msg(s))
   }
 
   def IMul( u:Exp, v:Exp ) : Exp = (u,v) match

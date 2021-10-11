@@ -1,7 +1,6 @@
 
 package ax6.math.parse
 
-import ax6.util.Text
 import ax6.math.exp._
 import scala.util.parsing.combinator.lexical.StdLexical
 import scala.util.parsing.combinator.syntactical.StdTokenParsers
@@ -81,7 +80,7 @@ object AsciiParse extends StdTokenParsers
     case "cos"    => Cos(u)  case "tan"    => Tan(u)  case "cot"    => Cot(u)  case "sec"    => Sec(u)
     case "csc"    => Csc(u)  case "arcsin" => ASin(u) case "arccos" => ACos(u) case "arctan" => ATan(u)
     case "arccot" => ACot(u) case "arcsec" => ASec(u) case "arccsc" => ACsc(u) case "d"      => Dif(u)
-    case _ => Msg(Text(50).text("Ascii.func::", f, '(', u.text, ')', " :: is an unknown function"))
+    case _ => Msg( "Ascii.func::"+f+"("+u.text+"):: is an unknown function" )
   }
   
   // log Interpreted as base e same as Ln for other bases use log_b(arg)
@@ -133,10 +132,10 @@ object AsciiParse extends StdTokenParsers
                  
   def parse( str:String ) : Exp = all( new lexical.Scanner(str) ) match
   {
-  //case Success( Var(s), _ ) => Msg( Text(50).text( "Ascii.parse Warning::<", str, ">::", "entire expression parsed Into a single variable" ) )
+  //case Success( Var(s), _ ) => Msg( "Ascii.parse Warning::<", str, ::<"+str+">::"+s ) )
     case Success( exp, _  ) => exp
-    case Failure( msg, _  ) => Msg( Text(50).text( "Ascii.parse Failure::<", str, ">::", msg  ) )
-    case Error(   msg, _  ) => Msg( Text(50).text( "Ascii.parse Error::<",   str, ">::", msg  ) )
+    case Failure( msg, _  ) => Msg( "Ascii.parse Failure::<"+str+">::"+msg )
+    case Error(   msg, _  ) => Msg( "Ascii.parse   Error::<"+str+">::"+msg )
   }
 
 }

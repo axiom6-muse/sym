@@ -55,7 +55,7 @@ trait MathML
       case Cex(r,i)  => mathMLCex(t,r,i)
       case Vex(a)    => mathMLVex(t,a)
       case Mex(m)    => mathMLMex(t,m)
-      case Msg(txt:Text) => t.app(txt)
+      case Msg(s)    => t.app(s)
     }
   }
 

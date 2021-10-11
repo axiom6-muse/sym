@@ -2,8 +2,7 @@
 package ax6.math.ext
 
 import ax6.math.exp._
-import ax6.util.Text
-import ax6.util.{Log => Logg}
+//import ax6.util.{Log => Logg}
 
 //import scala.collection.mutable.ListBuffer
 
@@ -63,7 +62,7 @@ trait Simplify
     case Cex(r,i)  => Cex(sim(r),sim(i) )
     case Vex(v)    => Vex(v).map( e => e.sim )
     case Mex(m)    => Mex(m).map( e => e.sim )
-    case Msg(t)    => Msg(t)
+    case Msg(s)    => Msg(s)
   }
 
   def simDbl( r:Double ) : Exp = if(r==r.toInt) Num(r.toInt) else Dbl(r)
@@ -71,14 +70,14 @@ trait Simplify
   def simRat( n:Int, d:Int ) : Exp = (n,d) match
   {
     case( 0, _ ) => Num(0)
-    case( _, 0 ) => Msg( Text("Num(n1)/Num(0)") )
+    case( _, 0 ) => Msg( "Num(n1)/Num(0)" )
     case _       => if(n==d) Num(1) else Rat(n,d)
   }
 
   def simRec( u:Exp ) : Exp = u match
   {
     case Num(1) => 1
-    case Num(0) => Msg(Text("Rec(Num(0))"))
+    case Num(0) => Msg("Rec(Num(0))")
     case Par(a) => Rec(sim(a))
     case _      => Rec(sim(u))
   }
@@ -106,10 +105,6 @@ trait Simplify
     case( Div(a,b), Div(c,d)  ) => factor( Mul(a,b), Mul(c,d) )
     case( a:Exp,    Div(b,c)  ) => factor( Mul(a,b), c        )
     case( Div(a,b), c:Exp     ) => factor( Mul(a,c), b        )
-  //case( a:Exp,    Add(b,c)  ) => Add( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
-  //case( Add(a,b), c:Exp     ) => Add( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
-  //case( a:Exp,    Sub(b,c)  ) => Sub( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
-  //case( Sub(a,b), c:Exp     ) => Sub( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
     case _                      => Mul(sim(u),sim(v))
   }
 
@@ -122,20 +117,19 @@ trait Simplify
     case( Dbl(a),   Num(b)   ) => Dbl(a-b)
     case( Dbl(a),   Dbl(b)   ) => Dbl(a-b)
     case( q:Exp,    Neg(b)   ) => Add(sim(q),sim(b))
-    case _                     =>
-      if( u==v ) Num(0) else Sub(sim(u),sim(v))
+    case _ => if( u==v ) Num(0) else Sub(sim(u),sim(v))
   }
 
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
     case( a:Exp,    Num(1) | Dbl(1.0) ) => sim(a)
-    case( _:Exp,    Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
-    case( Num(a),   Num(b) ) => Rat(a,b)
-    case( Num(a),   Dbl(b) ) => Dbl(a/b)
-    case( Dbl(a),   Num(b) ) => Dbl(a/b)
-    case( Dbl(a),   Dbl(b) ) => Dbl(a/b)
+    case( _:Exp,    Num(0) | Dbl(0.0) ) => Msg("u/Num(0)") // Divide by 0
+    case( Num(a),   Num(b) )   => Rat(a,b)
+    case( Num(a),   Dbl(b) )   => Dbl(a/b)
+    case( Dbl(a),   Num(b) )   => Dbl(a/b)
+    case( Dbl(a),   Dbl(b) )   => Dbl(a/b)
     case( Pow(a,b), Pow(c,d) ) => if( u==v ) Num(1) else facPow( a, b, c, d )
-    case( a:Exp,  b:Exp  ) => factor( a, b )
+    case( a:Exp,    b:Exp  )   => factor( a, b )
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -164,36 +158,47 @@ trait Simplify
     else Div( Pow(sim(b1),sim(p1)), Pow(sim(b2),sim(p2)) )
   }
 
-  def factor( u:Exp, v:Exp ) : Exp = (u,v) match {
-    case ( Mul(a,b), Mul(c,d) ) =>
-      Logg.log( "MulMul beg", u.toAscii, v.toAscii )
-      if(      a==c ) factor(b,d)
-      else if( a==d ) factor(b,c)
-      else if( b==c ) factor(a,d)
-      else if( b==d ) factor(a,c)
-      else factor(factor(a,c),factor(b,d))
-    case ( Mul(a,b), c:Exp ) =>
-      Logg.log( "MulExp beg", u.toAscii, v.toAscii )
-      if(      a==c ) b
-      else if( b==c ) a
-      else {
-        val q:Exp = factor(a,c)
-        if( q != Div(a,c) ) q else {
-          val r:Exp = factor(b,c)
-          if( r != Div(b,c) ) r else Div(u,v) } }
-    case ( a:Exp, Mul(b,c) ) =>
-      Logg.log( "ExpMul beg", u.toAscii, v.toAscii )
-      if(      a==b ) Rec(c)
-      else if( a==c ) Rec(b)
-      else {
-        val q:Exp = factor(a,b)
-        if( q != Div(a,b) ) q else {
-          val r:Exp = factor(a,c)
-          if( r != Div(a,c) ) r else Div(u,v) } }
-    case ( a:Exp, b:Exp ) =>
-      Logg.log( "ExpExp beg", u.toAscii, v.toAscii )
-      if( a==b ) Num(1)
-      else Div(u,v)
-  }
+  def factor( u:Exp, v:Exp, msg:Boolean=false ) : Exp = (u,v) match {
+      case ( Mul(a,b), Mul(c,d) ) =>
+        factor(factor(a,c),factor(b,d))
+      case ( Mul(a,b), c:Exp ) =>
+        if( factor(a,c,msg=true)==Msg("t") ) b else if( factor(b,c,msg=true)==Msg("t") ) a else Msg("f")
+      case ( a:Exp, Mul(b,c) ) =>
+        if( factor(a,b,msg=true)==Msg("t") ) Rec(c) else if( factor(a,c,msg=true)==Msg("t") ) Rec(b) else Msg("f")
+      case ( a:Exp, b:Exp ) =>
+        if( a==b ) if(msg) Msg("t") else Num(1) else if(msg) Msg("t") else Div(a,b)
+    }
 
 }
+ /*
+   def factor( u:Exp, v:Exp ) : Exp = {
+    // Logg.log( "factor beg",  "u:"+u.toAscii, "v:"+v.toAscii )
+    (u,v) match {
+      case ( Mul(a,b), Mul(c,d) ) =>
+        Logg.log( "MulMul beg",  "a:"+a.toAscii, "b:"+b.toAscii, "c:"+c.toAscii, "d:"+d.toAscii )
+        val res = factor(factor(a,c),factor(b,d))
+        Logg.log( "MulMul end", res )
+        res
+      case ( Mul(a,b), c:Exp ) =>
+        Logg.log( "MulExp beg", "a:"+a.toAscii, "b:"+b.toAscii, "c:"+c.toAscii )
+        val s = if( factor(a,c)==Msg("t") ) b else if( factor(b,c)==Msg("t") ) a else Msg("f")
+        Logg.log( "MulExp end", s )
+        s
+      case ( a:Exp, Mul(b,c) ) =>
+        Logg.log( "ExpMul beg", "a:"+a.toAscii, "b:"+b.toAscii, "c:"+c.toAscii )
+        val s = if( factor(a,b)==Msg("t") ) Rec(c) else if( factor(a,c)==Msg("t") ) Rec(b) else Msg("f")
+        Logg.log( "ExpMul end", s )
+        s
+      case ( a:Exp, b:Exp ) =>
+        Logg.log( "ExpExp beg", "a:"+a.toAscii, "b:"+b.toAscii )
+        val s = if( a==b ) Msg("t") else Msg("t")
+        Logg.log( "ExpExp end", s )
+        s
+    }
+  }
+
+  //case( a:Exp,    Add(b,c)  ) => Add( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
+  //case( Add(a,b), c:Exp     ) => Add( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
+  //case( a:Exp,    Sub(b,c)  ) => Sub( Mul(sim(a),sim(b)), Mul(sim(a),sim(c)) )
+  //case( Sub(a,b), c:Exp     ) => Sub( Mul(sim(a),sim(c)), Mul(sim(b),sim(c)) )
+  */

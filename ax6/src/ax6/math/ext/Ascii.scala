@@ -62,7 +62,7 @@ trait Ascii
       case Cex(r,i)   => asciiCex(t,r,i)
       case Vex(array) => asciiVex(t,array)
       case Mex(mat)   => asciiMex(t,mat)
-      case Msg(txt)   => t.app(txt)
+      case Msg(str)   => t.app(str)
     }
 
     exp match {

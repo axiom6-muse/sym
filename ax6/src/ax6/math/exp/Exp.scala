@@ -100,7 +100,7 @@ case class Sus( u:Exp, v:Exp ) extends Exp // x_1    Subscript   x1 -- place in 
 case class Sup( u:Exp, v:Exp ) extends Exp // x^1    Superscript x1 -- not used ^ => Pow
 case class Not( u:Exp )        extends Exp // not an expression or can not be Intergrated
 case class Sim( u:Exp )        extends Exp // sim(u) Simplify - just used for errors
-case class Msg( m:Text )       extends Exp // error message from Parse
+case class Msg( m:String )     extends Exp // error message from Parse
 
 // Here we have Par remove uneeded parentheses
 object Par {

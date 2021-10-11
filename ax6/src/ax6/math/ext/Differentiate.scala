@@ -50,7 +50,7 @@ trait Differentiate
     case Cex(r,i)  => Cex( r.dif, i.dif )
     case Vex(v)    => Vex(v).map( e => e.dif )
     case Mex(m)    => Mex(m).map( e => e.dif )
-    case Msg(txt)  => Dif(Msg(txt))
+    case Msg(s)    => Dif(Msg(s))
  // case Sus(u,v)  => Dif(Sub(u,v))
  // case Sup(u,v)  => Dif(Sup(u,v))
  // case Lim(u,v)  => Dif(Lim(u,v))

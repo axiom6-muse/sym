@@ -27,7 +27,7 @@ trait Lambda
       case Sub(u,v)  => lambdaBins( t, "Sub", u, v )
       case Mul(u,v)  => lambdaBins( t, "Mul", u, v )
       case Div(u,v)  => lambdaBins( t, "Div", u, v )
-      case Rec(u)    => lambdaBins( t, "Rec", Num(1), u )
+      case Rec(u)    => lambdaRec1( t, "Rec", u )
       case Pow(u,v)  => lambdaBins( t, "Pow", u, v )
       case Neg(u)    => lambdaUnay( t, "Neg", u )
       case Abs(u)    => lambdaUnay( t, "Abs", u )
@@ -61,9 +61,12 @@ trait Lambda
       case Cex(r,i)  => lambdaCexx(t,r,i)
       case Vex(a)    => lambdaVexx(t,a)
       case Mex(m)    => lambdaMexx(t,m)
-      case Msg(txt:Text) => t.app(txt)
+      case Msg(s)    => t.app(s)
     }
   }
+
+  def lambdaRec1( t:Text, name:String, u:Exp ): Unit =
+    { t.all( name, '(' ); u.lambda(t); t.app(')') }
 
   def lambdaStr2( t:Text, name:String, s:String ): Unit =
     { t.all( name, '(', s, ')' ) }
