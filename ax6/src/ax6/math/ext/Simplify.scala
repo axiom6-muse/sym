@@ -3,7 +3,7 @@ package ax6.math.ext
 
 import ax6.math.exp._
 import ax6.util.Text
-//import ax6.util.{Log => Logg}
+import ax6.util.{Log => Logg}
 
 //import scala.collection.mutable.ListBuffer
 
@@ -128,14 +128,13 @@ trait Simplify
 
   def simDiv( u:Exp, v:Exp ) : Exp = (u,v) match
   {
-    case( a:Exp,  Num(1) | Dbl(1.0) ) => sim(a)
-    case( _:Exp,  Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
-    case( Num(a), Num(b) ) => Rat(a,b)
-    case( Num(a), Dbl(b) ) => Dbl(a/b)
-    case( Dbl(a), Num(b) ) => Dbl(a/b)
-    case( Dbl(a), Dbl(b) ) => Dbl(a/b)
-    case( Pow(a,b), Pow(c,d) ) =>
-      if( u==v ) Num(1) else facPow( a, b, c, d )
+    case( a:Exp,    Num(1) | Dbl(1.0) ) => sim(a)
+    case( _:Exp,    Num(0) | Dbl(0.0) ) => Msg(Text("u/Num(0)")) // Divide by 0
+    case( Num(a),   Num(b) ) => Rat(a,b)
+    case( Num(a),   Dbl(b) ) => Dbl(a/b)
+    case( Dbl(a),   Num(b) ) => Dbl(a/b)
+    case( Dbl(a),   Dbl(b) ) => Dbl(a/b)
+    case( Pow(a,b), Pow(c,d) ) => if( u==v ) Num(1) else facPow( a, b, c, d )
     case( a:Exp,  b:Exp  ) => factor( a, b )
   }
 
@@ -167,22 +166,34 @@ trait Simplify
 
   def factor( u:Exp, v:Exp ) : Exp = (u,v) match {
     case ( Mul(a,b), Mul(c,d) ) =>
+      Logg.log( "MulMul beg", u.toAscii, v.toAscii )
       if(      a==c ) factor(b,d)
       else if( a==d ) factor(b,c)
       else if( b==c ) factor(a,d)
       else if( b==d ) factor(a,c)
-      else Div(u,v)
+      else factor(factor(a,c),factor(b,d))
     case ( Mul(a,b), c:Exp ) =>
+      Logg.log( "MulExp beg", u.toAscii, v.toAscii )
       if(      a==c ) b
       else if( b==c ) a
-      else Div(u,c)
+      else {
+        val q:Exp = factor(a,c)
+        if( q != Div(a,c) ) q else {
+          val r:Exp = factor(b,c)
+          if( r != Div(b,c) ) r else Div(u,v) } }
     case ( a:Exp, Mul(b,c) ) =>
-      if(      a==b ) Rec(c) // Div(Num(1),c)
-      else if( a==c ) Rec(b) // Div(Num(1),b)
-      else Div(a,v)
+      Logg.log( "ExpMul beg", u.toAscii, v.toAscii )
+      if(      a==b ) Rec(c)
+      else if( a==c ) Rec(b)
+      else {
+        val q:Exp = factor(a,b)
+        if( q != Div(a,b) ) q else {
+          val r:Exp = factor(a,c)
+          if( r != Div(a,c) ) r else Div(u,v) } }
     case ( a:Exp, b:Exp ) =>
+      Logg.log( "ExpExp beg", u.toAscii, v.toAscii )
       if( a==b ) Num(1)
-      else Div(a,b)
+      else Div(u,v)
   }
 
 }

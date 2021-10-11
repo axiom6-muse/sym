@@ -15,8 +15,8 @@ object Suite
 
    def runTests(suite:Suite) : Unit =
    {
-       suite.testDbg()
-       suite.testDif()
+    // suite.testDbg()
+    // suite.testDif()
        suite.testSim()
     // suite.testCal()
     // suite.testEee()
@@ -295,6 +295,7 @@ class Suite //extends Suite
   }
   
   def testSim(): Unit = {
+    /*
     sim( "Sim.q", "(3*5)/(2+3)",          "15/5" )
     sim( "Sim.a", "(x+y)/(x+y)",          "1" )
     sim( "Sim.b", "(x+y)^3/(x+y)^3",      "1" )
@@ -302,12 +303,16 @@ class Suite //extends Suite
     sim( "Sim.d", "((x+y)*(a+b))/(x+y)",  "a+b" )
     sim( "Sim.e", "(x+y)/((x+y)*(a+b))",  "1/(a+b)" )   
     sim( "Sim.f", "(w*x*y*z)/(x*y*z)",    "w" )
-
-    sim( "Sim.g", "(x*y*z)/(x*y*z*w)",    "1/w" ) 
-    sim( "Sim.h", "(w*x*y*z)/(z*x*w)",    "y" ) 
-    sim( "Sim.i", "(w*x*y*x)/(z*x*w)",    "y*x/z" )
-    sim( "Sim.j", "((w-q)*x*y*x)/(z*x*w*(w-q))",     "y*x/(z*w)" )    
-    sim( "Sim.k", "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
+    */
+    sim( "Sim.g", "x/(x*w)",              "1/w" )
+    sim( "Sim.h", "(x*y)/(x*y*w)",        "1/w" )
+    sim( "Sim.i", "(x*y*z)/(x*y*z*w)",    "1/w" )
+    /*
+    sim( "Sim.j", "(w*x*y*z)/(z*x*w)",    "y" )
+    sim( "Sim.k", "(w*x*y*x)/(z*x*w)",    "y*x/z" )
+    sim( "Sim.l", "((w-q)*x*y*x)/(z*x*w*(w-q))",     "y*x/(z*w)" )
+    sim( "Sim.m", "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
+     */
   }
   
   
