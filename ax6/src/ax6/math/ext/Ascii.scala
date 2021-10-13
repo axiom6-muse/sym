@@ -122,20 +122,16 @@ trait Ascii
     if ( enc ) t.app(')')
   }
 
-  def asciiMul( t:Text, u:Exp, v:Exp ) : Unit = {
-    // Logg.log( "asciiMul beg", u.toLambda, v.toLambda )
-    (u, v) match {
-      case (Mul(a, b), Mul(c, d)) =>
-        a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t); t.app('*'); d.ascii(t);
-      case (Mul(a, b), c: Exp) =>
-        a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
-      case (a: Exp, Mul(b, c)) =>
-        a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
-      case (a: Exp, b: Exp) =>
-        // Logg.log( "acsiiMul end", u.toLambda, v.toLambda )
-        asciiBin(t, a, "*", b, enc=false )
+  def asciiMul( t:Text, u:Exp, v:Exp ) : Unit = ( u, v ) match {
+    case (Mul(a, b), Mul(c, d)) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t); t.app('*'); d.ascii(t);
+    case (Mul(a, b), c: Exp) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
+    case (a: Exp, Mul(b, c)) =>
+      a.ascii(t); t.app('*'); b.ascii(t); t.app('*'); c.ascii(t);
+    case (a: Exp, b: Exp) =>
+      asciiBin(t, a, "*", b, enc=false )
     }
-  }
 
   def asciiDiv( t:Text, u:Exp, v:Exp ) : Unit = {
     (u, v) match {

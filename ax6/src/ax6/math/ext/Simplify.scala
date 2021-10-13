@@ -4,7 +4,7 @@ package ax6.math.ext
 import ax6.math.exp._
 import ax6.util.{Log => Logg}
 
-//import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ListBuffer
 
 trait Simplify
 {
@@ -129,7 +129,9 @@ trait Simplify
     case( Dbl(a),   Num(b) )   => Dbl(a/b)
     case( Dbl(a),   Dbl(b) )   => Dbl(a/b)
     case( Pow(a,b), Pow(c,d) ) => if( u==v ) Num(1) else facPow( a, b, c, d )
-    case( a:Exp,    b:Exp  )   => factor( a, b )
+    case( a:Exp,    b:Exp  )   =>
+      Logg.log( "simDiv", "a:"+a.toLambda, "b:"+b.toLambda )
+      factor( a, b )
   }
 
   def simPow( u:Exp, v:Exp ) : Exp = (u,v) match
@@ -158,20 +160,129 @@ trait Simplify
     else Div( Pow(sim(b1),sim(p1)), Pow(sim(b2),sim(p2)) )
   }
 
-  def factor( u:Exp, v:Exp ) : Exp = (u,v) match {
-      case ( Mul(a,b), Mul(c,d) ) =>
-        factor(factor(a,c),factor(b,d))
-      case ( Mul(a,b), c:Exp ) =>
-        factor(factor(a,c),factor(b,Num(1)))
-      case ( a:Exp, Mul(b,c) ) =>
-        factor(factor(a,Num(1)),factor(b,c))
-      case ( a:Exp, b:Exp ) =>
-        Logg.log( "ExpExp", "a:"+a.toAscii, "b:"+b.toAscii )
-        if( a==b ) Num(1) else Div(a,b)
+  def factor( u:Exp, v:Exp ) : Exp = {
+    val uList = toExpList( u )
+    val vList = toExpList( v )
+    val aList = new ListBuffer[Exp]()
+    val bList = new ListBuffer[Exp]()
+    var UneqV = true
+    for(   a <- uList ) {
+      for( b <- vList if UneqV ) if( a==b ) UneqV = false else bList += b
+      if( UneqV ) aList += a
     }
+    Div( toExpMul(aList), toExpMul(bList) )
+  }
+
+  def toExpList( exp:Exp ) : ListBuffer[Exp] = {
+    val list:ListBuffer[Exp] = new ListBuffer[Exp]()
+    recurseExp( exp, list  )
+    list
+  }
+
+  def toExpMul( list:ListBuffer[Exp] ) : Exp = {
+    Mul( list.head, toExpMul(list.tail) )
+  }
+
+  def recurseExp( exp:Exp, list:ListBuffer[Exp] ) : Unit = {
+
+    var next:Exp = exp match {
+      case Mul(u,v) => noop(v); u
+      case _        => null }
+
+    while( next != null )
+    {
+      list += next
+      recurseExp( next, list )
+      next = next match {
+        case Mul(u,v) => noop(u); v
+        case _        => null }
+    }
+
+  }
+
+
+  def recurse( exp:Exp )( visit: Exp => Unit ) : Unit = {
+
+    var next:Exp = exp match {
+      case Mul(u,v) => noop(v); u
+      case _        => null }
+
+    while( next != null )
+    {
+      visit(next)
+      recurse( next )( visit )
+      next = next match {
+        case Mul(u,v) => noop(u); v
+        case _        => null }
+    }
+  }
+
+  def recurseOpt( exp:Exp )( visit: Exp => Unit ) : Unit = {
+
+    var next:Option[Exp] = exp match {
+      case Mul(u,v) => noop(v); Option[Exp](u)
+      case _        => None }
+
+    while( next.isDefined )
+    {
+      visit( toExp(next) )
+      recurseOpt( toExp(next) )( visit )
+
+      next = next match {
+        case Some(Mul(u,v)) => noop(u); Option[Exp](v)
+        case _              => None }
+    }
+  }
+
+  def toExp( opt:Option[Exp] ) : Exp = {
+     noop( opt )
+     Num(1)
+  }
+
+  def noop( arg:Any ) : Unit = {
+    if( arg==null ) println(arg)
+  }
 
 }
  /*
+   def facLog( label:String, q:Exp, r:Exp, s:Exp ) : Exp = {
+    Logg.log( label, "q:"+q.toAscii, "r:"+r.toAscii, "s:"+s.toAscii )
+    s
+  }
+
+   def factor( u:Exp, v:Exp ) : Exp = {
+    var uList = new ListBuffer[Exp]()
+    var vList = new ListBuffer[Exp]()
+    (u, v) match {
+      case (Mul(a,b), Mul(c, d)) =>
+        val q: Exp = factor(a, b)
+        val r: Exp = factor(c, d)
+        val s: Exp = factor(factor(a, b), factor(c, d))
+        facLog("MulMul", q, r, s)
+      case (Mul(a, b), c: Exp) =>
+        val q: Exp = factor(a, c)
+        val r: Exp = factor(b, c)
+        val s: Exp = if (q == Num(1)) b else if (r == Num(1)) q else Div(u, v)
+        facLog("MulExp", q, r, s)
+      case (a: Exp, Mul(b, c)) =>
+        val q: Exp = factor(a, b)
+        val r: Exp = factor(a, c)
+        val s: Exp = if (q == Num(1)) Rec(c) else if (r == Num(1)) Rec(b) else Div(u, v)
+        facLog("ExpMul", q, r, s)
+      case (a: Exp, b: Exp) =>
+        val s: Exp = if (a == b) Num(1) else Div(a, b)
+        facLog("ExpExp", a, b, s)
+    }
+  }
+
+   def factor1( u:Exp ) : Exp = u match {
+    case ( Mul(a,b) ) =>
+      Logg.log( "Mul", "u:"+u.toLambda )
+      factor1(a)
+    case ( a:Exp ) =>
+      Logg.log( "Exp", "u:"+u.toLambda )
+      if( a==b ) Num(1) else Div(a,b)
+  }
 
   def factor( u:Exp, v:Exp, msg:Boolean=false ) : Exp = (u,v) match {
       case ( Mul(a,b), Mul(c,d) ) =>
