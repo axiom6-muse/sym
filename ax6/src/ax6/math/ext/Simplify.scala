@@ -149,20 +149,34 @@ trait Simplify {
     else Div(Pow(sim(b1), sim(p1)), Pow(sim(b2), sim(p2)))
   }
 
-  def factor(u: Exp, v: Exp): Exp = {
-    val uList = toList(u)
-    val vList = toList(v)
-    Logg.log("factor uvLists", uList, vList)
-    val aList = new ListBuffer[Exp]()
-    val bList = new ListBuffer[Exp]()
-    for (a <- uList) if (!vList.contains[Exp](a)) aList += a
-    for (b <- vList) if (!uList.contains[Exp](b)) bList += b
-    Logg.log("factor abLists", aList, bList)
-    Logg.log("factor expMuls", toExps(aList), toExps(bList))
+  def factor( uExp: Exp, vExp: Exp): Exp = {
+    val aList = toList(uExp)
+    val bList = toList(vExp)
+    val fList = new ListBuffer[Exp]()
+    val gList = new ListBuffer[Exp]()
+    val uList = new ListBuffer[Exp]()
+    val vList = new ListBuffer[Exp]()
+    Logg.log("factor abLists", aList, bList )
+    for( a <- aList ) { if( in(a,bList,1) )  fList += a }
+    for( b <- bList ) { if( in(b,aList,1) )  gList += b }
+    for( a <- aList ) { if( in(a,fList,0) )  uList += a }
+    for( b <- bList ) { if( in(b,gList,0) )  vList += b }
+    Logg.log("factor uvLists", uList, vList, fList, gList )
+    Logg.log("factor expMuls", toExps(uList), toExps(vList))
+    
+    if(uList.isEmpty && vList.isEmpty ) Num(1)
+    else if (uList.isEmpty) Rec(toExps(vList))
+    else if (vList.isEmpty) toExps(uList)
+    else Div(toExps(uList), toExps(vList))
+  }
 
-    if (aList.isEmpty) Rec(toExps(bList))
-    else if (bList.isEmpty) toExps(aList)
-    else Div(toExps(aList), toExps(bList))
+  def in( exp:Exp, list:ListBuffer[Exp], count:Int ) : Boolean = {
+    val isIn = list.count( elem => elem == exp ) == count
+
+    //if( isIn && del==0 ) {
+    //  Logg.log("factor in", exp, list )
+    //  list.update( list.indexOf[Exp](exp), Num(1) ) }
+    isIn
   }
 
   def toList(exp: Exp): ListBuffer[Exp] = {
@@ -196,3 +210,47 @@ trait Simplify {
   }
 
 }
+
+/*
+    for( a <- aList ) { if(  bList.contains(a) )  fList += a }
+    for( a <- aList ) { if( !fList.contains(a) )  uList += a }
+    for( b <- bList ) { if( !fList.contains(b) )  vList += b }
+
+  def remove( exp:Exp, uList:ListBuffer[Exp], vList:ListBuffer[Exp] ) : Unit = {
+    val iu = uList.indexOf(exp)
+    val iv = vList.indexOf(exp)
+    if( iv > 0 ) uList.remove( iu )
+    if( iv > 0 ) vList.remove( iv ) }
+
+  def factorOut( uList:ListBuffer[Exp], vList:ListBuffer[Exp] ) : Unit = {
+    val fList:ListBuffer[Exp] = new ListBuffer[Exp]()
+    for( u <- uList;
+         v <- vList if u == v ) yield fList += u
+
+    for( exp <- fList ) {
+      val iu = uList.indexOf(exp)
+      val iv = vList.indexOf(exp)
+      if( iv > 0 ) uList.remove( iu )
+      if( iv > 0 ) vList.remove( iv ) }
+  }
+
+  def factorOut2( uList:ListBuffer[Exp], vList:ListBuffer[Exp] ) : Unit = {
+    val fList:ListBuffer[Exp] = new ListBuffer[Exp]()
+    for( exp <- uList ) {
+      if( uList.contains[Exp](exp) && vList.contains[Exp](exp) ) {
+        fList += exp } }
+
+    for( exp <- fList ) {
+      val iu = uList.indexOf(exp)
+      val iv = vList.indexOf(exp)
+      if( iv > 0 ) uList.remove( iu )
+      if( iv > 0 ) vList.remove( iv ) }
+  }
+
+    for( a <- aList; b <- bList if a == b ) yield fList += a
+    for( a <- aList; f <- fList if a != f ) yield uList += a
+    for( b <- bList; f <- fList if b != f ) yield vList += b
+
+    for( a <- aList ) { if( bList.contains(a) ) remove( a, uList, vList ) }
+    for( b <- aList ) { if( bList.contains(a) ) remove( a, uList, vList ) }
+ */
