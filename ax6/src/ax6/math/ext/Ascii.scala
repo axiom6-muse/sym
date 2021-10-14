@@ -133,11 +133,14 @@ trait Ascii
       asciiBin(t, a, "*", b, enc=false )
     }
 
+  // Needs furter refinement
   def asciiDiv( t:Text, u:Exp, v:Exp ) : Unit = {
     (u, v) match {
-      case( Var(s), b:Exp ) => t.app(s);              t.app('/'); asciiEnc(t,"(",b,")");
-      case( Dif(_), b:Exp ) => u.ascii(t);            t.app('/'); asciiEnc(t,"(",b,")");
-      case( a:Exp,  b:Exp ) => asciiEnc(t,"(",a,")"); t.app('/'); asciiEnc(t,"(",b,")"); }
+      case( Var(s),   b:Exp  ) => t.app(s);    t.app('/'); asciiEnc(t,"(",b,")");
+      case( a:Exp,    Var(s) ) => u.ascii(t);  t.app('/'); t.app(s);
+      case( Dif(_),   b:Exp  ) => u.ascii(t);  t.app('/'); asciiEnc(t,"(",b,")");
+      case( Mul(_,_), b:Exp  ) => u.ascii(t);  t.app('/'); asciiEnc(t,"(",b,")");
+      case( a:Exp,    b:Exp  ) => asciiEnc(t,"(",a,")"); t.app('/'); asciiEnc(t,"(",b,")"); }
   }
   
   def asciiEqu( t:Text, u:Exp, v:Exp ) : Unit = {

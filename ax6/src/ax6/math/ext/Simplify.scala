@@ -2,7 +2,7 @@
 package ax6.math.ext
 
 import ax6.math.exp._
-import ax6.util.{Log => Logg}
+// import ax6.util.{Log => Logg}
 
 import scala.collection.mutable.ListBuffer
 
@@ -122,7 +122,7 @@ trait Simplify {
     case (Dbl(a), Dbl(b)) => Dbl(a / b)
     case (Pow(a, b), Pow(c, d)) => if (u == v) Num(1) else facPow(a, b, c, d)
     case (a: Exp, b: Exp) =>
-      Logg.log("simDiv", "a:" + a.toAscii, "b:" + b.toAscii)
+      // Logg.log("simDiv", "a:" + a.toAscii, "b:" + b.toAscii)
       factor(a, b)
   }
 
@@ -152,17 +152,21 @@ trait Simplify {
   def factor( uExp: Exp, vExp: Exp): Exp = {
     val aList = toList(uExp)
     val bList = toList(vExp)
-    val fList = new ListBuffer[Exp]()
-    val gList = new ListBuffer[Exp]()
+    var fList = new ListBuffer[Exp]()
+    var gList = new ListBuffer[Exp]()
     val uList = new ListBuffer[Exp]()
     val vList = new ListBuffer[Exp]()
-    Logg.log("factor abLists", aList, bList )
-    for( a <- aList ) { if( in(a,bList,1) )  fList += a }
-    for( b <- bList ) { if( in(b,aList,1) )  gList += b }
-    for( a <- aList ) { if( in(a,fList,0) )  uList += a }
-    for( b <- bList ) { if( in(b,gList,0) )  vList += b }
-    Logg.log("factor uvLists", uList, vList, fList, gList )
-    Logg.log("factor expMuls", toExps(uList), toExps(vList))
+  //Logg.log("factor abLists", aList, bList )
+    for( a <- aList ) { if( in(a,bList) ) fList += a }
+    for( b <- bList ) { if( in(b,aList) ) gList += b }
+  //Logg.log("factor fgList1", fList, gList )
+    fList = minList( fList, gList )
+    gList = fList.clone()
+  //Logg.log("factor fgList2", fList, gList )
+    for( a <- aList ) { if( ix(a,fList) ) uList += a }
+    for( b <- bList ) { if( ix(b,gList) ) vList += b }
+  //Logg.log("factor uvLists", uList, vList, fList, gList )
+  //Logg.log("factor expMuls", toExps(uList), toExps(vList))
     
     if(uList.isEmpty && vList.isEmpty ) Num(1)
     else if (uList.isEmpty) Rec(toExps(vList))
@@ -170,13 +174,20 @@ trait Simplify {
     else Div(toExps(uList), toExps(vList))
   }
 
-  def in( exp:Exp, list:ListBuffer[Exp], count:Int ) : Boolean = {
-    val isIn = list.count( elem => elem == exp ) == count
+  def in( exp:Exp, list:ListBuffer[Exp] ) : Boolean = {
+    list.contains( exp )
+  }
 
-    //if( isIn && del==0 ) {
-    //  Logg.log("factor in", exp, list )
-    //  list.update( list.indexOf[Exp](exp), Num(1) ) }
-    isIn
+  def ix( exp:Exp, list:ListBuffer[Exp] ) : Boolean = {
+    val isIn = in( exp, list )
+    if( isIn) {
+      //Logg.log("factor in", exp, list )
+      list.update( list.indexOf[Exp](exp), Num(1) ) }
+    !isIn
+  }
+
+  def minList( fList:ListBuffer[Exp], gList:ListBuffer[Exp] ) : ListBuffer[Exp] = {
+    if( fList.lengthCompare(gList.size) <= 0 ) fList.clone() else gList.clone()
   }
 
   def toList(exp: Exp): ListBuffer[Exp] = {

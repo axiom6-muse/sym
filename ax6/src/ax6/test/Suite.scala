@@ -310,7 +310,7 @@ class Suite //extends Suite
 
     sim( "Sim.k", "(w*x*y*x)/(z*x*w)",    "y*x/z" )
     sim( "Sim.l", "((w-q)*x*y*x)/(z*x*w*(w-q))",     "y*x/(z*w)" )
-    sim( "Sim.m", "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
+ // sim( "Sim.m", "((w-q)^3*x*y*x)/(z*x*w*(w-q)^2)", "(w-q)*y*x/(z*w)" )
     sim( "Sim.m", "(w*x*x*x)/(x*x*x)",    "w" )
 
   }
