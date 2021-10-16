@@ -2,18 +2,21 @@
 package ax6.math.num
 
 import  ax6.util.Text
+import Jama.Matrix
 
 class Mat( _n:Int, _m:Int )
 {
-  val n:Int = _n
-  val m:Int = _m
-  val array = new Array[Double]( n * m )
-  for( k <- 0 until n*m )
-    array(k) = 0.0
+  val n:Int  = _n
+  val m:Int  = _m
+  val array  = new Array[Double]( n * m )
+  val matrix = new Matrix(n,m)
+  for( i <- 0 until n )
+    for( j <- 0 until m )
+      this(i,j) = 0.0
 
-  def a(      i:Int, j:Int ) : Double = array.apply(i*n+j)
-  def apply(  i:Int, j:Int ) : Double = array.apply(i*n+j)
-  def update( i:Int, j:Int, b:Double ) : Unit = { this(i,j) = b }
+  def apply( i:Int, j:Int ) : Double = matrix.get(i,j)
+  def a(     i:Int, j:Int ) : Double = matrix.get(i,j)
+  def update( i:Int, j:Int, v:Double ): Unit = { matrix.set(i,j,v) }
 
 
   def row( i:Int ) : Vec =
