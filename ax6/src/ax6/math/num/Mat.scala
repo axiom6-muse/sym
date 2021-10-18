@@ -4,11 +4,8 @@ package ax6.math.num
 import  ax6.util.Text
 import  Jama._
 
-class Mat( _n:Int, _m:Int )
+class Mat(  val n:Int, val m:Int )
 {
-  val n:Int  = _n
-  val m:Int  = _m
-//val array  = new Array[Double]( n * m )
   val matrix = new Matrix(n,m)
   for( i <- 0 until n )
     for( j <- 0 until m )

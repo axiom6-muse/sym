@@ -1,6 +1,8 @@
 
 package ax6.util
 
+import scala.collection._ //WithFilter
+
 // ------------------------------- Hode[T] -------------------------------------
 
 class Hode[D]( dataa:D )
@@ -8,7 +10,7 @@ class Hode[D]( dataa:D )
   type N       = Hode[D]
   var data : D = dataa
 
-  def term            : Hode[D] = Hold.term[D]
+  def term            : Hode[D] = Mist.term[D]
   @transient var prev : Hode[D] = term
   @transient var next : Hode[D] = term
 
@@ -24,52 +26,49 @@ private class HoldIter[D]( nodea:Hode[D] ) extends Iterator[D]
   override def next() : D = { val data = node.data; node = node.next; data }
 }
 
-// ---------------------------- object Hold[D] ---------------------------------
+// ---------------------------- object Mist[D] ---------------------------------
 
-object Hold
+object Mist
 {
-//val tern:Hode[D]    = new Hode[D]( null.asInstanceOf[Nothing] ) // [Nothing] terminator single
   def term[D]:Hode[D] = new Hode[D]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to D
-  def apply[D]( seq:Seq[D] ) = new Hold[D]( seq )
-  def apply[D]( dat:D )      = new Hold[D]( dat )
+  def apply[D](                 ) : Mist[D] = new Mist[D]()
+  def apply[D]( seq:Seq[D]      ) : Mist[D] = { val mist = Mist[D](); for(t <- seq   ) { mist.add(t) }; mist }
+  def apply[D]( array:Array[D]  ) : Mist[D] = { val mist = Mist[D](); for(t <- array ) { mist.add(t) }; mist }
+  def apply[D]( dat:D           ) : Mist[D] = { val mist = Mist[D]();                    mist.add(dat); mist }
   def unapplySeq[D]( seq:Seq[D] ) : Option[Seq[D]] = Option(seq)
 }
 
-// ----------------------------- class Hold[D] ---------------------------------
+// ----------------------------- class Mist[D] ---------------------------------
 
-class Hold[D]() // extends Seq[D]
+class Mist[D]() // extends WithFilter[D,Mist[D]]
 {
 //type N = Hode[D]      // Does not work as in the past. Researching an explantion
-  var siz : Int   = 0
+  var size : Int   = 0
 
   @transient val ring:Hode[D] = new Hode[D](null.asInstanceOf[D])
   ring.prev    = ring
   ring.next    = ring
 
-  @transient val term:Hode[D] = Hold.term[D]
+  @transient val term:Hode[D] = Mist.term[D]
 
-  def this( seq:Seq[D] ) =  { this(); for( t <- seq ) add(t) }
-  def this( dat:D      ) =  { this(); add(dat) }
+
 
   def head : Hode[D] = ring.next
   def tail : Hode[D] = ring.prev
-  
-  def   lock(): Unit = {}
-  def unlock(): Unit = {}
 
   def in( node:Hode[D])  : Boolean = node!=null && node!=ring && node!=term //
-  def in( idx:Int )        : Boolean = 0 <= idx && idx < siz
+  def in( idx:Int )        : Boolean = 0 <= idx && idx < size
 
 // ... Seq ...
 
-  // override def length        : Int         = siz 
+  // override def length        : Int         = size
   // override def apply( i:Int) : D           = node(i).data
 
 
 // ... add ins del ...
 
-  private def inc(): Unit = { siz += 1 }
-  private def dec(): Unit = { siz -= 1 }
+  private def inc(): Unit = { size += 1 }
+  private def dec(): Unit = { size -= 1 }
 
   // Add to list only if data is unique
   def put( data:D ) : Hode[D] =
@@ -81,7 +80,8 @@ class Hold[D]() // extends Seq[D]
 // ........ Heap ........
 
 // def put(   key:K, data:D ) : Hode[D]= add(data)
-  def upd(  node:Hode[D], data:D ) : Hode[D]= { node.data = data; node }
+  def upd(     node:Hode[D], data:D ) : Hode[D] = { node.data = data; node }
+  def update(  node:Hode[D], data:D ) : Unit    = { node.data = data       }
 // def key(  node:Hode[D],  key:K ) : Hode[D]= node
 // def del(  node:Hode[D] )         : Hode[D]// Delete data and key from a location
 // def node(  key:K )         : Hode[D]= // node(i) 
@@ -105,25 +105,18 @@ class Hold[D]() // extends Seq[D]
           { node = tail; del(tail) }
       node.data
   }
-  
-  def size     : Int = siz
 
-  def isEmpty: Boolean = { siz == 0 }
+  def isEmpty: Boolean = { size == 0 }
 
   def clear(): Unit = {
-    lock()
-    try
+    var node = head
+    var next = head
+    while( in(node) )
     {
-      var node = head
-      var next = head
-      while( in(node) )
-      {
-        next = node.next
-        del( node )
-        node = next
-      }
+      next = node.next
+      del( node )
+      node = next
     }
-    finally unlock()
   }   
  
  // .......................................
@@ -137,27 +130,22 @@ class Hold[D]() // extends Seq[D]
   {
     if( !in(node) )
       { Log.error( "node not in", node.toString ); return term }
-
-    lock()
-    try
+    
+    if( isEmpty )        // Add the first node
     {
-      if( isEmpty )        // Add the first node
-      {
-        node.prev = ring
-        node.next = ring
-        ring.prev = node
-        ring.next = node
-      }
-      else // Add node to the tail, ring.prev() is the tail
-      {
-        node.prev      = ring.prev
-        node.next      = ring
-        ring.prev.next = node
-        ring.prev      = node
-      }
-      inc()
+      node.prev = ring
+      node.next = ring
+      ring.prev = node
+      ring.next = node
     }
-    finally unlock()
+    else // Add node to the tail, ring.prev() is the tail
+    {
+      node.prev      = ring.prev
+      node.next      = ring
+      ring.prev.next = node
+      ring.prev      = node
+    }
+    inc()
     node
   }
 
@@ -172,16 +160,11 @@ class Hold[D]() // extends Seq[D]
       add(node)
     else                   // Insert node to the tail
     {
-      lock()
-      try
-      {
-        node.prev      = ring
-        node.next      = ring.next
-        ring.next.prev = node
-        ring.next      = node
-        inc()
-      }
-      finally unlock()
+      node.prev      = ring
+      node.next      = ring.next
+      ring.next.prev = node
+      ring.next      = node
+      inc()
     }
     node
  }
@@ -192,17 +175,12 @@ class Hold[D]() // extends Seq[D]
   {
     if( !in(pred) || !in(node) )
       return term
-
-    lock()
-    try
-    {
-      node.prev      = pred      // Set the node adjacent poInters
-      node.next      = pred.next
-      pred.next.prev = node      // Reset the poInters around the list node
-      pred.next      = node
-      inc()
-    }
-    finally unlock()
+    
+    node.prev      = pred      // Set the node adjacent poInters
+    node.next      = pred.next
+    pred.next.prev = node      // Reset the poInters around the list node
+    pred.next      = node
+    inc()
     node
   }
 
@@ -212,17 +190,12 @@ class Hold[D]() // extends Seq[D]
   {
     if( !in(succ) || !in(node) )
       return term
-
-    lock()
-    try
-    {
-      node.prev      = succ.prev  // Set the node adjacent poInters
-      node.next      = succ
-      succ.prev.next = node       // Reset the poInters around the list node
-      succ.prev      = node
-      inc()
-    }
-    finally unlock()
+    
+    node.prev      = succ.prev  // Set the node adjacent poInters
+    node.next      = succ
+    succ.prev.next = node       // Reset the poInters around the list node
+    succ.prev      = node
+    inc()
     node
   }
 
@@ -232,18 +205,13 @@ class Hold[D]() // extends Seq[D]
   {
     if( !in(node) )
       return term
+    
+    node.prev.next = node.next
+    node.next.prev = node.prev
+    dec()
 
-    lock()
-    try
-    {
-      node.prev.next = node.next
-      node.next.prev = node.prev
-      dec()
-
-      node.next = term
-      node.prev = term
-    }
-    finally unlock()
+    node.next = term
+    node.prev = term
     node
   }
 
@@ -286,7 +254,7 @@ class Hold[D]() // extends Seq[D]
         node = node.next
       }
     }
-    Log.trace( 6, "Index", idx, "out of range", siz )
+    Log.trace( 6, "Index", idx, "out of range", size )
     term
   }
 
@@ -309,48 +277,54 @@ class Hold[D]() // extends Seq[D]
 
 // ... stack ...
 
-   def pushHead( node:Hode[D] ) : Unit = { ins(node) }
-   def pushHead( data:D )       : Unit = { ins(data) }
-   def pushTail( node:Hode[D] ) : Unit = { add(node) }
-   def pushTail( data:D )       : Unit = { add(data) }
+  def pushHead( node:Hode[D] ) : Unit = { ins(node) }
+  def pushHead( data:D )       : Unit = { ins(data) }
+  def pushTail( node:Hode[D] ) : Unit = { add(node) }
+  def pushTail( data:D )       : Unit = { add(data) }
 
-// ... for comprehensions ...
+  // ... for comprehensions ...
 
-// forNode calls func on each node
-   def forNode( func:Hode[D] => Unit ): Unit = {
+  // forNode calls func on each node
+  def forNode( func:Hode[D] => Unit ): Unit = {
      var node = head
      while( in(node) )
        { func(node); node = node.next }
-   }
+  }
 
-// foreach calls func on each node data
-   def foreach( func:D => Unit ): Unit = {
-     var node = head
-     while( in(node) )
-       { func(node.data); node = node.next }
-   }
+  // foreach calls func on each node data
+  def foreach( func:D => Unit ): Unit = {
+    var node = head
+    while( in(node) )
+      { func(node.data); node = node.next }
+  }
 
-// Create new List by calling pred p on each List element
-// and then if pred is true places the result in a new list
-   def filter( pred:D => Boolean ): Hold[D] =
-   {
-     var node = head
-     val hold = new Hold[D]()
-     while( in(node) )
-     {
-       if( pred(node.data) )
-         hold.add( node.copy() )
-       node = node.next
-     }
-     hold
-   }
+  // Create new List by calling pred p on each List element
+  // and then if pred is true places the result in a new list
+  def filter( pred:D => Boolean ): Mist[D] =
+  {
+    var node = head
+    val hold = new Mist[D]()
+    while( in(node) )
+    {
+      if( pred(node.data) )
+        hold.add( node.copy() )
+      node = node.next
+    }
+    hold
+  }
+
+  // def withFilter( p:    (A) => Boolean): WithFilter[A, [_]ListBuffer[_]]
+
+  // def withFilter( pred: (D) => Boolean ): WithFilter[D, [_]Mist[_]]
+
+  //def withFilter(p: D => Boolean): scala.collection.WithFilter[D, Mist[D]] = new IterableOps.WithFilter(this, p)
 
 // Create new List by calling func on each List element
 // and then place the result in a new List
-  def map[B]( func:D => B )  : Hold[B] =
+  def map[B]( func:D => B )  : Mist[B] =
   {
     var node : Hode[D]= head
-    val sold : Hold[B] = new Hold[B]()
+    val sold : Mist[B] = new Mist[B]()
     while( in(node) )
     {
       sold.add( func(node.data) )
@@ -363,47 +337,44 @@ class Hold[D]() // extends Seq[D]
 // calls func the map the element.
 // This method hard to Interpret so have to consider its implementation
 /*
-  def flatMap[B]( func:(D) => Iterable[B] )  : Hold[B] =
+  def flatMap[B]( func:(D) => Iterable[B] )  : Mist[B] =
   {
-     val sold : Hold[B] = new Hold[B]()
+     val sold : Mist[B] = new Mist[B]()
      val flat = flatMap[B]( data => func(data) )
      while( flat.hasNext )
        sold.add( flat.next )
      sold
   }
 */
-  def toList : List[D] =
+
+
+  def toArray : Array[D] =
   {
-    val list = List[D]()
+    val array = new Array[D](size)
+    var node  = head
+    var i     = 0
+    while( in(node) ) {
+      array(i) = node.data
+      node     = node.next
+      i = i + 1
+    }
+    array
+  }
+
+  def toList : List[D] = toArray.toList
+
+  def toListPrepend : List[D] =
+  {
+    var list = List[D]()
     var node = tail
     while( in(node) )
     {
-      //node.data :: list
+      list = node.data :: list
       node = node.prev
     }
     list
   }
-  /*
-  def toArray() : Array[D] =
-  {
-    val array = new Array[D](size)
-    var i = 0
-    for( data <- this )
-      { array(i) = data; i+=1 }
-    array
-  }
-  */
-  def fwd( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
-    var node = beg
-    while( in(node) )
-      { f(node); node = node.next }
-  }
 
-  def bak( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
-    var node = beg
-    while( in(node) )
-      { f(node); node = node.prev }
-  }
 
   def log(): Unit = {
     for( data <- this )
@@ -471,3 +442,18 @@ class Deque[T]
    def isEmpty : Boolean       = dq.isEmpty
    def clear(): Unit = { dq.clear() }
 }
+
+/*
+  def fwd( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
+    var node = beg
+    while( in(node) )
+      { f(node); node = node.next }
+  }
+
+  def bak( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
+    var node = beg
+    while( in(node) )
+      { f(node); node = node.prev }
+  }
+
+ */

@@ -7,25 +7,22 @@ package ax6.util
 
 // ------------------------------- Tode[T] -------------------------------------
 
-class Tode[T]( _tid:Long, _nid:Long, _data:T )
+class Tode[T](  _data:T )
 {
-  val tid    : Long = _tid
-  val nid    : Long = _nid
   var data   : T     = _data
   var level  : Int   = 0
-
+  def term : Tode[T] = Tree.term[T]
   @transient var prev   : Tode[T] = term
   @transient var next   : Tode[T] = term
   @transient var parent : Tode[T] = term
   @transient var child  : Tode[T] = term
   @transient var last   : Tode[T] = term
 
-  def this(  _tid:Long, _data:T ) = { this( _tid, To.id, _data ) }
+  def toNext : Tode[T] = { if( child != term ) child else next   }
+  def toPrev : Tode[T] = { if( prev  != term ) prev  else parent }
 
-  def term : Tode[T] = To.to[Tode[T]](Term)
-  def copy( _tid:Long ) : Tode[T] = new Tode[T](_tid,data)
 
-  def eq( node:Tode[T] ) : Boolean = { nid == node.nid }
+  def copy( data:T ) : Tode[T] = new Tode[T](data)
 
   override def toString:String = data.toString
 
@@ -33,55 +30,21 @@ class Tode[T]( _tid:Long, _nid:Long, _data:T )
     { prev = term; next = term; parent = term; child = term; last = term }
 }
 
-object Term extends Tode[Nothing]( 0, 0, To.to[Nothing](null) ) {}
-
 // ------------------------------- Tree[T] -------------------------------------
 
-class Tree[T]( _id:Long ) //extends Sync
+class Tree[T]( rootData:T )
 {
-  val tid  : Long = _id  // Assign unique id
-  var size : Int   = 0
+  var size : Int   = 1
 
-  @transient val root:Tode[T] = new Tode[T](tid,0,To.to[T](null))
-
-  def this() = this( To.id )
-
-// ... save open
-  /*
-  def save( persist:Persist ) : Unit =
-  {
-     persist.put( this )
-     for( node <- this )     // Will new prePost for Xml
-        persist.put( node )
-  }
-
-  def open( persist:Persist ) : Unit =
-  {
-     var stack : Array[Tode[T]] = new Array[Tode[T]](Tree.maxLevel)
-     stack(0) = root
-
-     var list : List = persist.query( root.getClass, tid )
-     var iter = list.iterator
-     var node : Tode[T]   = term
-     while( iter.hasNext )
-     {
-        node = To.to[Tode[T]](iter.next)
-        node.init
-        add( stack(node.level-1), node )
-        stack(node.level) = node
-     }
-  }
-  */
+  @transient val root:Tode[T] = new Tode[T](rootData)
   
 // ... bounds ...
-  def lock()   : Unit = {}
-  def unlock() : Unit = {}
   def head                 : Tode[T] = root.child
   def head( node:Tode[T] ) : Tode[T] = node.parent.child
   def tail                 : Tode[T] = root.last
   def tail( node:Tode[T] ) : Tode[T] = node.parent.last
-  def term                 : Tode[T] = To.to[Tode[T]](Term)
-  def in( node:Tode[T] )   : Boolean = node!=null && node!=term
+  def term                 : Tode[T] = Tree.term[T]
+  def in( node:Tode[T] )   : Boolean = node!=term && node!=null
 
   def isRoot(   node:Tode[T] ) : Boolean = in(node)      &&  node == root
   def isHead(   node:Tode[T] ) : Boolean = in(node)      &&  node == head(node)
@@ -126,78 +89,68 @@ class Tree[T]( _id:Long ) //extends Sync
 
 // ... add ins del ...
 
-  def add( data:T        ) : Tode[T] = add( root, new Tode[T](tid,data) )
+  def add( data:T ) : Tode[T] = add( root, new Tode[T](data) )
 
 //private def add( child:Tode[T] ) : Tode[T] = add( root, child )
 
   def add( parn:T, data:T ) : Tode[T] =
       add( find(parn), data )
 
-  def add( parent:Tode[T],     data:T ) : Tode[T] =
-      add( parent, new Tode[T](tid,data)  )
+  def add( parent:Tode[T], data:T ) : Tode[T] =
+      add( parent, new Tode[T](data)  )
 
   private def add( parent:Tode[T], child:Tode[T] ) : Tode[T] =
   {
     if( !in(parent) || !in(child) )
       return term
 
-    lock()  
-    try
+    child.parent = parent
+    if( !in(parent.child) )
     {
-      child.parent = parent
-      if( !in(parent.child) )
-      {
-        parent.child = child
-        parent.last  = child
-      }
-      else if( parent.child == parent.last )
-      {
-        child.prev        = parent.child
-        parent.last       = child
-        parent.child.next = parent.last
-        parent.last.prev  = parent.child
-      }
-      else     // Add after tail child
-      {
-        child.prev       = parent.last
-        parent.last.next = child
-        parent.last      = child
-      }
-      inc(child)
+      parent.child = child
+      parent.last  = child
     }
-    finally unlock()
+    else if( parent.child == parent.last )
+    {
+      child.prev        = parent.child
+      parent.last       = child
+      parent.child.next = parent.last
+      parent.last.prev  = parent.child
+    }
+    else     // Add after tail child
+    {
+      child.prev       = parent.last
+      parent.last.next = child
+      parent.last      = child
+    }
+    inc(child)
     child
   }
 
-  def ins( data:T        ) : Tode[T] = ins( root, new Tode[T](tid,data) )
+  def ins( data:T        ) : Tode[T] = ins( root, new Tode[T](data) )
   def ins( child:Tode[T] ) : Tode[T] = ins( root, child )
 
   def ins( parent:Tode[T],     data:T ) : Tode[T] =
-      ins( parent, new Tode[T](tid,data)  )
+      ins( parent, new Tode[T](data)  )
 
   private def ins( parent:Tode[T], child:Tode[T] ) : Tode[T] =
   {
     if( !in(parent) || !in(child) )
       return term
 
-    lock()  
-    try
+    child.parent = parent
+    if( !in( parent.child ) )
     {
-      child.parent = parent
-      if( !in( parent.child ) )
-      {
-        parent.child = child
-        parent.last  = child
-      }
-      else     // Insert before head child
-      {
-        child.next        = parent.child
-        parent.child.prev = child
-        parent.child      = child
-      }
-      inc(child)
+      parent.child = child
+      parent.last  = child
     }
-    finally unlock()
+    else     // Insert before head child
+    {
+      child.next        = parent.child
+      parent.child.prev = child
+      parent.child      = child
+    }
+    inc(child)
     child
 
  }
@@ -211,77 +164,55 @@ class Tree[T]( _id:Long ) //extends Sync
     if( !in(node) )
       return term
 
-    lock()
-    try
-    {
-      // Reset parent references
-      if( node.parent.child == node )    // Parent child
-        { node.parent.child =  node.next }
-      if( node.parent.last  == node )    // Parent last
-        { node.parent.last  =  node.prev }
+    // Reset parent references
+    if( node.parent.child == node )    // Parent child
+      { node.parent.child =  node.next }
+    if( node.parent.last  == node )    // Parent last
+      { node.parent.last  =  node.prev }
 
-      // Reset sibling references
-      if( in(node.prev) )                     // Sibling prev
-        { node.prev.next = node.next }
-      if( in(node.next) )                     // Sibling next
-        { node.next.prev = node.prev }
+    // Reset sibling references
+    if( in(node.prev) )                     // Sibling prev
+      { node.prev.next = node.next }
+    if( in(node.next) )                     // Sibling next
+      { node.next.prev = node.prev }
 
-      dec()
-    }
-    finally unlock()
+    dec()
     node
   }
 
   def clear() : Unit =
   {
-    lock()  
-    try
+    var node  = root.child
+    var next  = term
+    while( in(node) )
     {
-      var node  = root.child
-      var next  = term
-      while( in(node) )
-      {
-        next = node.next
-        clear( node )
-        node = next
-      }
+      next = node.next
+      clear( node )
+      node = next
     }
-    finally unlock()
   }
 
   def clear( node:Tode[T]) : Unit =
   {
-    lock()
-    try
+    var child = node.child
+    var next  = term
+    while( in(child) )
     {
-      var child = node.child
-      var next  = term
-      while( in(child) )
-      {
-        next  = child.next
-        clear( child )
-        child = next
-      }
-      del( node )
+      next  = child.next
+      clear( child )
+      child = next
     }
-    finally unlock()
+    del( node )
   }
 
   def find( data:T ) : Tode[T] =
   {
     for( node <- this )
-      if( node.data.equals(data) )
+      if( node.data == data )
         return node
     term
   }
 
-  def find( nid:Long ) : Tode[T] =
-  {
-    for( node <- this )
-      if( node.nid==nid )
-        return node
-    term
-  }
 
 // ... breath traversals ...
 
@@ -366,20 +297,13 @@ class Tree[T]( _id:Long ) //extends Sync
     }
   }
 
-  def prepost( top:Tode[T] )( pre: Tode[T] => Unit )( post: Tode[T] => Unit ) : Unit =
-  {
-    pre(  top )
-    recurse2( top )( pre )( post )
-    post( top )
-  }
-
-  def recurse2( node:Tode[T] )( pre: Tode[T] => Unit )( post: Tode[T] => Unit ) : Unit =
+  def prepost( node:Tode[T] )( pre: Tode[T] => Unit )( post: Tode[T] => Unit ) : Unit =
   {
     var child = node.child
     while( in(child) )
     {
       pre( child )
-      recurse2( child )( pre )( post )
+      prepost( child )( pre )( post )
       post( child )
       child = child.next
     }
@@ -391,6 +315,86 @@ class Tree[T]( _id:Long ) //extends Sync
        Log.tab( node.level-1, node.data.toString )
   }
 
+  def filter( isIn:T => Boolean ): Tree[T] =
+  {
+    val tree   = new Tree[T](root.data)
+    var parent = tree.root
+    var fode   = term
+    var node   = root.child
+    while( in(node) )
+    {
+      if( isIn(node.data) ) {
+        fode = tree.add( parent, node.data )
+      }
+      parent = fode.parent
+      node   = node.toNext
+    }
+    tree
+  }
+
+  def map[B]( func : T => B ) : Tree[B] =
+  {
+    val tree   = new Tree[B](func(root.data))
+    var parent = tree.root
+    var fode   = Tree.term[B]
+    var node   = root.child
+    while( in(node) )
+    {
+      fode = new Tode[B](func(node.data))
+      tree.add( parent, fode )
+      parent = fode.parent
+      node   = node.toNext
+    }
+    tree
+  }
+
+  /*
+  def flatMap[T]( f: (A) => IterableOnce[T]): List[T]
+  def flatmap[T]( f: Tode[T] => Iterable[Tode[T]] ) : Hold[T] =
+  {
+    var node = head
+    val hold = new Hold[T]()
+    var fode = term
+    while( in(node) )
+    {
+      fode = node // f(node)
+      hold.add( new Tode[T](node) )
+      node = node.next
+    }
+    hold
+  }
+   */
+}
+
+object Tree
+{
+  def term[D]:Tode[D] = new Tode[D]( null.asInstanceOf[Nothing] )
+  val maxLevel : Int = 12
+
+  def test() : Unit =
+  {
+    val tree = new Tree[String]("0")
+    var node = tree.term
+    node = tree.add("1")
+    tree.add( node, "1.1" )
+    tree.add( node, "1.2" )
+    tree.add( node, "1.3" )
+    node = tree.add("2")
+    tree.add( node, "2.1" )
+    tree.add( node, "2.2" )
+    tree.add( node, "2.3" )
+    node = tree.add("3")
+    tree.add( node, "3.1" )
+    tree.add( node, "3.2" )
+    tree.add( node, "3.3" )
+   // tree.gen
+
+
+  }
+}
+
+
+/*
   def nextRecurse( node:Tode[T] ) : Tode[T] =
   {
     if(     !in( node        ) )  term
@@ -408,81 +412,36 @@ class Tree[T]( _id:Long ) //extends Sync
     else                          term
   }
 
+  def prepost2( top:Tode[T] )( pre: Tode[T] => Unit )( post: Tode[T] => Unit ) : Unit =
+  {
+    pre(  top )
+    recurse2( top )( pre )( post )
+    post( top )
+  }
+
+  // ... save open
+def save( persist:Persist ) : Unit =
+{
+   persist.put( this )
+   for( node <- this )     // Will new prePost for Xml
+      persist.put( node )
 }
 
-object Tree
+def open( persist:Persist ) : Unit =
 {
-   val maxLevel : Int = 12
+   var stack : Array[Tode[T]] = new Array[Tode[T]](Tree.maxLevel)
+   stack(0) = root
 
-   def test() : Unit =
+   var list : List = persist.query( root.getClass, tid )
+   var iter = list.iterator
+   var node : Tode[T]   = term
+   while( iter.hasNext )
    {
-     val tree = new Tree[String]
-     var node = tree.term
-     node = tree.add("1")
-      tree.add( node, "1.1" )
-      tree.add( node, "1.2" )
-      tree.add( node, "1.3" )
-     node = tree.add("2")
-      tree.add( node, "2.1" )
-      tree.add( node, "2.2" )
-      tree.add( node, "2.3" )
-     node = tree.add("3")
-      tree.add( node, "3.1" )
-      tree.add( node, "3.2" )
-      tree.add( node, "3.3" )
-   // tree.gen
-
-   //val db = new meta.data.Db4D("tree.db4o" )
-
-    //tree.save( db )
-
-      val told = new Tree[String]( tree.tid )
-    //told.open( db )
-      told.gen()
-
+      node = To.to[Tode[T]](iter.next)
+      node.init
+      add( stack(node.level-1), node )
+      stack(node.level) = node
    }
 }
-
-// ... for comprehensions ...
-/*
-  def filter( f: Tode[T] => Boolean ): Hold =
-  {
-    var node = head
-    var hold = new Hold()
-    while( in(node) )
-    {
-      if( f(node) )
-        hold.add( new Tode[T](node) )
-      node = node.next
-    }
-    return hold
-  }
-
-  def map( f: Tode[T] => Tode[T] )  : Hold =
-  {
-    var node = head
-    var hold = new Hold()
-    var fode = term
-    while( in(node) )
-    {
-      fode = f(node)
-      hold.add( new Tode[T](fode) )
-      node = node.next
-    }
-    return hold
-  }
-
-  def flatmap( f: Tode[T] => Iterable[Tode[T]] ) : Hold =
-  {
-    var node = head
-    var hold = new Hold()
-    var fode = term
-    while( in(node) )
-    {
-      fode = node // f(node)
-      hold.add( new Tode[T](node) )
-      node = node.next
-    }
-    return hold
-  }
 */
+

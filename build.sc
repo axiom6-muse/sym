@@ -20,13 +20,3 @@ object ax2 extends ScalaModule {
   override def ivyDeps = Agg(
     ivy"io.d11::zhttp:1.0.0.0-RC17" )
 }
-
-/*
-  override def sources = T.sources(
-    millSourcePath / "src",
-    / "/Users/ax/Documents/prj/scala/sym/ax6/src"
-  )
-
-    ivy"io.d11::zhttp:1.0.0.0-RC17",
-    ivy"io.d11::zhttp-test:1.0.0.0-RC17") //  % Test
- */
