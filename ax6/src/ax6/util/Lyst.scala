@@ -1,63 +1,57 @@
 
 package ax6.util
 
-import scala.collection._ //WithFilter
+//import scala.collection._
 
-// ------------------------------- Hode[T] -------------------------------------
 
-class Hode[D]( dataa:D )
+// ------------------------------- Lode[T] -------------------------------------
+
+class Lode[D]( dataa:D )
 {
-  type N       = Hode[D]
+  type N       = Lode[D]
   var data : D = dataa
+  def term            : Lode[D] = Lyst.term[D]
+  @transient var prev : Lode[D] = term
+  @transient var next : Lode[D] = term
 
-  def term            : Hode[D] = Mist.term[D]
-  @transient var prev : Hode[D] = term
-  @transient var next : Hode[D] = term
-
-  def copy() : Hode[D]  = new Hode[D](data)
+  def copy() : Lode[D]  = new Lode[D](data)
   def init(): Unit = { prev = term; next = term }
   override def toString  : String  = data.toString
 }
 
-private class HoldIter[D]( nodea:Hode[D] ) extends Iterator[D]
+private class LystIter[D]( nodea:Lode[D] ) extends Iterator[D]
 {
-  var node:Hode[D] = nodea
+  var node:Lode[D] = nodea
   override def hasNext: Boolean = node!=null && node!=node.term && node.next!=node.term
   override def next() : D = { val data = node.data; node = node.next; data }
 }
 
-// ---------------------------- object Mist[D] ---------------------------------
+// ---------------------------- object Lyst[D] ---------------------------------
 
-object Mist
+object Lyst
 {
-  def term[D]:Hode[D] = new Hode[D]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to D
-  def apply[D](                 ) : Mist[D] = new Mist[D]()
-  def apply[D]( seq:Seq[D]      ) : Mist[D] = { val mist = Mist[D](); for(t <- seq   ) { mist.add(t) }; mist }
-  def apply[D]( array:Array[D]  ) : Mist[D] = { val mist = Mist[D](); for(t <- array ) { mist.add(t) }; mist }
-  def apply[D]( dat:D           ) : Mist[D] = { val mist = Mist[D]();                    mist.add(dat); mist }
+  def term[D]:Lode[D] = new Lode[D]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to D
+  def apply[D](                 ) : Lyst[D] = new Lyst[D]()
+  def apply[D]( seq:Seq[D]      ) : Lyst[D] = { val mist = Lyst[D](); for(t <- seq   ) { mist.add(t) }; mist }
+  def apply[D]( array:Array[D]  ) : Lyst[D] = { val mist = Lyst[D](); for(t <- array ) { mist.add(t) }; mist }
   def unapplySeq[D]( seq:Seq[D] ) : Option[Seq[D]] = Option(seq)
 }
 
-// ----------------------------- class Mist[D] ---------------------------------
+// ----------------------------- class Lyst[D] ---------------------------------
 
-class Mist[D]() // extends WithFilter[D,Mist[D]]
+class Lyst[D]() // extends WithFilter[D,Lyst[D]]
 {
-//type N = Hode[D]      // Does not work as in the past. Researching an explantion
   var size : Int   = 0
-
-  @transient val ring:Hode[D] = new Hode[D](null.asInstanceOf[D])
+  @transient val ring:Lode[D] = Lyst.term // new Lode[D](null.asInstanceOf[D])
   ring.prev    = ring
   ring.next    = ring
 
-  @transient val term:Hode[D] = Mist.term[D]
+  @transient val term:Lode[D] = Lyst.term[D]
+  def head : Lode[D] = ring.next
+  def tail : Lode[D] = ring.prev
 
-
-
-  def head : Hode[D] = ring.next
-  def tail : Hode[D] = ring.prev
-
-  def in( node:Hode[D])  : Boolean = node!=null && node!=ring && node!=term //
-  def in( idx:Int )        : Boolean = 0 <= idx && idx < size
+  def in( node:Lode[D])  : Boolean = node!=null && node!=ring && node!=term //
+  def in( idx:Int )      : Boolean = 0 <= idx && idx < size
 
 // ... Seq ...
 
@@ -71,20 +65,20 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
   private def dec(): Unit = { size -= 1 }
 
   // Add to list only if data is unique
-  def put( data:D ) : Hode[D] =
+  def put( data:D ) : Lode[D] =
   {
-    val node:Hode[D] = find(data)
+    val node:Lode[D] = find(data)
     if(in(node)) node else add(data)
   }
   
 // ........ Heap ........
 
-// def put(   key:K, data:D ) : Hode[D]= add(data)
-  def upd(     node:Hode[D], data:D ) : Hode[D] = { node.data = data; node }
-  def update(  node:Hode[D], data:D ) : Unit    = { node.data = data       }
-// def key(  node:Hode[D],  key:K ) : Hode[D]= node
-// def del(  node:Hode[D] )         : Hode[D]// Delete data and key from a location
-// def node(  key:K )         : Hode[D]= // node(i) 
+// def put(   key:K, data:D ) : Lode[D]= add(data)
+  def upd(     node:Lode[D], data:D ) : Lode[D] = { node.data = data; node }
+  def update(  node:Lode[D], data:D ) : Unit    = { node.data = data       }
+// def key(  node:Lode[D],  key:K ) : Lode[D]= node
+// def del(  node:Lode[D] )         : Lode[D]// Delete data and key from a location
+// def node(  key:K )         : Lode[D]= // node(i) 
 // def find(  key:K )         : D = // find(To.ID)
 
   def peekHead : D = head.data // findMin
@@ -92,7 +86,7 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
    
   def popHead : D =  // deleteMin
   {
-    var node : Hode[D]= term
+    var node : Lode[D]= term
     if( !isEmpty )
       { node = head; del(head) }
     node.data
@@ -100,7 +94,7 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
 
   def popTail : D =  // deleteMax
   {
-      var node : Hode[D]= term
+      var node : Lode[D]= term
       if( !isEmpty )
           { node = tail; del(tail) }
       node.data
@@ -121,12 +115,12 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
  
  // .......................................
 
-  def create( data:D )  : Hode[D]   = new Hode[D](  data )
+  def create( data:D )  : Lode[D]   = new Lode[D](  data )
   def +=(     data:D )  : Unit = { add(data) }
-  def add(    data:D )  : Hode[D]   = add( create(data) )
-  def add( seq:Seq[D] ) : Hode[D]   = { for( data <- seq ) add(data); tail }
+  def add(    data:D )  : Lode[D]   = add( create(data) )
+  def add( seq:Seq[D] ) : Lode[D]   = { for( data <- seq ) add(data); tail }
 
-  private def add( node:Hode[D] ) : Hode[D]=
+  private def add( node:Lode[D] ) : Lode[D]=
   {
     if( !in(node) )
       { Log.error( "node not in", node.toString ); return term }
@@ -149,9 +143,9 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     node
   }
 
-  def ins( data:D ) : Hode[D]= ins( create(data) )
+  def ins( data:D ) : Lode[D]= ins( create(data) )
 
-  private def ins( node:Hode[D] ) : Hode[D] =
+  private def ins( node:Lode[D] ) : Lode[D] =
   {
     if( !in(node) )
       return term
@@ -169,9 +163,9 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     node
  }
 
-  def add( pred:Hode[D], data:D ) : Hode[D]= add( pred, create(data) )
+  def add( pred:Lode[D], data:D ) : Lode[D]= add( pred, create(data) )
 
-  private def add( pred:Hode[D], node:Hode[D] ) : Hode[D]=
+  private def add( pred:Lode[D], node:Lode[D] ) : Lode[D]=
   {
     if( !in(pred) || !in(node) )
       return term
@@ -184,9 +178,9 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     node
   }
 
-  def ins( succ:Hode[D], data:D ) : Hode[D]= ins( succ, create(data) )
+  def ins( succ:Lode[D], data:D ) : Lode[D]= ins( succ, create(data) )
 
-  private def ins( succ:Hode[D], node:Hode[D] ) : Hode[D]=
+  private def ins( succ:Lode[D], node:Lode[D] ) : Lode[D]=
   {
     if( !in(succ) || !in(node) )
       return term
@@ -199,9 +193,9 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     node
   }
 
-  def del( data:D ) : Hode[D]= del( find(data)   )
+  def del( data:D ) : Lode[D]= del( find(data)   )
 
-  def del( node:Hode[D] ) : Hode[D]=
+  def del( node:Lode[D] ) : Lode[D]=
   {
     if( !in(node) )
       return term
@@ -216,19 +210,19 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
   }
 
 // ... find ...
-  def find( data:D ) : Hode[D] =
+  def find( data:D ) : Lode[D] =
   {
     var node = head
     while( in(node) )
     {
-      if( node.data.equals(data) )
+      if( node.data == data )
         return node
       node = node.next
     }
     term
   }
 
-  def compare( cmp:Hode[D]=>Boolean ) : Hode[D] =
+  def compare( cmp:Lode[D]=>Boolean ) : Lode[D] =
   {
     var node = head
     while( in(node) )
@@ -240,7 +234,7 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     term
   }
 
-  def node( idx:Int ) : Hode[D]=
+  def node( idx:Int ) : Lode[D]=
   {
     if( in(idx) )
     {
@@ -258,7 +252,7 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     term
   }
 
-  def index( _node:Hode[D] ) : Int =
+  def index( _node:Lode[D] ) : Int =
   {
     var i = 0
     var node = head
@@ -269,41 +263,38 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
       i += 1
       node = node.next
     }
-    Log.trace( 6, "index not found for node", _node.toString )
     -1
   }
 
   def has( data:D ) : Boolean = in(find(data))
 
-// ... stack ...
 
-  def pushHead( node:Hode[D] ) : Unit = { ins(node) }
-  def pushHead( data:D )       : Unit = { ins(data) }
-  def pushTail( node:Hode[D] ) : Unit = { add(node) }
-  def pushTail( data:D )       : Unit = { add(data) }
 
   // ... for comprehensions ...
+  // foreach map flatMap withFilter
 
-  // forNode calls func on each node
-  def forNode( func:Hode[D] => Unit ): Unit = {
-     var node = head
-     while( in(node) )
-       { func(node); node = node.next }
-  }
-
-  // foreach calls func on each node data
   def foreach( func:D => Unit ): Unit = {
     var node = head
     while( in(node) )
       { func(node.data); node = node.next }
   }
 
-  // Create new List by calling pred p on each List element
-  // and then if pred is true places the result in a new list
-  def filter( pred:D => Boolean ): Mist[D] =
+  def map[B]( func:D => B )  : Lyst[B] =
+  {
+    var node : Lode[D]= head
+    val lyst : Lyst[B] = new Lyst[B]()
+    while( in(node) )
+    {
+      lyst.add( func(node.data) )
+      node = node.next
+    }
+    lyst
+  }
+
+  def filter( pred:D => Boolean ): Lyst[D] =
   {
     var node = head
-    val hold = new Mist[D]()
+    val hold = new Lyst[D]()
     while( in(node) )
     {
       if( pred(node.data) )
@@ -313,41 +304,12 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
     hold
   }
 
-  // def withFilter( p:    (A) => Boolean): WithFilter[A, [_]ListBuffer[_]]
+  def flatMap[B]( func:D => B )        : Lyst[B] = map( func )
+  def withFfilter( pred:D => Boolean ) : Lyst[D] = filter( pred )
 
-  // def withFilter( pred: (D) => Boolean ): WithFilter[D, [_]Mist[_]]
-
-  //def withFilter(p: D => Boolean): scala.collection.WithFilter[D, Mist[D]] = new IterableOps.WithFilter(this, p)
-
-// Create new List by calling func on each List element
-// and then place the result in a new List
-  def map[B]( func:D => B )  : Mist[B] =
-  {
-    var node : Hode[D]= head
-    val sold : Mist[B] = new Mist[B]()
-    while( in(node) )
-    {
-      sold.add( func(node.data) )
-      node = node.next
-    }
-    sold
-  }
-
-// flatmap flattens List of Lists by creating a new List and then
-// calls func the map the element.
-// This method hard to Interpret so have to consider its implementation
-/*
-  def flatMap[B]( func:(D) => Iterable[B] )  : Mist[B] =
-  {
-     val sold : Mist[B] = new Mist[B]()
-     val flat = flatMap[B]( data => func(data) )
-     while( flat.hasNext )
-       sold.add( flat.next )
-     sold
-  }
-*/
-
-
+  // def toArray[B>:D] : Array[D] =
+  // def toArray[B >: D](implicit arg0: ClassTag[B]): Array[D] =
+  /*
   def toArray : Array[D] =
   {
     val array = new Array[D](size)
@@ -362,19 +324,7 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
   }
 
   def toList : List[D] = toArray.toList
-
-  def toListPrepend : List[D] =
-  {
-    var list = List[D]()
-    var node = tail
-    while( in(node) )
-    {
-      list = node.data :: list
-      node = node.prev
-    }
-    list
-  }
-
+  */
 
   def log(): Unit = {
     for( data <- this )
@@ -417,6 +367,13 @@ class Mist[D]() // extends WithFilter[D,Mist[D]]
   def text()           : Text = text( Text(100), "", Text.delim, "" )
   def show( tx:Text  ) : Text = { tx.clear(); text(tx) }
 
+  // ... stack ...
+
+  def pushHead( node:Lode[D] ) : Unit = { ins(node) }
+  def pushHead( data:D )       : Unit = { ins(data) }
+  def pushTail( node:Lode[D] ) : Unit = { add(node) }
+  def pushTail( data:D )       : Unit = { add(data) }
+
 }
 
 // An good deque or stack based on the Java ArrayDeque
@@ -444,13 +401,13 @@ class Deque[T]
 }
 
 /*
-  def fwd( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
+  def fwd( beg:Lode[D], f: Lode[D]=> Unit ): Unit = {
     var node = beg
     while( in(node) )
       { f(node); node = node.next }
   }
 
-  def bak( beg:Hode[D], f: Hode[D]=> Unit ): Unit = {
+  def bak( beg:Lode[D], f: Lode[D]=> Unit ): Unit = {
     var node = beg
     while( in(node) )
       { f(node); node = node.prev }
