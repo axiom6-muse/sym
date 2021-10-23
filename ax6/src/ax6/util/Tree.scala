@@ -1,15 +1,13 @@
 
 package ax6.util
-//import  core.util.{ Log, To }
-//import  meta.data.{ Persist, Xml }
-//import  java.util.concurrent.lock()  s.ReentrantLock
-//import  java.util.List
+
+import scala.reflect.ClassTag
 
 // ------------------------------- Tode[T] -------------------------------------
 
-class Tode[T](  _data:T )
+class Tode[T](  _elem:T )
 {
-  var data   : T     = _data
+  var elem   : T     = _elem
   var level  : Int   = 0
   def term : Tode[T] = Tree.term[T]
   @transient var prev   : Tode[T] = term
@@ -22,9 +20,9 @@ class Tode[T](  _data:T )
   def toPrev : Tode[T] = { if( prev  != term ) prev  else parent }
 
 
-  def copy( data:T ) : Tode[T] = new Tode[T](data)
+  def copy( elem:T ) : Tode[T] = new Tode[T](elem)
 
-  override def toString:String = data.toString
+  override def toString:String = elem.toString
 
   def init() : Unit =
     { prev = term; next = term; parent = term; child = term; last = term }
@@ -89,15 +87,15 @@ class Tree[T]( rootData:T )
 
 // ... add ins del ...
 
-  def add( data:T ) : Tode[T] = add( root, new Tode[T](data) )
+  def add( elem:T ) : Tode[T] = add( root, new Tode[T](elem) )
 
 //private def add( child:Tode[T] ) : Tode[T] = add( root, child )
 
-  def add( parn:T, data:T ) : Tode[T] =
-      add( find(parn), data )
+  def add( parn:T, elem:T ) : Tode[T] =
+      add( find(parn), elem )
 
-  def add( parent:Tode[T], data:T ) : Tode[T] =
-      add( parent, new Tode[T](data)  )
+  def add( parent:Tode[T], elem:T ) : Tode[T] =
+      add( parent, new Tode[T](elem)  )
 
   private def add( parent:Tode[T], child:Tode[T] ) : Tode[T] =
   {
@@ -127,11 +125,11 @@ class Tree[T]( rootData:T )
     child
   }
 
-  def ins( data:T        ) : Tode[T] = ins( root, new Tode[T](data) )
+  def ins( elem:T        ) : Tode[T] = ins( root, new Tode[T](elem) )
   def ins( child:Tode[T] ) : Tode[T] = ins( root, child )
 
-  def ins( parent:Tode[T],     data:T ) : Tode[T] =
-      ins( parent, new Tode[T](data)  )
+  def ins( parent:Tode[T],     elem:T ) : Tode[T] =
+      ins( parent, new Tode[T](elem)  )
 
   private def ins( parent:Tode[T], child:Tode[T] ) : Tode[T] =
   {
@@ -155,7 +153,7 @@ class Tree[T]( rootData:T )
 
  }
 
-  def del( data:T       ) : Tode[T] = del( find(data) )
+  def del( elem:T       ) : Tode[T] = del( find(elem) )
 //def del( node:Tode[T] ) : Tode[T] = del() // isSync
   def del(              ) : Tode[T] = del() // isSync
 
@@ -205,10 +203,10 @@ class Tree[T]( rootData:T )
     del( node )
   }
 
-  def find( data:T ) : Tode[T] =
+  def find( elem:T ) : Tode[T] =
   {
     for( node <- this )
-      if( node.data == data )
+      if( node.elem == elem )
         return node
     term
   }
@@ -280,6 +278,34 @@ class Tree[T]( rootData:T )
     }
   }
 
+  def foreachFunc( func:T => Unit ): Unit = {
+    var node = head
+    while( in(node) )
+    { func(node.elem); node = node.next }
+  }
+
+  def foreachIter(func: T => T ) : Unit = // (func: T => B)
+  {
+    var node = head
+    while( in(node) )
+    {
+      node.elem = func(node.elem)
+      recurseFunc( node )( func )
+      node = node.next
+    }
+  }
+
+  def recurseFunc( node:Tode[T] )(func: T => T ) : Unit =  // (func: T => B)
+  {
+    var child = node.child
+    while( in(child) )
+    {
+      child.elem = func(child.elem)
+      recurseFunc( child )( func )
+      child = child.next
+    }
+  }
+
   def depth( top:Tode[T] )( visit: Tode[T] => Unit ) : Unit =
   {
     visit(top)
@@ -312,19 +338,44 @@ class Tree[T]( rootData:T )
   def gen() : Unit =
   {
     for( node <- this )
-       Log.tab( node.level-1, node.data.toString )
+       Log.tab( node.level-1, node.elem.toString )
+  }
+
+
+
+
+
+  // ... for comprehensions ...
+  // foreach map flatMap withFilter
+
+
+
+  def map[B]( func : T => B ) : Tree[B] =
+  {
+    val tree   = new Tree[B](func(root.elem))
+    var parent = tree.root
+    var fode   = Tree.term[B]
+    var node   = root.child
+    while( in(node) )
+    {
+      fode = new Tode[B](func(node.elem))
+      tree.add( parent, fode )
+      parent = fode.parent
+      node   = node.toNext
+    }
+    tree
   }
 
   def filter( isIn:T => Boolean ): Tree[T] =
   {
-    val tree   = new Tree[T](root.data)
+    val tree   = new Tree[T](root.elem)
     var parent = tree.root
     var fode   = term
     var node   = root.child
     while( in(node) )
     {
-      if( isIn(node.data) ) {
-        fode = tree.add( parent, node.data )
+      if( isIn(node.elem) ) {
+        fode = tree.add( parent, node.elem )
       }
       parent = fode.parent
       node   = node.toNext
@@ -332,21 +383,23 @@ class Tree[T]( rootData:T )
     tree
   }
 
-  def map[B]( func : T => B ) : Tree[B] =
+  def flatMap[B]( func:T => B )        : Tree[B] = map( func )
+  def withFfilter( pred:T => Boolean ) : Tree[T] = filter( pred )
+
+  def toArray[B >: T : ClassTag] : Array[B] =
   {
-    val tree   = new Tree[B](func(root.data))
-    var parent = tree.root
-    var fode   = Tree.term[B]
-    var node   = root.child
-    while( in(node) )
-    {
-      fode = new Tode[B](func(node.data))
-      tree.add( parent, fode )
-      parent = fode.parent
-      node   = node.toNext
+    val array = new Array[B](size)
+    var node  = head
+    var i     = 0
+    while( in(node) ) {
+      array(i) = node.elem
+      node     = node.next
+      i = i + 1
     }
-    tree
+    array
   }
+
+  def toList[B >: T : ClassTag] : List[B] = toArray[B].toList
 
   /*
   def flatMap[T]( f: (A) => IterableOnce[T]): List[T]
