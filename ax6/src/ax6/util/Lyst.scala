@@ -11,7 +11,10 @@ class Lode[T]( _elem:T )
   var elem            : T = _elem                          // var elem is mutable
   def term            : Lode[T] = Lyst.term[T]
   @transient var prev : Lode[T] = term
-  @transient var next : Lode[T] = term
+  @transient var nexn : Lode[T] = term
+
+  def next()  : T       = nexn.elem       // If next is term null.asInstanceOf[Nothing] is returned
+  def hasNext : Boolean = nexn != term
 
   def copy() : Lode[T]  = new Lode[T](elem)
   override def toString  : String  = elem.toString
@@ -20,8 +23,8 @@ class Lode[T]( _elem:T )
 private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
 {
   var node:Lode[T] = _node
-  override def hasNext: Boolean = node!=null && node!=node.term && node.next!=node.term
-  override def next() : T = { val elem = node.elem; node = node.next; elem }
+  override def hasNext: Boolean = node!=null && node!=node.term && node.nexn!=node.term
+  override def next() : T = { val elem = node.elem; node = node.nexn; elem }
 }
 
 // ---------------------------- object Lyst[T] ---------------------------------
@@ -43,9 +46,9 @@ class Lyst[T]()
   var size : Int   = 0
   @transient val ring:Lode[T] = term
   ring.prev    = ring
-  ring.next    = ring
+  ring.nexn    = ring
 
-  def head : Lode[T] = ring.next
+  def head : Lode[T] = ring.nexn
   def tail : Lode[T] = ring.prev
 
   def in( node:Lode[T])  : Boolean = node!=term && node!=ring && node!=null //
@@ -67,12 +70,12 @@ class Lyst[T]()
 
   def clear(): Unit = {
     var node = head
-    var next = head
+    var nexn = head
     while( in(node) )
     {
-      next = node.next
+      nexn = node.nexn
       del( node )
-      node = next
+      node = nexn
     }
   }   
  
@@ -91,15 +94,15 @@ class Lyst[T]()
     if( isEmpty )        // Add the first node
     {
       node.prev = ring
-      node.next = ring
+      node.nexn = ring
       ring.prev = node
-      ring.next = node
+      ring.nexn = node
     }
     else // Add node to the tail, ring.prev() is the tail
     {
       node.prev      = ring.prev
-      node.next      = ring
-      ring.prev.next = node
+      node.nexn      = ring
+      ring.prev.nexn = node
       ring.prev      = node
     }
     inc()
@@ -118,9 +121,9 @@ class Lyst[T]()
     else                   // Insert node to the tail
     {
       node.prev      = ring
-      node.next      = ring.next
-      ring.next.prev = node
-      ring.next      = node
+      node.nexn      = ring.nexn
+      ring.nexn.prev = node
+      ring.nexn      = node
       inc()
     }
     node
@@ -134,9 +137,9 @@ class Lyst[T]()
       return term
     
     node.prev      = pred      // Set the node adjacent poInters
-    node.next      = pred.next
-    pred.next.prev = node      // Reset the poInters around the list node
-    pred.next      = node
+    node.nexn      = pred.nexn
+    pred.nexn.prev = node      // Reset the poInters around the list node
+    pred.nexn      = node
     inc()
     node
   }
@@ -149,8 +152,8 @@ class Lyst[T]()
       return term
     
     node.prev      = succ.prev  // Set the node adjacent poInters
-    node.next      = succ
-    succ.prev.next = node       // Reset the poInters around the list node
+    node.nexn      = succ
+    succ.prev.nexn = node       // Reset the poInters around the list node
     succ.prev      = node
     inc()
     node
@@ -163,11 +166,11 @@ class Lyst[T]()
     if( !in(node) )
       return term
     
-    node.prev.next = node.next
-    node.next.prev = node.prev
+    node.prev.nexn = node.nexn
+    node.nexn.prev = node.prev
     dec()
 
-    node.next = term
+    node.nexn = term
     node.prev = term
     node
   }
@@ -180,7 +183,7 @@ class Lyst[T]()
     {
       if( node.elem == elem )
         return node
-      node = node.next
+      node = node.nexn
     }
     term
   }
@@ -196,7 +199,7 @@ class Lyst[T]()
         if( i==idx )
           return node
         i += 1
-        node = node.next
+        node = node.nexn
       }
     }
     term
@@ -211,7 +214,7 @@ class Lyst[T]()
       if( node.elem == elem )
         return i
       i += 1
-      node = node.next
+      node = node.nexn
     }
     -1
   }
@@ -225,7 +228,7 @@ class Lyst[T]()
       if( _node==node )
         return i
       i += 1
-      node = node.next
+      node = node.nexn
     }
     -1
   }
@@ -238,7 +241,7 @@ class Lyst[T]()
   def foreach( func:T => Unit ): Unit = {
     var node = head
     while( in(node) )
-      { func(node.elem); node = node.next }
+      { func(node.elem); node = node.nexn }
   }
 
   def map[B]( func:T => B )  : Lyst[B] =
@@ -248,7 +251,7 @@ class Lyst[T]()
     while( in(node) )
     {
       lyst.add( func(node.elem) )
-      node = node.next
+      node = node.nexn
     }
     lyst
   }
@@ -261,7 +264,7 @@ class Lyst[T]()
     {
       if( pred(node.elem) )
         lyst.add( node.copy() )
-      node = node.next
+      node = node.nexn
     }
     lyst
   }
@@ -276,7 +279,7 @@ class Lyst[T]()
     var i     = 0
     while( in(node) ) {
       array(i) = node.elem
-      node     = node.next
+      node     = node.nexn
       i = i + 1
     }
     array

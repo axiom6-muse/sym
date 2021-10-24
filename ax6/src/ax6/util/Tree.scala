@@ -7,9 +7,9 @@ import scala.reflect.ClassTag
 
 class Tode[T](  _elem:T )
 {
-  var elem   : T     = _elem
-  var level  : Int   = 0
-  def term : Tode[T] = Tree.term[T]
+  var elem             : T       = _elem
+  var level            : Int     = 0
+  def term             : Tode[T] = Tree.term[T]
   @transient var prevn : Tode[T] = term
   @transient var nextn : Tode[T] = term
   @transient var paren : Tode[T] = term
@@ -20,11 +20,6 @@ class Tode[T](  _elem:T )
   def prev() : Tode[T] = { if( prevn != term ) prevn else paren }
   def hasNext: Boolean = next() != term
   def hasPrev: Boolean = prev() != term
-
-  override def toString:String = elem.toString
-
-  def init() : Unit =
-    { prevn = term; nextn = term; paren = term; child = term; lastn = term }
 }
 
 // ------------------------------- Tree[T] -------------------------------------
@@ -170,28 +165,95 @@ class Tree[T]()
   def clear() : Unit =
   {
     var node = root
-    var next = term
     while( in(node) )
     {
-      next = node.next()
+      val next = node.next()
       del( node )
       node = next
     }
   }
 
-  def find( elem:T, top:Tode[T] = root ) : Tode[T] =
+  def find( elem:T ) : Tode[T] =
   {
-    if( top.elem == elem ) return top
-    var next = top.next()
+    if( root.elem == elem ) return root
+    var next = root.child
     while( in(next) ) {
       if( next.elem == elem )  return next
-      next = top.next()
-    }
+      next = next.next() }
     term
   }
 
+  // ... for comprehensions ...
 
-// ... breath traversals ...
+  def foreach[U]( func:T => U ) : Unit =
+  {
+    recurse( root )( func )
+  }
+
+  def recurse[U]( node:Tode[T] )( func:T => U ) : Unit =
+  {
+    func(node.elem)
+    var child = node.child
+    while( in(child) )
+    {
+      recurse(  child )( func )  // Depth first recursion
+      child = child.nextn        // then traverse sibling
+    }
+  }
+
+  def map[U]( func : T => U ) : Tree[U] =
+  {
+    val tree   = Tree[U](func(root.elem))
+    var parent = tree.root
+    var fode   = Tree.term[U]
+    var node   = root.child
+    while( in(node) )
+    {
+      fode = tree.add( parent, func(node.elem) )
+      parent = fode.paren
+      node   = node.next()
+    }
+    tree
+  }
+
+  // Needs testing
+  def filter( isIn:T => Boolean ): Tree[T] =
+  {
+    val tree   = Tree[T](root.elem) // For now we do not filter the root elem
+    var parent = tree.root
+    var fode   = term
+    var node   = root.child
+    while( in(node) )
+    {
+      if( isIn(node.elem) ) {
+        fode = tree.add( parent, node.elem ) }
+      parent = if( in(fode) ) fode.paren else parent
+      node   = node.next()
+    }
+    tree
+  }
+
+  def flatMap[U]( func:T => U )        : Tree[U] =
+    map( func )
+
+  def withFfilter( pred:T => Boolean ) : Tree[T] =
+    filter( pred )
+
+  def toArray[ U >: T : ClassTag ] : Array[U] =
+  {
+    val array = new Array[U](size)
+    var node  = root
+    var i     = 0
+    while( in(node) ) {
+      array(i) = node.elem
+      node     = node.next()
+      i = i + 1 }
+    array
+  }
+
+  def toList[U >: T : ClassTag] : List[U] = toArray[U].toList
+
+  // ... breath traversals ...
 
   def cousin( node:Tode[T] ) : Tode[T] =
   {
@@ -214,7 +276,7 @@ class Tree[T]()
         couson = ancest
         var i  = level(ancest)
         while( i < nlevel && in(couson) )
-          { couson = couson.child; i = i + 1 }
+        { couson = couson.child; i = i + 1 }
         if( in(couson) && level(couson) == nlevel )
           return couson
       }
@@ -228,10 +290,10 @@ class Tree[T]()
     var child = first
     while( in(child) )
     {
-       visit(child)
-       if( !in(grandChild) && in(child.child) )
-          grandChild = child.child
-       child  = cousin(child)
+      visit(child)
+      if( !in(grandChild) && in(child.child) )
+        grandChild = child.child
+      child  = cousin(child)
     }
     grandChild
   }
@@ -244,14 +306,8 @@ class Tree[T]()
       first = cousins( first, visit )
   }
 
-// ... depth traversals ...
+  // ... depth traversals ...
 
-  def depth[U]( top:Tode[T] )( func:T => U ) : Unit =
-  {
-    func(top.elem)
-    recurse( top )( func )
-  }
-  
   def prepost( node:Tode[T] )( pre: Tode[T] => Unit )( post: Tode[T] => Unit ) : Unit =
   {
     var child = node.child
@@ -263,90 +319,7 @@ class Tree[T]()
       child = child.nextn
     }
   }
-  /*
-  def gen() : Unit =
-  {
-    for( node <- this )
-       Log.tab( node.level-1, node.elem.toString )
-  }
-  */
 
-
-
-
-  // ... for comprehensions ...
-
-  def foreach[U]( func:T => U ) : Unit =
-  {
-    var node = head
-    while( in(node) )
-    {
-      func(node.elem)
-      recurse( node )( func )
-      node = node.nextn
-    }
-  }
-
-  def recurse[U]( node:Tode[T] )( func:T => U ) : Unit =
-  {
-    var child = node.child
-    while( in(child) )
-    {
-      func(node.elem)
-      recurse( child )( func )
-      child = child.nextn
-    }
-  }
-
-  def map[U]( func : T => U ) : Tree[U] =
-  {
-    val tree   = Tree[U](func(root.elem))
-    var parent = tree.root
-    var fode   = Tree.term[U]
-    var node   = root.child
-    while( in(node) )
-    {
-      fode = tree.add( parent, func(node.elem) )
-      parent = fode.paren
-      node   = node.next()
-    }
-    tree
-  }
-
-  def filter( isIn:T => Boolean ): Tree[T] =
-  {
-    val tree   = Tree[T](root.elem)
-    var parent = tree.root
-    var fode   = term
-    var node   = root.child
-    while( in(node) )
-    {
-      if( isIn(node.elem) ) {
-        fode = tree.add( parent, node.elem )
-      }
-      parent = fode.paren
-      node   = node.next()
-    }
-    tree
-  }
-
-  def flatMap[U]( func:T => U )        : Tree[U] = map( func )
-  def withFfilter( pred:T => Boolean ) : Tree[T] = filter( pred )
-
-  def toArray[U >: T : ClassTag] : Array[U] =
-  {
-    val array = new Array[U](size)
-    var node  = head
-    var i     = 0
-    while( in(node) ) {
-      array(i) = node.elem
-      node     = node.nextn
-      i = i + 1
-    }
-    array
-  }
-
-  def toList[U >: T : ClassTag] : List[U] = toArray[U].toList
 
 }
 
