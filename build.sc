@@ -11,6 +11,9 @@ object ax6 extends ScalaModule {
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_))) }
   override def ivyDeps = Agg(
     ivy"org.scala-lang.modules::scala-parser-combinators:2.0.0" )
+  object test extends Tests with TestModule.Utest {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.10")
+  }
 }
 
 object ax2 extends ScalaModule {
