@@ -1,7 +1,7 @@
 
 package ax6.math.ext
 
-import  ax6.math.exp._
+import ax6.math.exp._
 
 trait Calculate {
   self:Exp =>
@@ -10,6 +10,11 @@ trait Calculate {
   val NaN : Double = Double.NaN
   val Ee  : Double = Math.E
   val Pi  : Double = Math.PI
+
+  def toAssign( keyvals:String ) : Assign = {
+    keyvals.split(",").map(_.split(":")).map{ case Array(k,v) => (k,v.toDouble) }.toMap }
+
+  def toCalc( keyvals:String ) : String = calc(toAssign(keyvals)).toString
    
   def calc( a:Assign ) : Double = calc(a,this)
     

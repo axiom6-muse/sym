@@ -7,6 +7,12 @@ import  ax6.util.Text
 trait MathML
 {
   self:Exp =>
+
+  def toMathML : String = {
+    val t:Text = new Text(100)
+    mathML( t )
+    t.toStr
+  }
   
   def mathML( t:Text ): Unit = { mathML(t,this) }
   

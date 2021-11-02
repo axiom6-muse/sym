@@ -12,7 +12,7 @@ object ax6 extends ScalaModule {
   override def ivyDeps = Agg(
     ivy"org.scala-lang.modules::scala-parser-combinators:2.0.0" )
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.10")
+    override def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.10")
   }
 }
 
@@ -21,5 +21,6 @@ object ax2 extends ScalaModule {
   override def mainClass:Target[Option[String]] = Option("ax2.zhttp.Hello")
   override def moduleDeps = Seq(ax6)
   override def ivyDeps = Agg(
-    ivy"io.d11::zhttp:1.0.0.0-RC17" )
+    ivy"io.d11::zhttp:1.0.0.0-RC17",
+    ivy"com.lihaoyi::upickle:1.4.0")
 }

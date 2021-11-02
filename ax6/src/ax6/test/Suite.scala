@@ -71,8 +71,8 @@ class Suite //extends Suite
     val exp:Exp = AsciiParse(expect)
     val res:Exp = AsciiParse(result)
     val isEq    = if( exp == res ) "Pass" else "Fail"
-    Test.init( name, expect, exp.toLambda, "Pass" )
-    Test.test( name, result, res.toLambda,  isEq  )
+    Test.init( name, expect, exp.toAst, "Pass" )
+    Test.test( name, result, res.toAst,  isEq  )
   }
 
   def sim( name:String, enter:String, expect:String ): Unit = {
@@ -82,10 +82,10 @@ class Suite //extends Suite
     Test.test( name, enter, exp.toAscii ) // exp.toLambda )
   }  
 
-  def lam( name:String, enter:String, expect:String ): Unit = {
+  def ast( name:String, enter:String, expect:String ): Unit = {
     val exp:Exp = AsciiParse(enter)
     Test.init( name, enter,       expect )
-    Test.test( name, exp.toAscii, exp.toLambda )
+    Test.test( name, exp.toAscii, exp.toAst )
   }  
   
   def itg( name:String, enter:String, expect:String ): Unit = {
@@ -107,12 +107,12 @@ class Suite //extends Suite
   }
 
   def testDbg(): Unit = {
-    lam( "pow.a", "(x+y)^3",         "Pow(Add(Var(x),Var(y)),Num(3))" )
-    lam( "add.a", "x+x+7+y",         "Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))"   )
-    lam( "add.b", "x+x-7+y",         "Add(Add(Var(x),Sub(Var(x),Num(7))),Var(y))" )
-    lam( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Add(Var(x),Var(y)),Var(z)),Add(Add(Var(x),Var(y)),Var(z)))" )
-    lam( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Mul(Var(x),Var(y)),Var(z))),Par(Mul(Mul(Var(x),Var(y)),Var(z))))" )
-    lam( "sub.a", "x-x-7-z",         "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
+    ast( "pow.a", "(x+y)^3",         "Pow(Add(Var(x),Var(y)),Num(3))" )
+    ast( "add.a", "x+x+7+y",         "Add(Add(Add(Var(x),Var(x)),Num(7)),Var(y))"   )
+    ast( "add.b", "x+x-7+y",         "Add(Add(Var(x),Sub(Var(x),Num(7))),Var(y))" )
+    ast( "add.c", "(x+y+z)*(x+y+z)", "Mul(Add(Add(Var(x),Var(y)),Var(z)),Add(Add(Var(x),Var(y)),Var(z)))" )
+    ast( "mul.b", "(x*y*z)*(x*y*z)", "Mul(Par(Mul(Mul(Var(x),Var(y)),Var(z))),Par(Mul(Mul(Var(x),Var(y)),Var(z))))" )
+    ast( "sub.a", "x-x-7-z",         "Sub(Sub(Sub(Var(x),Var(x)),Num(7)),Var(z))"   )  // x-x-7-z
   }
 
   def testCal(): Unit = {
@@ -127,9 +127,9 @@ class Suite //extends Suite
    }
  
    def testCex(): Unit = {
-     lam( "cex.a", "[a,b.i]",       "Cex(Var(a),Var(b))" )
-     lam( "cex.b", "[a+b,(c+d).i]", "Cex(Adds(Var(a),Var(b)),Par(Adds(Var(c),Var(d))))" )
-     lam( "cex.c", "i*a*i", "Mul(Mul(Var(i),Var(a)),Var(i))" )
+     ast( "cex.a", "[a,b.i]",       "Cex(Var(a),Var(b))" )
+     ast( "cex.b", "[a+b,(c+d).i]", "Cex(Adds(Var(a),Var(b)),Par(Adds(Var(c),Var(d))))" )
+     ast( "cex.c", "i*a*i", "Mul(Mul(Var(i),Var(a)),Var(i))" )
    }
    
    def testVex(): Unit = {
@@ -202,20 +202,20 @@ class Suite //extends Suite
     // -------------- Root ------------------" )
     pars( "root..a", "root_3(x)", "root_3(x+2)", "sqrt(x+2)" ) // "sqrt_3(x+2)" "sqrt[3](x+2)" 
     
-    lam( "Lam.sin.a", "sin(x)", "Sin(Var(x))" )
+    ast( "Lam.sin.a", "sin(x)", "Sin(Var(x))" )
     
   } 
 
   def testEee(): Unit = {
-    lam(  "eee.a", "e^x", "Eee(Var(x))")
-    lam(  "eee.b", "e^(x+2)", "Eee(Add(Var(x),Num(2)))")
-    lam(  "eee.c", "e", "Var(e)")
-    lam(  "eee.d", "ln(e)",   "Lnn(Var(e))")
-    lam(  "eee.e", "ln(e^1)", "Lnn(Eee(Num(1)))")
-    lam(  "eee.f", "e*x", "Mul(Var(e),Var(x))" )
-    lam(  "eee.g", "a-e", "Sub(Var(a),Var(e))" )
-    lam(  "eee.h", "e^e^x", "Eee(Eee(Var(x)))" )
-    lam(  "eee.i", "d+e", "Add(Var(d),Var(e))")
+    ast(  "eee.a", "e^x", "Eee(Var(x))")
+    ast(  "eee.b", "e^(x+2)", "Eee(Add(Var(x),Num(2)))")
+    ast(  "eee.c", "e", "Var(e)")
+    ast(  "eee.d", "ln(e)",   "Lnn(Var(e))")
+    ast(  "eee.e", "ln(e^1)", "Lnn(Eee(Num(1)))")
+    ast(  "eee.f", "e*x", "Mul(Var(e),Var(x))" )
+    ast(  "eee.g", "a-e", "Sub(Var(a),Var(e))" )
+    ast(  "eee.h", "e^e^x", "Eee(Eee(Var(x)))" )
+    ast(  "eee.i", "d+e", "Add(Var(d),Var(e))")
    }
   
    def testDif(): Unit = {
@@ -227,11 +227,11 @@ class Suite //extends Suite
      dif( "dif.e", "arcsin(x)+arccos(x)+arctan(x)", "dx/(1+x^2)" )
      dns( "dif.f", "arccsc(x)+arcsec(x)+arccot(x)", "-dx/(x*sqrt(x^2-1))+dx/(x*sqrt(x^2-1))-dx/(1+x^2)" )
 
-     lam( "dx.a",     "dx", "Dif(Var(x))" ) 
-     lam( "Var(d).a", "d",  "Var(d)" ) 
-     lam( "d(u).a",   "d(x+y^2)", "Dif(Add(Var(x),Pow(Var(y),Num(2))))" )    
+     ast( "dx.a",     "dx", "Dif(Var(x))" ) 
+     ast( "Var(d).a", "d",  "Var(d)" ) 
+     ast( "d(u).a",   "d(x+y^2)", "Dif(Add(Var(x),Pow(Var(y),Num(2))))" )    
      par( "dif.h",    "z^4*y^3*2*x*dx+z^4*x^2*3*y^2*dy+x^2*y^3*4*z^3*dz" )    
-     lam( "dif.i",    "y*dx+x*dy", "Add(Mul(Var(y),Dif(Var(x))),Mul(Var(x),Dif(Var(y))))" ) 
+     ast( "dif.i",    "y*dx+x*dy", "Add(Mul(Var(y),Dif(Var(x))),Mul(Var(x),Dif(Var(y))))" ) 
  
    }
  
@@ -248,14 +248,14 @@ class Suite //extends Suite
      par(  "exp.a", "x^2+y^3*z^(a+4)" )  
      par(  "Lnn.a",  "ln(x)" )
      
-     lam(  "Lnn.c",  "ln(x)", "Lnn(Var(x))" )     
+     ast(  "Lnn.c",  "ln(x)", "Lnn(Var(x))" )     
      par(  "Fun.a",  "sin(x)" )
      pars( "Fun.b",  "sin(x)", "cos(x)", "tan(x)", "cot(x)", "sec(x)", "csc(x)")          
-     lam(  "Log.a",  "log_10(x)", "Log(Var(x),Dbl(10.0))" )  // x*3-y^2
-     lam(  "Root.a", "root_10(y)", "Roo(Var(y),Dbl(10.0))" )  // (y^5-z+1)       
-     lam(  "Eee.a",  "e^x", "Eee(Var(x))" )      
-     lam(  "Abs.a",  "|x-y|", "Abs(Sub(Var(x),Var(y)))" )      
-     lam(  "Neg.a",  "-(x-y)", "Neg(Sub(Var(x),Var(y)))" )
+     ast(  "Log.a",  "log_10(x)", "Log(Var(x),Dbl(10.0))" )  // x*3-y^2
+     ast(  "Root.a", "root_10(y)", "Roo(Var(y),Dbl(10.0))" )  // (y^5-z+1)       
+     ast(  "Eee.a",  "e^x", "Eee(Var(x))" )      
+     ast(  "Abs.a",  "|x-y|", "Abs(Sub(Var(x),Var(y)))" )      
+     ast(  "Neg.a",  "-(x-y)", "Neg(Sub(Var(x),Var(y)))" )
      par(  "Big.a",  "[a^3,b*i]+sin(x^2)*sqrt(y)-20*ln(z)" )
    }
   
@@ -269,10 +269,10 @@ class Suite //extends Suite
   }
   
   def testEqu(): Unit = {
-    lam( "Equ.a", "a+b=c+f", "Equ(Add(Var(a),Var(b)),Add(Var(c),Var(f)))" )
+    ast( "Equ.a", "a+b=c+f", "Equ(Add(Var(a),Var(b)),Add(Var(c),Var(f)))" )
     par( "Equ.b", "(x^2)=3*x" )    
-    lam( "Equ.c", "tan(x)=sin(x)/cos(x)", "Equ(Tan(Var(x)),Div(Sin(Var(x)),Cos(Var(x))))" )
-    lam( "Equ.d", "cot(x)=cos(x)/sin(x)", "Equ(Cot(Var(x)),Div(Cos(Var(x)),Sin(Var(x))))" )       
+    ast( "Equ.c", "tan(x)=sin(x)/cos(x)", "Equ(Tan(Var(x)),Div(Sin(Var(x)),Cos(Var(x))))" )
+    ast( "Equ.d", "cot(x)=cos(x)/sin(x)", "Equ(Cot(Var(x)),Div(Cos(Var(x)),Sin(Var(x))))" )       
     par( "Equ.e", "sin(x^2)=[a^3,b*i]" )
     par( "Equ.f", "sin(x^2)=[[a^3,b*i][x,y]]" )  
   }
@@ -318,8 +318,8 @@ class Suite //extends Suite
   
 // Right now subscript and superscript are a problem with stack overflows  
    def testSus(): Unit = {
-     lam(  "sus.a", "x_1", "Sus(Var(x),Num(1))" )
-     lam(  "sus.b", "x_y", "Sus(Var(x),Var(y))" )
+     ast(  "sus.a", "x_1", "Sus(Var(x),Num(1))" )
+     ast(  "sus.b", "x_y", "Sus(Var(x),Var(y))" )
    }
      
  

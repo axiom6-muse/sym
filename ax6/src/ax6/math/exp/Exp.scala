@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 
 abstract class Exp extends Ascii
-  with Lambda    with MathML        with Latex
+  with Ast    with MathML        with Latex
   with Calculate with Differentiate with Integrate with Precedence with Simplify
 {
   type dbl = Double

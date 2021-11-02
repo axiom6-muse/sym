@@ -8,6 +8,12 @@ import  ax6.util.Text
 trait Latex
 {
   self:Exp =>
+
+  def toLatex : String = {
+    val t:Text = new Text(100)
+    latex( t )
+    t.toStr
+  }
      
   def latex(  t:Text ): Unit = {  latex(t,this) }
 
