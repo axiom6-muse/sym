@@ -1,6 +1,7 @@
 
 package ax6.util
 
+//import scala.collection.compat.IterableOnce
 import scala.reflect.ClassTag
 
 
@@ -33,8 +34,9 @@ object Lyst
 {
   def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to T
   def apply[T](                 ) : Lyst[T] = new Lyst[T]()
-  def apply[T]( seq:Seq[T]      ) : Lyst[T] = { val lyst = Lyst[T](); for(t <- seq   ) { lyst.add(t) }; lyst }
-  def apply[T]( array:Array[T]  ) : Lyst[T] = { val lyst = Lyst[T](); for(t <- array ) { lyst.add(t) }; lyst }
+  def apply[T]( seq:Seq[T]      ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- seq   ) { lyst.add(t) }; lyst }
+  def apply[T]( lysa:Lyst[T]    ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- lysa  ) { lyst.add(t) }; lyst }
+  def apply[T]( array:Array[T]  ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- array ) { lyst.add(t) }; lyst }
   def unapplySeq[T]( seq:Seq[T] ) : Option[Seq[T]] = Option(seq)
 }
 
@@ -269,7 +271,40 @@ class Lyst[T]()
     lyst
   }
 
-  def flatMap[B]( func:T => B )        : Lyst[B] = map( func )
+  /*
+  def flatten[U]( implicit toIterableOnce: T => IterableOnce[U]): Lyst[U] = {
+    var node  = head
+    val lystU = new Lyst[U]()
+    while( in(node) ) {
+      node.elem match  {
+        case elem:T        => lystU.add(func(elem))
+        case seqT:Seq[T]     => for( elem <- seqT   ) lystU.add(elem)
+        case lystT:List[T]   => for( elem <- lystT  ) lystU.add(elem)
+        case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(elem)
+      }
+      node = node.nexn
+    }
+    lystU
+  }
+  */
+
+  //def flatMap[U]( func: T => IterableOnce[U] ) : Lyst[U] = {
+  /*
+  def flatMap[U]( func: T => U ) : Lyst[U] = {
+    var node = head
+    val lystU = new Lyst[U]()
+    while( in(node) ) {
+      node.elem match  {
+        case elem:T          => lystU.add(func(elem))
+        case seqT:Seq[T]     => for( elem <- seqT   ) lystU.add(func(elem))
+        case lystT:List[T]   => for( elem <- lystT  ) lystU.add(func(elem))
+        case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(func(elem))
+      }
+      node = node.nexn
+    }
+    lystU
+  }
+  */
   def withFfilter( pred:T => Boolean ) : Lyst[T] = filter( pred )
 
   def toArray[B >: T : ClassTag] : Array[B] =

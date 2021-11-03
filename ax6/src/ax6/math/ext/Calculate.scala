@@ -12,7 +12,7 @@ trait Calculate {
   val Pi  : Double = Math.PI
 
   def toAssign( keyvals:String ) : Assign = {
-    keyvals.split(",").map(_.split(":")).map{ case Array(k,v) => (k,v.toDouble) }.toMap }
+    keyvals.split(",").map(_.split("=")).map{ case Array(k,v) => (k,v.toDouble) }.toMap }
 
   def toCalc( keyvals:String ) : String = calc(toAssign(keyvals)).toString
    
