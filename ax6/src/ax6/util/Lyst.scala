@@ -10,29 +10,37 @@ import scala.reflect.ClassTag
 class Lode[T]( _elem:T )
 {
   var elem            : T = _elem                          // var elem is mutable
-  def term            : Lode[T] = Lyst.term[T]
+  def term            : Lode[T] = Lode.term
   @transient var prev : Lode[T] = term
   @transient var nexn : Lode[T] = term
 
   def next()  : T       = nexn.elem       // If next is term null.asInstanceOf[Nothing] is returned
+
   def hasNext : Boolean = nexn != term
 
   def copy() : Lode[T]  = new Lode[T](elem)
   override def toString  : String  = elem.toString
 }
 
+object Lode
+{
+  def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] )
+//val verm[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] )
+}
+
 private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
 {
   var node:Lode[T] = _node
-  override def hasNext: Boolean = node!=null && node!=node.term && node.nexn!=node.term
-  override def next() : T = { val elem = node.elem; node = node.nexn; elem }
+  def term             : Lode[T] = Lode.term
+  override def hasNext : Boolean = node!=null && node!=term && node.nexn!=term
+  override def next()  : T = { val elem = node.elem; node = node.nexn; elem }
 }
 
 // ---------------------------- object Lyst[T] ---------------------------------
 
 object Lyst
 {
-  def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to T
+  //def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to T
   def apply[T](                 ) : Lyst[T] = new Lyst[T]()
   def apply[T]( seq:Seq[T]      ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- seq   ) { lyst.add(t) }; lyst }
   def apply[T]( lysa:Lyst[T]    ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- lysa  ) { lyst.add(t) }; lyst }
@@ -42,11 +50,13 @@ object Lyst
 
 // ----------------------------- class Lyst[T] ---------------------------------
 
+
+
 class Lyst[T]()
 {
-  @transient val term:Lode[T] = Lyst.term[T]
+  def term:Lode[T] = Lode.term
   var size : Int   = 0
-  @transient val ring:Lode[T] = term
+  @transient val ring:Lode[T] = Lode.term
   ring.prev    = ring
   ring.nexn    = ring
 
