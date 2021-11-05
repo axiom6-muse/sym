@@ -3,44 +3,34 @@ package ax6.util
 
 //import scala.collection.compat.IterableOnce
 import scala.reflect.ClassTag
+//import scala.reflect.ClassTag.Nothing
 
 
 // ------------------------------- Lode[T] -------------------------------------
 
 class Lode[T]( _elem:T )
 {
-  var elem            : T = _elem                          // var elem is mutable
+
   def term            : Lode[T] = Lode.term
+  var elem            : T = _elem               // var elem is mutable
   @transient var prev : Lode[T] = term
   @transient var nexn : Lode[T] = term
 
-  def next()  : T       = nexn.elem       // If next is term null.asInstanceOf[Nothing] is returned
-
+  def next()  : T       = nexn.elem
   def hasNext : Boolean = nexn != term
-
-  def copy() : Lode[T]  = new Lode[T](elem)
-  override def toString  : String  = elem.toString
 }
 
 object Lode
 {
-  def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] )
-//val verm[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] )
-}
-
-private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
-{
-  var node:Lode[T] = _node
-  def term             : Lode[T] = Lode.term
-  override def hasNext : Boolean = node!=null && node!=term && node.nexn!=term
-  override def next()  : T = { val elem = node.elem; node = node.nexn; elem }
+  val verm    : Lode[Nothing] = new Lode[Nothing]( null.asInstanceOf[Nothing] )
+  def term[T] : Lode[T] = null
+  def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
 }
 
 // ---------------------------- object Lyst[T] ---------------------------------
 
 object Lyst
 {
-  //def term[T]:Lode[T] = new Lode[T]( null.asInstanceOf[Nothing] ) // [Nothing] terminator cast to T
   def apply[T](                 ) : Lyst[T] = new Lyst[T]()
   def apply[T]( seq:Seq[T]      ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- seq   ) { lyst.add(t) }; lyst }
   def apply[T]( lysa:Lyst[T]    ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- lysa  ) { lyst.add(t) }; lyst }
@@ -50,20 +40,18 @@ object Lyst
 
 // ----------------------------- class Lyst[T] ---------------------------------
 
-
-
 class Lyst[T]()
 {
   def term:Lode[T] = Lode.term
   var size : Int   = 0
-  @transient val ring:Lode[T] = Lode.term
+  @transient val ring:Lode[T] = term
   ring.prev    = ring
   ring.nexn    = ring
 
   def head : Lode[T] = ring.nexn
   def tail : Lode[T] = ring.prev
 
-  def in( node:Lode[T])  : Boolean = node!=term && node!=ring && node!=null //
+  def in( node:Lode[T])  : Boolean = node!=term && node!=ring  //
   def in( index:Int )    : Boolean = 0 <= index && index < size
 
 // ... add ins del ...
@@ -275,7 +263,7 @@ class Lyst[T]()
     while( in(node) )
     {
       if( pred(node.elem) )
-        lyst.add( node.copy() )
+        lyst.add( Lode[T](node) )
       node = node.nexn
     }
     lyst
@@ -333,4 +321,14 @@ class Lyst[T]()
   def toList[B >: T : ClassTag] : List[B] = toArray[B].toList
 
 }
+
+/*
+private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
+{
+  var node:Lode[T] = _node
+  def term             : Lode[T] = Lode.term
+  override def hasNext : Boolean = node!=null && node!=term && node.nexn!=term
+  override def next()  : T = { val elem = node.elem; node = node.nexn; elem }
+}
+ */
 
