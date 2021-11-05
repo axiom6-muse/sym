@@ -10,9 +10,8 @@ import scala.reflect.ClassTag
 
 class Lode[T]( _elem:T )
 {
-
-  def term            : Lode[T] = Lode.term
   var elem            : T = _elem               // var elem is mutable
+  def term            : Lode[T] = Lode.term
   @transient var prev : Lode[T] = term
   @transient var nexn : Lode[T] = term
 
@@ -22,7 +21,6 @@ class Lode[T]( _elem:T )
 
 object Lode
 {
-  val verm    : Lode[Nothing] = new Lode[Nothing]( null.asInstanceOf[Nothing] )
   def term[T] : Lode[T] = null
   def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
 }
@@ -42,16 +40,16 @@ object Lyst
 
 class Lyst[T]()
 {
-  def term:Lode[T] = Lode.term
   var size : Int   = 0
-  @transient val ring:Lode[T] = term
+  def term            : Lode[T] = Lode.term
+  @transient val ring : Lode[T] = term
   ring.prev    = ring
   ring.nexn    = ring
 
   def head : Lode[T] = ring.nexn
   def tail : Lode[T] = ring.prev
 
-  def in( node:Lode[T])  : Boolean = node!=term && node!=ring  //
+  def in( node:Lode[T])  : Boolean = node!=term && node!=ring
   def in( index:Int )    : Boolean = 0 <= index && index < size
 
 // ... add ins del ...
@@ -323,6 +321,7 @@ class Lyst[T]()
 }
 
 /*
+  val verm    : Lode[Nothing] = new Lode[Nothing]( null.asInstanceOf[Nothing] )
 private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
 {
   var node:Lode[T] = _node
