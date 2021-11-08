@@ -14,13 +14,12 @@ class Lode[T]( _elem:T )
   var elem : T       = _elem
   var prev : Lode[T] = Lode.term
   var nexn : Lode[T] = Lode.term
-  def next[U>:T]()  : U       = nexn.elem
-  def hasNext : Boolean = nexn != null
 }
 
 object Lode
 {
   def term[T] : Lode[T] = null.asInstanceOf[Lode[T]]
+  def apply[T]( elem:T )       : Lode[T] = { new Lode[T](      elem ) }
   def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
 }
 
@@ -39,18 +38,16 @@ object Lyst
 
 class Lyst[T]()
 {
-  def lode[U>:T]( lode:U ) : Lode[T] = lode.asInstanceOf[Lode[T]]
-  def term[Null>:T]        : Lode[T] = null.asInstanceOf[Lode[T]]
+  val ring  : Lode[T] = Lode(null)
+  ring.prev           = ring
+  ring.nexn           = ring
+  var size : Int      = 0
 
-  var size : Int   = 0
-  val ring : Lode[T] = Lode(null)
-  ring.prev    = ring
-  ring.nexn    = ring
+  def term[Null>:T] : Lode[T] = Lode.term
+  def head : Lode[T] = ring.nexn
+  def tail : Lode[T] = ring.prev
 
-  def head[U>:T] : Lode[T] = lode(ring.nexn)
-  def tail[U>:T] : Lode[T] = lode(ring.prev)
-
-  def in( node:Lode[T])  : Boolean = node!=term && node!=ring
+  def in( node:Lode[T])  : Boolean = node != term && node != ring
   def in( index:Int )    : Boolean = 0 <= index && index < size
 
 // ... add ins del ...
@@ -80,9 +77,8 @@ class Lyst[T]()
  
  // .......................................
 
-  def create( elem:T )  : Lode[T]   = new Lode[T](  elem )
   def +=(     elem:T )  : Unit = { add(elem) }
-  def add(    elem:T )  : Lode[T]   = add( create(elem) )
+  def add(    elem:T )  : Lode[T]   = add( Lode(elem) )
   def add( seq:Seq[T] ) : Lode[T]   = { for( elem <- seq ) add(elem); tail }
 
   private def add( node:Lode[T] ) : Lode[T]=
@@ -108,7 +104,7 @@ class Lyst[T]()
     node
   }
 
-  def ins( elem:T ) : Lode[T]= ins( create(elem) )
+  def ins( elem:T ) : Lode[T]= ins( Lode(elem) )
 
   private def ins( node:Lode[T] ) : Lode[T] =
   {
@@ -128,7 +124,7 @@ class Lyst[T]()
     node
  }
 
-  def add( pred:Lode[T], elem:T ) : Lode[T]= add( pred, create(elem) )
+  def add( pred:Lode[T], elem:T ) : Lode[T]= add( pred, Lode(elem) )
 
   private def add( pred:Lode[T], node:Lode[T] ) : Lode[T]=
   {
@@ -143,7 +139,7 @@ class Lyst[T]()
     node
   }
 
-  def ins( succ:Lode[T], elem:T ) : Lode[T]= ins( succ, create(elem) )
+  def ins( succ:Lode[T], elem:T ) : Lode[T]= ins( succ, Lode(elem) )
 
   private def ins( succ:Lode[T], node:Lode[T] ) : Lode[T]=
   {
@@ -322,6 +318,10 @@ class Lyst[T]()
 }
 
 /*
+
+  def lode[U>:T]( lode:U ) : Lode[T] = lode.asInstanceOf[Lode[T]]
+  def term[Null>:T]        : Lode[T] = null.asInstanceOf[Lode[T]]
+
   val verm    : Lode[Nothing] = new Lode[Nothing]( null.asInstanceOf[Nothing] )
 private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
 {
