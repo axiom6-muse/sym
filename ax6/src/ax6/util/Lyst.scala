@@ -1,24 +1,20 @@
 
 package ax6.util
 
-//import scala.collection.compat.IterableOnce
 import scala.reflect.ClassTag
-//import scala.reflect.ClassTag.Nothing
-
 
 // ------------------------------- Lode[T] -------------------------------------
 
 class Lode[T]( _elem:T )
 {
-
   var elem : T       = _elem
-  var prev : Lode[T] = Lode.term
-  var nexn : Lode[T] = Lode.term
+  var prev : Lode[T] = this
+  var next : Lode[T] = this
 }
 
 object Lode
 {
-  def term[T] : Lode[T] = null.asInstanceOf[Lode[T]]
+  // def term[T] : Lode[T] = null.asInstanceOf[Lode[T]]
   def apply[T]( elem:T )       : Lode[T] = { new Lode[T](      elem ) }
   def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
 }
@@ -40,20 +36,53 @@ class Lyst[T]()
 {
   val ring  : Lode[T] = Lode(null)
   ring.prev           = ring
-  ring.nexn           = ring
+  ring.next           = ring
   var size : Int      = 0
 
-  def term[Null>:T] : Lode[T] = Lode.term
-  def head : Lode[T] = ring.nexn
+  def head : Lode[T] = ring.next
   def tail : Lode[T] = ring.prev
 
-  def in( node:Lode[T])  : Boolean = node != term && node != ring
+  def in( node:Lode[T])  : Boolean = node != ring && node != ring
   def in( index:Int )    : Boolean = 0 <= index && index < size
+  def isEmpty            : Boolean = { size == 0 }
+  private def inc()      : Unit    = { size += 1 }
+  private def dec()      : Unit    = { size -= 1 }
 
-// ... add ins del ...
+ // ................. add ......................
 
-  private def inc(): Unit = { size += 1 }
-  private def dec(): Unit = { size -= 1 }
+  def +=(     elem:T )  : Unit      = { add( elem ) }
+  def add(    elem:T )  : Lode[T]   = { add( tail, Lode(elem) ) }
+  def add( seq:Seq[T] ) : Lode[T]   = { for( elem <- seq ) add(elem); tail }
+
+  def add( pred:Lode[T], node:Lode[T] ) : Lode[T] =
+  {
+    if( !in(pred) || !in(node) )
+      return ring
+    
+    if( isEmpty )        // Add the first node
+    {
+      node.prev = ring
+      node.next = ring
+      ring.prev = node
+      ring.next = node
+    }
+    else if( pred == tail ) // Add node to the tail, ring.prev() is the tail
+    {
+      node.prev      = ring.prev
+      node.next      = ring
+      ring.prev.next = node
+      ring.prev      = node
+    }
+    else
+    {
+      node.prev      = pred      // Set the node adjacent poInters
+      node.next      = pred.next
+      pred.next.prev = node      // Reset the poInters around the list node
+      pred.next      = node
+    }
+    inc()
+    node
+  }
 
   // Add to list only if elem is unique
   def put( elem:T ) : Lode[T] =
@@ -62,115 +91,67 @@ class Lyst[T]()
     if(in(node)) node else add(elem)
   }
 
-  def isEmpty: Boolean = { size == 0 }
+  // ................. ins ......................
 
-  def clear(): Unit = {
-    var node = head
-    var nexn = head
-    while( in(node) )
-    {
-      nexn = node.nexn
-      del( node )
-      node = nexn
-    }
-  }   
- 
- // .......................................
-
-  def +=(     elem:T )  : Unit = { add(elem) }
-  def add(    elem:T )  : Lode[T]   = add( Lode(elem) )
-  def add( seq:Seq[T] ) : Lode[T]   = { for( elem <- seq ) add(elem); tail }
-
-  private def add( node:Lode[T] ) : Lode[T]=
-  {
-    if( !in(node) )
-      { Log.error( "node not in", node.toString ); return term }
-    
-    if( isEmpty )        // Add the first node
-    {
-      node.prev = ring
-      node.nexn = ring
-      ring.prev = node
-      ring.nexn = node
-    }
-    else // Add node to the tail, ring.prev() is the tail
-    {
-      node.prev      = ring.prev
-      node.nexn      = ring
-      ring.prev.nexn = node
-      ring.prev      = node
-    }
-    inc()
-    node
-  }
-
-  def ins( elem:T ) : Lode[T]= ins( Lode(elem) )
-
-  private def ins( node:Lode[T] ) : Lode[T] =
-  {
-    if( !in(node) )
-      return term
-
-    if( isEmpty )
-      add(node)
-    else                   // Insert node to the tail
-    {
-      node.prev      = ring
-      node.nexn      = ring.nexn
-      ring.nexn.prev = node
-      ring.nexn      = node
-      inc()
-    }
-    node
- }
-
-  def add( pred:Lode[T], elem:T ) : Lode[T]= add( pred, Lode(elem) )
-
-  private def add( pred:Lode[T], node:Lode[T] ) : Lode[T]=
-  {
-    if( !in(pred) || !in(node) )
-      return term
-    
-    node.prev      = pred      // Set the node adjacent poInters
-    node.nexn      = pred.nexn
-    pred.nexn.prev = node      // Reset the poInters around the list node
-    pred.nexn      = node
-    inc()
-    node
-  }
+  def ins( elem:T ) : Lode[T]= ins( head, Lode(elem) )
 
   def ins( succ:Lode[T], elem:T ) : Lode[T]= ins( succ, Lode(elem) )
 
-  private def ins( succ:Lode[T], node:Lode[T] ) : Lode[T]=
+  def ins( succ:Lode[T], node:Lode[T] ) : Lode[T] =
   {
     if( !in(succ) || !in(node) )
-      return term
-    
-    node.prev      = succ.prev  // Set the node adjacent poInters
-    node.nexn      = succ
-    succ.prev.nexn = node       // Reset the poInters around the list node
-    succ.prev      = node
+      return ring
+
+    if( isEmpty )
+      add( tail, node)
+    else if( succ == head )                  // Insert node to the head
+    {
+      node.prev      = ring
+      node.next      = ring.next
+      ring.next.prev = node
+      ring.next      = node
+    }
+    else
+    {
+      node.prev      = succ.prev  // Set the node adjacent poInters
+      node.next      = succ
+      succ.prev.next = node       // Reset the poInters around the list node
+      succ.prev      = node
+    }
     inc()
     node
-  }
+ }
+
+  // ................ del ....................
 
   def del( elem:T ) : Lode[T]= del( find(elem)   )
 
   def del( node:Lode[T] ) : Lode[T]=
   {
     if( !in(node) )
-      return term
+      return ring
     
-    node.prev.nexn = node.nexn
-    node.nexn.prev = node.prev
+    node.prev.next = node.next
+    node.next.prev = node.prev
     dec()
 
-    node.nexn = term
-    node.prev = term
+    node.next = ring
+    node.prev = ring
     node
   }
 
-// ... find ...
+  def clear(): Unit = {
+    var node = head
+    var next = head
+    while( in(node) )
+    {
+      next = node.next
+      del( node )
+      node = next
+    }
+  }
+
+  // ... find ...
   def find( elem:T ) : Lode[T] =
   {
     var node = head
@@ -178,9 +159,9 @@ class Lyst[T]()
     {
       if( node.elem == elem )
         return node
-      node = node.nexn
+      node = node.next
     }
-    term
+    ring
   }
 
   def find( idx:Int ) : Lode[T] =
@@ -194,10 +175,10 @@ class Lyst[T]()
         if( i==idx )
           return node
         i += 1
-        node = node.nexn
+        node = node.next
       }
     }
-    term
+    ring
   }
 
   def indexOf( elem:T ) : Int =
@@ -209,7 +190,7 @@ class Lyst[T]()
       if( node.elem == elem )
         return i
       i += 1
-      node = node.nexn
+      node = node.next
     }
     -1
   }
@@ -223,7 +204,7 @@ class Lyst[T]()
       if( _node==node )
         return i
       i += 1
-      node = node.nexn
+      node = node.next
     }
     -1
   }
@@ -236,7 +217,7 @@ class Lyst[T]()
   def foreach( func:T => Unit ): Unit = {
     var node = head
     while( in(node) )
-      { func(node.elem); node = node.nexn }
+      { func(node.elem); node = node.next }
   }
 
   def map[B]( func:T => B )  : Lyst[B] =
@@ -246,7 +227,7 @@ class Lyst[T]()
     while( in(node) )
     {
       lyst.add( func(node.elem) )
-      node = node.nexn
+      node = node.next
     }
     lyst
   }
@@ -258,8 +239,8 @@ class Lyst[T]()
     while( in(node) )
     {
       if( pred(node.elem) )
-        lyst.add( Lode[T](node) )
-      node = node.nexn
+        lyst.add( lyst.tail, Lode[T](node) )
+      node = node.next
     }
     lyst
   }
@@ -275,7 +256,7 @@ class Lyst[T]()
         case lystT:List[T]   => for( elem <- lystT  ) lystU.add(elem)
         case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(elem)
       }
-      node = node.nexn
+      node = node.next
     }
     lystU
   }
@@ -293,7 +274,7 @@ class Lyst[T]()
         case lystT:List[T]   => for( elem <- lystT  ) lystU.add(func(elem))
         case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(func(elem))
       }
-      node = node.nexn
+      node = node.next
     }
     lystU
   }
@@ -307,7 +288,7 @@ class Lyst[T]()
     var i     = 0
     while( in(node) ) {
       array(i) = node.elem
-      node     = node.nexn
+      node     = node.next
       i = i + 1
     }
     array
@@ -327,8 +308,8 @@ private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
 {
   var node:Lode[T] = _node
   def term             : Lode[T] = Lode.term
-  override def hasNext : Boolean = node!=null && node!=term && node.nexn!=term
-  override def next()  : T = { val elem = node.elem; node = node.nexn; elem }
+  override def hasNext : Boolean = node!=null && node!=term && node.next!=term
+  override def next()  : T = { val elem = node.elem; node = node.next; elem }
 }
  */
 
