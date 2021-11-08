@@ -10,18 +10,17 @@ import scala.reflect.ClassTag
 
 class Lode[T]( _elem:T )
 {
-  var elem            : T = _elem               // var elem is mutable
-  def term            : Lode[T] = Lode.term
-  @transient var prev : Lode[T] = term
-  @transient var nexn : Lode[T] = term
 
-  def next()  : T       = nexn.elem
-  def hasNext : Boolean = nexn != term
+  var elem : T       = _elem
+  var prev : Lode[T] = Lode.term
+  var nexn : Lode[T] = Lode.term
+  def next[U>:T]()  : U       = nexn.elem
+  def hasNext : Boolean = nexn != null
 }
 
 object Lode
 {
-  def term[T] : Lode[T] = null
+  def term[T] : Lode[T] = null.asInstanceOf[Lode[T]]
   def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
 }
 
@@ -40,14 +39,16 @@ object Lyst
 
 class Lyst[T]()
 {
+  def lode[U>:T]( lode:U ) : Lode[T] = lode.asInstanceOf[Lode[T]]
+  def term[Null>:T]        : Lode[T] = null.asInstanceOf[Lode[T]]
+
   var size : Int   = 0
-  def term            : Lode[T] = Lode.term
-  @transient val ring : Lode[T] = term
+  val ring : Lode[T] = Lode(null)
   ring.prev    = ring
   ring.nexn    = ring
 
-  def head : Lode[T] = ring.nexn
-  def tail : Lode[T] = ring.prev
+  def head[U>:T] : Lode[T] = lode(ring.nexn)
+  def tail[U>:T] : Lode[T] = lode(ring.prev)
 
   def in( node:Lode[T])  : Boolean = node!=term && node!=ring
   def in( index:Int )    : Boolean = 0 <= index && index < size
