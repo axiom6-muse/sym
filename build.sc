@@ -4,7 +4,7 @@ import mill.define.Target
 import mill.scalalib._
 
 object ax6 extends ScalaModule {
-  def scalaVersion = "3.0.2"
+  def scalaVersion = "3.1.0"
   override def mainClass:Target[Option[String]] = Option("ax6.test.Suite")
   override def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / "lib")) Agg()
@@ -17,7 +17,7 @@ object ax6 extends ScalaModule {
 }
 
 object ax2 extends ScalaModule {
-  def scalaVersion = "3.0.2"
+  def scalaVersion = "3.1.0"
   override def mainClass:Target[Option[String]] = Option("ax2.zhttp.Hello")
   override def moduleDeps = Seq(ax6)
   override def ivyDeps = Agg(
