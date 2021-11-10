@@ -5,56 +5,59 @@ import scala.reflect.ClassTag
 
 // ------------------------------- Lode[T] -------------------------------------
 
-class Lode[T]( _elem:T )
+class Lode[I]( _elem:I )
 {
-  var elem : T       = _elem
-  var prev : Lode[T] = this
-  var next : Lode[T] = this
+  var elem : I       = _elem
+  var prev : Lode[I] = this
+  var next : Lode[I] = this
 }
 
 object Lode
 {
-  // def term[T] : Lode[T] = null.asInstanceOf[Lode[T]]
-  def apply[T]( elem:T )       : Lode[T] = { new Lode[T](      elem ) }
-  def apply[T]( lode:Lode[T] ) : Lode[T] = { new Lode[T]( lode.elem ) }
+  // def term[I] : Lode[I] = null.asInstanceOf[Lode[I]]
+  def apply[I]( elem:I )       : Lode[I] = { new Lode[I](      elem ) }
+  def apply[I]( lode:Lode[I] ) : Lode[I] = { new Lode[I]( lode.elem ) }
 }
 
-// ---------------------------- object Lyst[T] ---------------------------------
+// ---------------------------- object Lyst[I] ---------------------------------
 
 object Lyst
 {
-  def apply[T](                 ) : Lyst[T] = new Lyst[T]()
-  def apply[T]( seq:Seq[T]      ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- seq   ) { lyst.add(t) }; lyst }
-  def apply[T]( lysa:Lyst[T]    ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- lysa  ) { lyst.add(t) }; lyst }
-  def apply[T]( array:Array[T]  ) : Lyst[T] = { val lyst = Lyst[T](); for( t <- array ) { lyst.add(t) }; lyst }
-  def unapplySeq[T]( seq:Seq[T] ) : Option[Seq[T]] = Option(seq)
+  def apply[I](                 ) : Lyst[I] = new Lyst[I]()
+  def apply[I]( seq:Seq[I]      ) : Lyst[I] = { val lyst = Lyst[I](); for( t <- seq   ) { lyst.add(t) }; lyst }
+  def apply[I]( lysa:Lyst[I]    ) : Lyst[I] = { val lyst = Lyst[I](); for( t <- lysa  ) { lyst.add(t) }; lyst }
+  def apply[I]( array:Array[I]  ) : Lyst[I] = { val lyst = Lyst[I](); for( t <- array ) { lyst.add(t) }; lyst }
+  def unapplySeq[I]( seq:Seq[I] ) : Option[Seq[I]] = Option(seq)
 }
 
-// ----------------------------- class Lyst[T] ---------------------------------
+// ----------------------------- class Lyst[I] ---------------------------------
 
-class Lyst[T]()
+class Lyst[I]()
 {
-  val ring  : Lode[T] = Lode(null)
+  val ring  : Lode[I] = Lode(null)
   ring.prev           = ring
   ring.next           = ring
   var size : Int      = 0
 
-  def head : Lode[T] = ring.next
-  def tail : Lode[T] = ring.prev
+  def head : Lode[I] = ring.next
+  def tail : Lode[I] = ring.prev
 
-  def in( node:Lode[T])  : Boolean = node != ring && node != ring
-  def in( index:Int )    : Boolean = 0 <= index && index < size
-  def isEmpty            : Boolean = { size == 0 }
-  private def inc()      : Unit    = { size += 1 }
-  private def dec()      : Unit    = { size -= 1 }
+  def in( node:Lode[I] )         : Boolean = node != ring
+  def in( node:Option[Lode[I]] ) : Boolean = node != None 
+  def in( index:Int )            : Boolean = 0 <= index && index < size
+
+  def isEmpty       : Boolean = { size == 0 }
+  private def inc() : Unit    = { size += 1 }
+  private def dec() : Unit    = { size -= 1 }
 
  // ................. add ......................
 
-  def +=(     elem:T )  : Unit      = { add( elem ) }
-  def add(    elem:T )  : Lode[T]   = { add( tail, Lode(elem) ) }
-  def add( seq:Seq[T] ) : Lode[T]   = { for( elem <- seq ) add(elem); tail }
+  def +=(  elem:I )               : Unit      = { add( elem ) }
+  def add( elem:I )               : Lode[I]   = { add( tail, Lode(elem) ) }
+  def add( pred:Lode[I], elem:I ) : Lode[I]   = { add( pred, Lode(elem) ) }
+  def add( seq:Seq[I] )           : Lode[I]   = { for( elem <- seq ) add(elem); tail }
 
-  def add( pred:Lode[T], node:Lode[T] ) : Lode[T] =
+  def add( pred:Lode[I], node:Lode[I] ) : Lode[I] =
   {
     if( !in(pred) || !in(node) )
       return ring
@@ -85,19 +88,19 @@ class Lyst[T]()
   }
 
   // Add to list only if elem is unique
-  def put( elem:T ) : Lode[T] =
+  def put( elem:I ) : Lode[I] =
   {
-    val node:Lode[T] = find(elem)
-    if(in(node)) node else add(elem)
+    val node:Lode[I] = find(elem)
+    if( in(node) ) ring else add(elem)
   }
 
   // ................. ins ......................
 
-  def ins( elem:T ) : Lode[T]= ins( head, Lode(elem) )
+  def ins( elem:I ) : Lode[I]= ins( head, Lode(elem) )
 
-  def ins( succ:Lode[T], elem:T ) : Lode[T]= ins( succ, Lode(elem) )
+  def ins( succ:Lode[I], elem:I ) : Lode[I]= ins( succ, Lode(elem) )
 
-  def ins( succ:Lode[T], node:Lode[T] ) : Lode[T] =
+  def ins( succ:Lode[I], node:Lode[I] ) : Lode[I] =
   {
     if( !in(succ) || !in(node) )
       return ring
@@ -124,9 +127,9 @@ class Lyst[T]()
 
   // ................ del ....................
 
-  def del( elem:T ) : Lode[T]= del( find(elem)   )
+  def del( elem:I ) : Lode[I]= del( find(elem)   )
 
-  def del( node:Lode[T] ) : Lode[T]=
+  def del( node:Lode[I] ) : Lode[I]=
   {
     if( !in(node) )
       return ring
@@ -152,7 +155,9 @@ class Lyst[T]()
   }
 
   // ... find ...
-  def find( elem:T ) : Lode[T] =
+
+  // By returning val ring as not found, find(elem) works nicely with in(node)
+  def find( elem:I ) :  Lode[I] =
   {
     var node = head
     while( in(node) )
@@ -164,7 +169,19 @@ class Lyst[T]()
     ring
   }
 
-  def find( idx:Int ) : Lode[T] =
+  def findOption( elem:I ) : Option[Lode[I]] =
+  {
+    var node = head
+    while( in(node) )
+    {
+      if( node.elem == elem )
+        return Some(node)
+      node = node.next
+    }
+    None
+  }
+
+  def find( idx:Int ) : Lode[I] =
   {
     if( in(idx) )
     {
@@ -181,7 +198,7 @@ class Lyst[T]()
     ring
   }
 
-  def indexOf( elem:T ) : Int =
+  def indexOf( elem:I ) : Int =
   {
     var i = 0
     var node = head
@@ -195,7 +212,7 @@ class Lyst[T]()
     -1
   }
 
-  def indexOf( _node:Lode[T] ) : Int =
+  def indexOf( _node:Lode[I] ) : Int =
   {
     var i = 0
     var node = head
@@ -209,21 +226,21 @@ class Lyst[T]()
     -1
   }
 
-  def has( elem:T ) : Boolean = in(find(elem))
+  def has( elem:I ) : Boolean = in(find(elem))
 
   // ... for comprehensions ...
-  // foreach map flatMap withFilter
+  // foreach map flatMap filter withFilter
 
-  def foreach( func:T => Unit ): Unit = {
+  def foreach( func:I => Unit ): Unit = {
     var node = head
     while( in(node) )
       { func(node.elem); node = node.next }
   }
 
-  def map[B]( func:T => B )  : Lyst[B] =
+  def map[U]( func:I => U )  : Lyst[U] =
   {
-    var node : Lode[T]= head
-    val lyst : Lyst[B] = new Lyst[B]()
+    var node : Lode[I]= head
+    val lyst : Lyst[U] = Lyst[U]()
     while( in(node) )
     {
       lyst.add( func(node.elem) )
@@ -232,56 +249,37 @@ class Lyst[T]()
     lyst
   }
 
-  def filter( pred:T => Boolean ): Lyst[T] =
-  {
-    var node = head
-    val lyst = new Lyst[T]()
-    while( in(node) )
-    {
-      if( pred(node.elem) )
-        lyst.add( lyst.tail, Lode[T](node) )
+  // Verify
+  def flatMap[U]( func: I => IterableOnce[U] ) : Lyst[U] = {
+    var node : Lode[I] = head
+    val lyst : Lyst[U] = Lyst[U]()
+    while( in(node) ) {
+      val iter = func(node.elem).iterator
+      while( iter.hasNext ) {
+        lyst.add( iter.next() )
+      }
       node = node.next
     }
     lyst
   }
 
-  /*
-  def flatten[U]( implicit toIterableOnce: T => IterableOnce[U]): Lyst[U] = {
-    var node  = head
-    val lystU = new Lyst[U]()
-    while( in(node) ) {
-      node.elem match  {
-        case elem:T        => lystU.add(func(elem))
-        case seqT:Seq[T]     => for( elem <- seqT   ) lystU.add(elem)
-        case lystT:List[T]   => for( elem <- lystT  ) lystU.add(elem)
-        case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(elem)
-      }
-      node = node.next
-    }
-    lystU
-  }
-  */
-
-  //def flatMap[U]( func: T => IterableOnce[U] ) : Lyst[U] = {
-  /*
-  def flatMap[U]( func: T => U ) : Lyst[U] = {
+  def filter( pred:I => Boolean ): Lyst[I] =
+  {
     var node = head
-    val lystU = new Lyst[U]()
-    while( in(node) ) {
-      node.elem match  {
-        case elem:T          => lystU.add(func(elem))
-        case seqT:Seq[T]     => for( elem <- seqT   ) lystU.add(func(elem))
-        case lystT:List[T]   => for( elem <- lystT  ) lystU.add(func(elem))
-        case arrayT:Array[T] => for( elem <- arrayT ) lystU.add(func(elem))
-      }
+    val lyst = Lyst[I]()
+    while( in(node) )
+    {
+      if( pred(node.elem) )
+        lyst.add( lyst.tail, Lode[I](node) )
       node = node.next
     }
-    lystU
+    lyst
   }
-  */
-  def withFfilter( pred:T => Boolean ) : Lyst[T] = filter( pred )
 
-  def toArray[B >: T : ClassTag] : Array[B] =
+
+  def withFfilter( pred:I => Boolean ) : Lyst[I] = filter( pred )
+
+  def toArray[B >: I : ClassTag] : Array[B] =
   {
     val array = new Array[B](size)
     var node  = head
@@ -294,22 +292,56 @@ class Lyst[T]()
     array
   }
 
-  def toList[B >: T : ClassTag] : List[B] = toArray[B].toList
+  def toList[B >: I : ClassTag] : List[B] = toArray[B].toList
 
 }
 
 /*
 
-  def lode[U>:T]( lode:U ) : Lode[T] = lode.asInstanceOf[Lode[T]]
-  def term[Null>:T]        : Lode[T] = null.asInstanceOf[Lode[T]]
+  def lode[U>:I]( lode:U ) : Lode[I] = lode.asInstanceOf[Lode[I]]
+  def term[Null>:I]        : Lode[I] = null.asInstanceOf[Lode[I]]
 
   val verm    : Lode[Nothing] = new Lode[Nothing]( null.asInstanceOf[Nothing] )
-private class LystIter[T]( _node:Lode[T] ) extends Iterator[T]
+private class LystIter[I]( _node:Lode[I] ) extends Iterator[I]
 {
-  var node:Lode[T] = _node
-  def term             : Lode[T] = Lode.term
+  var node:Lode[I] = _node
+  def term             : Lode[I] = Lode.term
   override def hasNext : Boolean = node!=null && node!=term && node.next!=term
-  override def next()  : T = { val elem = node.elem; node = node.next; elem }
+  override def next()  : I = { val elem = node.elem; node = node.next; elem }
 }
+
+  def flatten[U]( implicit toIterableOnce: I => IterableOnce[U]): Lyst[U] = {
+    var node  = head
+    val lystU = new Lyst[U]()
+    while( in(node) ) {
+      node.elem match  {
+        case elem:I        => lystU.add(func(elem))
+        case seqT:Seq[I]     => for( elem <- seqT   ) lystU.add(elem)
+        case lystT:List[I]   => for( elem <- lystT  ) lystU.add(elem)
+        case arrayT:Array[I] => for( elem <- arrayT ) lystU.add(elem)
+      }
+      node = node.next
+    }
+    lystU
+  }
+
+
+  //def flatMap[U]( func: I => IterableOnce[U] ) : Lyst[U] = {
+
+  def flatMap[U]( func: I => U ) : Lyst[U] = {
+    var node = head
+    val lystU = new Lyst[U]()
+    while( in(node) ) {
+      node.elem match  {
+        case elem:I          => lystU.add(func(elem))
+        case seqT:Seq[I]     => for( elem <- seqT   ) lystU.add(func(elem))
+        case lystT:List[I]   => for( elem <- lystT  ) lystU.add(func(elem))
+        case arrayT:Array[I] => for( elem <- arrayT ) lystU.add(func(elem))
+      }
+      node = node.next
+    }
+    lystU
+  }
+
  */
 
